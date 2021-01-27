@@ -7,7 +7,7 @@ using haxe.macro.Tools;
 class BuilderHelpers {
   public static final PROPS = '__props';
   public static final INCOMING_PROPS = '__incomingProps';
-  public static final OPTIONAL_META = {name: ':optional', pos: (macro null).pos};
+  public static final OPTIONAL_META = { name: ':optional', pos: (macro null).pos };
 
   public static function extractTypeParams(tp:TypeParameter) {
     return switch tp.t {

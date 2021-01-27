@@ -17,7 +17,7 @@ class DefaultScheduler implements Scheduler {
   function later(fn:()->Void) {
     var impl:(fn:()->Void)->Void = fn -> haxe.Timer.delay(fn, 10);
     #if js
-    impl = try {
+      impl = try {
         if (js.Browser.window.requestAnimationFrame != null)
           fn -> js.Browser.window.requestAnimationFrame(cast fn);
         else
@@ -36,8 +36,9 @@ class DefaultScheduler implements Scheduler {
     var currentQueue = queue;
     queue = null;
 
-    for (item in currentQueue) 
+    for (item in currentQueue) {
       try item() catch (e:haxe.Exception) error = e;
+    }
     
     if (error != null) throw error;
   }

@@ -57,6 +57,10 @@ class ClassBuilder {
     this.fields = fields;
   }
 
+  public inline function isInterface() {
+    return cls.isInterface;
+  }
+
   public function getTypePath():TypePath {
     return {
       pack: cls.pack,

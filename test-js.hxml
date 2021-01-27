@@ -1,3 +1,5 @@
 test-common.hxml
 
 -js dist/test.js
+
+-cmd node dist/test

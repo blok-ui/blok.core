@@ -2,8 +2,8 @@
 -cp test
 
 -D js-es=6
-# -D analyzer-optimize
-# -dce full
+-D analyzer-optimize
+-dce full
 
 -lib medic
 -lib nodom

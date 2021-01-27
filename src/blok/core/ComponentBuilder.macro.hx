@@ -4,6 +4,7 @@ import haxe.macro.Context;
 import haxe.macro.Expr;
 import blok.core.BuilderHelpers.*;
 
+using Lambda;
 using haxe.macro.Tools;
 
 class ComponentBuilder {
@@ -43,6 +44,39 @@ class ComponentBuilder {
         pos: (macro null).pos
       });
     }
+
+    // Todo: this is probably too simple to work well
+    builder.addClassMetaHandler({
+      name: 'lazy',
+      hook: After,
+      options: [],
+      build: function (options:{}, builder, fields) {
+        if (fields.exists(f -> f.name == 'componentIsInvalid')) {
+          Context.error(
+            'Cannot use @lazy and a custom componentIsInvalid method',
+            fields.find(f -> f.name == 'componentIsInvalid').pos
+          );
+        }
+
+        var propType = TAnonymous(props);
+        var checks:Array<Expr> = [ for (prop in updateProps) {
+          var name = prop.name;
+          macro if ($i{PROPS}.$name != previousProps.$name) return true;
+        } ];
+
+        // will this work???:
+        builder.add(macro class {
+          var __previousProps:$propType;
+          
+          override function componentIsInvalid():Bool {
+            var previousProps = __previousProps;
+            __previousProps = $i{PROPS};
+            $b{checks};
+            return false;
+          }
+        });
+      } 
+    });
     
     builder.addFieldMetaHandler({
       name: 'prop',
@@ -92,6 +126,49 @@ class ComponentBuilder {
       }
     });
 
+    builder.addFieldMetaHandler({
+      name: 'use',
+      hook: Normal,
+      options: [],
+      build: function (options:{}, builder, field) switch field.kind {
+        case FVar(t, e):
+          if (t == null) {
+            Context.error('Types cannot be inferred for @use vars', field.pos);
+          }
+
+          if (e != null) {
+            Context.error('@use vars cannot be initialized', field.pos);
+          }
+
+          if (!Context.unify(t.toType(), Context.getType('blok.core.Service'))) {
+            Context.error('@use must be a blok.core.Service', field.pos);
+          }
+
+          var clsName = t.toType().toString();
+          if (clsName.indexOf('<') >= 0) clsName = clsName.substring(0, clsName.indexOf('<'));
+          
+          var path = clsName.split('.'); // is there a better way
+          var name = field.name;
+          var getter = 'get_$name';
+          var backingName = '__computedValue_$name';
+
+          field.kind = FProp('get', 'never', t, null);
+
+          builder.add(macro class {
+            var $backingName:$t = null;
+
+            function $getter() {
+              if (this.$backingName == null) 
+                this.$backingName = $p{path}.from(__context);
+              return this.$backingName;
+            } 
+          });
+
+          updates.push(macro this.$backingName = null);
+        default:
+          Context.error('@use can only be used on vars', field.pos);
+      }
+    });
     
     builder.addFieldMetaHandler({
       name: 'update',
@@ -124,6 +201,38 @@ class ComponentBuilder {
     });
 
     builder.addFieldMetaHandler({
+      name: 'init',
+      hook: After,
+      options: [],
+      build: function(_, builder, field) switch field.kind {
+        case FFun(func):
+          if (func.args.length > 0) {
+            Context.error('@init methods cannot have any arguments', field.pos);
+          }
+          var name = field.name;
+          initHooks.push(macro @:pos(field.pos) inline this.$name());
+        default:
+          Context.error('@init must be used on a method', field.pos);
+      }
+    });
+
+    builder.addFieldMetaHandler({
+      name: 'dispose',
+      hook: After,
+      options: [],
+      build: function (_, builder, field) switch field.kind {
+        case FFun(func):
+          if (func.args.length > 0) {
+            Context.error('@dispose methods cannot have any arguments', field.pos);
+          }
+          var name = field.name;
+          disposeHooks.push(macro @:pos(field.pos) inline this.$name());
+        default:
+          Context.error('@dispose must be used on a method', field.pos);
+      }
+    });
+
+    builder.addFieldMetaHandler({
       name: 'effect',
       hook: After,
       options: [],
@@ -142,6 +251,27 @@ class ComponentBuilder {
     builder.addLater(() -> {
       var propType = TAnonymous(props);
       var updateType = TAnonymous(updateProps);
+      var createParams = builder.cls.params.length > 0
+        ? [ for (p in builder.cls.params) { name: p.name, constraints: BuilderHelpers.extractTypeParams(p) } ]
+        : [];
+
+      builder.addFields([
+        {
+          name: 'node',
+          access: [ AStatic, APublic, AInline ],
+          pos: (macro null).pos,
+          meta: [],
+          kind: FFun({
+            params: createParams,
+            args: [
+              { name: 'props', type: macro:$propType },
+              { name: 'key', type: macro:Null<blok.core.Key>, opt: true }
+            ],
+            expr: macro return VComponent(__type, props, key),
+            ret: macro:blok.core.VNode<$nodeType>
+          })
+        }
+      ]);
 
       return macro class {
         @:noCompletion
@@ -154,13 +284,13 @@ class ComponentBuilder {
           }
         }
 
-        public static function node(props, ?key):blok.core.VNode<$nodeType> {
-          return VComponent(__type, props, key);
-        }
+        // public static function node(props, ?key):blok.core.VNode<$nodeType> {
+        //   return VComponent(__type, props, key);
+        // }
 
         var $PROPS:$propType;
 
-        public function new($INCOMING_PROPS, __parent, __context) {
+        public function new($INCOMING_PROPS:$propType, __parent, __context) {
           this.$PROPS = ${ {
             expr: EObjectDecl(initializers),
             pos: (macro null).pos
@@ -188,6 +318,11 @@ class ComponentBuilder {
 
         override function getSideEffects() {
           return [ $a{ effectHooks } ];
+        }
+
+        override function dispose() {
+          $b{disposeHooks};
+          super.dispose();
         }
       }
     });

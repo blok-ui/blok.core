@@ -5,8 +5,8 @@ import haxe.ds.Map;
 class Context<RealNode> {
   public final engine:Engine<RealNode>;
   public final scheduler:Scheduler;
+  public final parent:Null<Context<RealNode>>;
   final data:Map<String, Dynamic> = [];
-  final parent:Null<Context<RealNode>>;
 
   public function new(engine, ?scheduler, ?parent) {
     this.engine = engine;

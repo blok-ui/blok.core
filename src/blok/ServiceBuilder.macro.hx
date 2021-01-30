@@ -1,7 +1,9 @@
-package blok.core;
+package blok;
 
 import haxe.macro.Context;
 import haxe.macro.Expr;
+import blok.core.ClassBuilder;
+import blok.core.BuilderHelpers;
 
 using haxe.macro.Tools;
 
@@ -12,7 +14,7 @@ class ServiceBuilder {
     if (builder.isInterface()) return builder.export();
 
     var cls = builder.cls;
-    var id = cls.pack.concat([ cls.name ]).join('_').toLowerCase();
+    var id = cls.pack.concat([ cls.name ]).join('.');
     var fallback:Expr = null;
     var createParams = cls.params.length > 0
       ? [ for (p in cls.params) { name: p.name, constraints: BuilderHelpers.extractTypeParams(p) } ]

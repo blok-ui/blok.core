@@ -1,20 +1,42 @@
 package helpers;
 
+import js.Browser;
+import js.html.Element;
 import haxe.PosInfos;
 import medic.Assert;
 import blok.VNode;
-import js.Browser;
 import blok.Platform;
 
 class VNodeAssert {
-  public static function renders(vn:VNode, html:String, next:()->Void, ?p:PosInfos) {
+  // public static function runTests(vn:VNode, tests:Array<(node:Element)->Void>) {
+  //   mount(vn, node -> {
+  //     var test = tests.shift();
+  //     if (test != null) test(node);
+  //   });
+  // }
+
+  public static function mount(vn:VNode, handler:(node:Element)->Void) {
     var node = Browser.document.createElement('div');
     Platform.mount(node, ctx -> Host.node({
       children: [ vn ],
-      onComplete: () -> {
-        Assert.equals(node.innerHTML, html, p);
-        next();
-      }
+      onComplete: node -> handler(cast node)
     }));
+    return node;
+  }
+
+  public static function renders(vn:VNode, html:String, next:()->Void, ?p:PosInfos) {
+    mount(vn, node -> {
+      innerHtmlEquals(node, html, p);
+      next();
+    });
+  }
+
+  public static function innerHtmlEquals(node:Element, html:String, ?p:PosInfos) {
+    Assert.equals(node.innerHTML, html, p);
+  }
+
+  public static function renderWithoutAssert(vn:VNode) {
+    var node = Browser.document.createElement('div');
+    Platform.mount(node, ctx -> vn);
   }
 }

@@ -9,9 +9,9 @@ class Html {
 
   public static function h(tag:String, props:{
     ?className:String,
-    ?id:String
-  }, ?children:Array<VNode<js.html.Node>>, ?key):VNode<js.html.Node> {
-    return VNative(NodeType.get(tag), props, null, key, children);
+    ?id:String,
+  }, ?children:Array<VNode<js.html.Node>>, ?ref, ?key):VNode<js.html.Node> {
+    return VNative(NodeType.get(tag), props, ref, key, children);
   }
 
   public static function text(text:String):VNode<js.html.Node> {

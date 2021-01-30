@@ -7,14 +7,15 @@ import blok.Context;
 
 class Host extends Component {
   @prop var children:Array<VNode>;
-  @prop var onComplete:()->Void;
+  @prop var onComplete:(node:js.html.Node)->Void;
+  var ref:js.html.Node;
 
   @effect
   function handleOnComplete() {
-    onComplete();
+    onComplete(ref);
   }
 
   override function render(context:Context) {
-    return Html.fragment(children);
+    return Html.h('div', {}, children, node -> ref = node);
   }
 }

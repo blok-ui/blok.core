@@ -1,5 +1,7 @@
 package blok.core;
 
+import haxe.macro.Context;
+import haxe.macro.Expr;
 import haxe.macro.Type;
 
 using haxe.macro.Tools;
@@ -16,6 +18,15 @@ class BuilderHelpers {
         default: [];
       }
       default: [];
+    }
+  }
+
+  public static function extractBuildCt(e:Expr):ComplexType {
+    return switch e {
+      case macro ($_:$ct): ct;
+      default:
+        Context.error('Expected a complex type', e.pos);
+        null;
     }
   }
 }

@@ -81,8 +81,14 @@ class ComponentBuilder {
     builder.addFieldMetaHandler({
       name: 'prop',
       hook: Normal,
-      options: [],
-      build: function (_, builder, f) switch f.kind {
+      options: [
+        { name: 'comparator', optional: true, handleValue: e -> e },
+        { name: 'onChange', optional: true, handleValue: e -> e }
+      ],
+      build: function (options:{ 
+        ?onChange:Expr,
+        ?comparator:Expr 
+      }, builder, f) switch f.kind {
         case FVar(t, e):
           if (t == null) {
             Context.error('Types cannot be inferred for @prop vars', f.pos);
@@ -90,6 +96,12 @@ class ComponentBuilder {
 
           var name = f.name;
           var getName = 'get_${name}';
+          var comparator = options.comparator != null
+            ? macro (@:pos(options.comparator.pos) ${options.comparator})
+            : macro (a != b);
+          var onChange:Array<Expr> = options.onChange != null
+            ? [ macro @:pos(options.onChange.pos) ${options.onChange} ]
+            : [];
           var init = e == null
             ? macro $i{INCOMING_PROPS}.$name
             : macro $i{INCOMING_PROPS}.$name == null ? @:pos(e.pos) ${e} : $i{INCOMING_PROPS}.$name;
@@ -113,10 +125,11 @@ class ComponentBuilder {
                 $i{PROPS}.$name, 
                 $i{INCOMING_PROPS}.$name 
               ] {
-                case [ a, b ] if (a == b):
+                case [ a, b ] if (!${comparator}):
                   // noop
                 case [ current, value ]:
                   $i{PROPS}.$name = value;
+                  $b{onChange}
               }
             }
           });
@@ -125,6 +138,108 @@ class ComponentBuilder {
           Context.error('@prop can only be used on vars', f.pos);
       }
     });
+
+    // // @note: Turning off @signals until I'm sure there's actually a
+    // //        benifit to them. Right now they're just really terrible
+    // //        callbacks -- if they can bubble up or something
+    // //        MAYBE it'll make more sense.
+    // builder.addFieldMetaHandler({
+    //   name: 'signal',
+    //   hook: Normal,
+    //   options: [
+    //     { name: 'userDefined', optional: true },
+    //     { name: 'opaque', optional: true }
+    //   ],
+    //   build: function (options:{ 
+    //     userDefined:Bool, 
+    //     opaque:Bool
+    //   }, builder, f) switch f.kind {
+    //     case FVar(t, e):
+    //       if (t == null) {
+    //         Context.error('@signal fields cannot infer types', f.pos);
+    //       }
+
+    //       if (!f.access.contains(AFinal)) {
+    //         Context.error('@signal fields must be final', f.pos);
+    //       }
+          
+    //       if (!Context.unify(t.toType(), Context.getType('blok.Signal.SignalBase'))) {
+    //         Context.error('@signal fields must be blok.Signals', f.pos);
+    //       }
+
+    //       if (e == null) {
+    //         var params = switch t.toType() {
+    //           case TInst(_, params): [for (t in params) TPType(t.toComplexType())];
+    //           default: [];
+    //         }
+    //         var tp:TypePath = {
+    //           pack: [ 'blok' ],
+    //           name: 'Signal',
+    //           params: params
+    //         };
+    //         f.kind = FVar(t, macro new $tp());
+    //       } else if (options.userDefined != true) {
+    //         Context.warning(
+    //           'Fields marked with @signal are automatically initialized -- no expression is needed'
+    //           + ' You can supress this warning by with `@signal(userDefined)`.', 
+    //           e.pos
+    //         );
+    //       } else {
+    //         Context.error(
+    //           '`@signal(userDefined)` expects you to provide your own expression here.', 
+    //           f.pos
+    //         );
+    //       }
+
+    //       var name = f.name;
+
+    //       if (options.opaque != true) {
+    //         var linkName = '__link_$name';
+    //         var listener = 'on' + name.charAt(0).toUpperCase() + name.substr(1);
+    //         var cbType:ComplexType = TFunction(switch t.toType() {
+    //           case TInst(_, params): params.map(t -> t.toComplexType());
+    //           default: [];
+    //         }, macro:Void);
+
+    //         addProp(listener, cbType, true);
+            
+    //         disposeHooks.push(macro {
+    //           if (this.$linkName != null) {
+    //             this.$linkName.dispose();
+    //             this.$linkName = null;
+    //           }
+    //           this.$name.dispose();
+    //         });
+    //         builder.add(macro class {
+    //           var $linkName:blok.Disposable = null;
+    //         });
+    //         initHooks.push(macro {
+    //           if ($i{INCOMING_PROPS}.$listener != null) 
+    //             this.$linkName = this.$name.add($i{INCOMING_PROPS}.$listener);
+    //         });
+    //         updates.push(macro {
+    //           // todo: come up with something more efficient 
+    //           if ($i{INCOMING_PROPS}.$listener != null) {
+    //             switch [
+    //               $i{PROPS}.$listener, 
+    //               $i{INCOMING_PROPS}.$listener 
+    //             ] {
+    //               case [ a, b ] if (a == b):
+    //                 // noop
+    //               case [ current, value ]:
+    //                 if (this.$linkName != null) this.$linkName.dispose();
+    //                 this.$linkName = this.$name.add(value);
+    //             }
+    //           }
+    //         });
+    //       } else {
+    //         disposeHooks.push(macro this.$name.dispose());
+    //       }
+
+    //     default:
+    //       Context.error('@signal can only be used on vars', f.pos);
+    //   }
+    // });
 
     builder.addFieldMetaHandler({
       name: 'use',
@@ -140,8 +255,8 @@ class ComponentBuilder {
             Context.error('@use vars cannot be initialized', field.pos);
           }
 
-          if (!Context.unify(t.toType(), Context.getType('blok.core.Service'))) {
-            Context.error('@use must be a blok.core.Service', field.pos);
+          if (!Context.unify(t.toType(), Context.getType('blok.Service'))) {
+            Context.error('@use must be a blok.Service', field.pos);
           }
 
           var clsName = t.toType().toString();
@@ -174,7 +289,7 @@ class ComponentBuilder {
       name: 'update',
       hook: After,
       options: [],
-      build: function (options:{ ?silent:Bool }, builder, field) switch field.kind {
+      build: function (options:{}, builder, field) switch field.kind {
         case FFun(func):
           if (func.ret != null) {
             Context.error('@update functions should not define their return type manually', field.pos);
@@ -365,7 +480,7 @@ class ComponentBuilder {
               __context,
               result -> {
                 __rendered = result;
-                if (asRoot) __rendered.dispatchEffects();
+                if (asRoot) __dispatchRootEffects();
               }
             );
           case before:
@@ -391,10 +506,18 @@ class ComponentBuilder {
                   __rendered
                 );
 
-                if (asRoot) __rendered.dispatchEffects();
+                if (asRoot) __dispatchRootEffects();
               }
             );
         }
+      }
+
+      // @todo: I feel like the way side-effects works is a bit messy.
+      //        Keep thinking out it.
+      @:noCompletion
+      function __dispatchRootEffects() {
+        __rendered.dispatchEffects();
+        for (e in getSideEffects()) e();
       }
 
       @:noCompletion
@@ -431,7 +554,7 @@ class ComponentBuilder {
         __invalid = true;
 
         if (__parent == null) {
-          __context.scheduler.schedule(executeRender.bind(true));
+          __context.scheduler.schedule(() -> executeRender(true));
         } else {
           __parent.enqueuePendingChild(this);
         }
@@ -492,14 +615,5 @@ class ComponentBuilder {
     });
 
     return builder.export();
-  }
-
-  static function extractBuildCt(e:Expr):ComplexType {
-    return switch e {
-      case macro ($_:$ct): ct;
-      default:
-        Context.error('Expected a complex type', e.pos);
-        null;
-    }
   }
 }

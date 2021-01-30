@@ -1,12 +1,7 @@
-package blok.components;
-
-import blok.VNode;
-import blok.Context;
-import blok.Component;
-import blok.core.Service;
+package blok;
 
 final class Provider<T:Service> extends Component {
-  public inline static function provide<T:Service>(service:T, build:(service:T)->VNode) {
+  public inline static function provide<T:Service>(service, build) {
     return node({
       service: service,
       build: build
@@ -14,7 +9,7 @@ final class Provider<T:Service> extends Component {
   }
 
   @prop var service:T;
-  @prop var build:(service:T)->VNode;
+  @prop var build:(context:Context)->VNode;
   @prop var teardown:(service:T)->Void = null;
 
   @dispose
@@ -24,12 +19,13 @@ final class Provider<T:Service> extends Component {
   }
 
   override function __setContext(context:Context) {
-    if (__context == context) return;
-    __context = context.getChild();
+    if (__context == null || __context.parent != context) {
+      __context = context.getChild();
+    }
     service.register(__context);
   }
 
   override function render(context):VNode {
-    return build(service);
+    return build(context);
   }
 }

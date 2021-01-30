@@ -1,32 +1,31 @@
 package blok.core;
 
 class DefaultScheduler implements Scheduler {
-  var queue:Array<()->Void> = null;
+  #if js
+    static final hasRaf:Bool = js.Syntax.code("typeof window != 'undefined' && 'requestAnimationFrame' in window");
+  #end
+
+  var queue:Signal<Void> = null;
 
   public function new() {}
 
   public function schedule(item) {
     if (queue == null) {
-      queue = [ item ];
+      queue = new Signal();
+      queue.addOnce(item);
       later(run);
     } else {
-      queue.push(item);
+      queue.addOnce(item);
     }
   }
 
-  function later(fn:()->Void) {
-    var impl:(fn:()->Void)->Void = fn -> haxe.Timer.delay(fn, 10);
+  function later(exec:()->Void) {
     #if js
-      impl = try {
-        if (js.Browser.window.requestAnimationFrame != null)
-          fn -> js.Browser.window.requestAnimationFrame(cast fn);
-        else
-          impl;
-      } catch (e:Dynamic) {
-        impl;
-      }
+    if (hasRaf)
+      js.Syntax.code('window.requestAnimationFrame({0})', _ -> exec());
+    else
     #end
-    impl(fn);
+    haxe.Timer.delay(() -> exec(), 10);
   }
   
   function run() {
@@ -35,10 +34,8 @@ class DefaultScheduler implements Scheduler {
     var error = null;
     var currentQueue = queue;
     queue = null;
-
-    for (item in currentQueue) {
-      try item() catch (e:haxe.Exception) error = e;
-    }
+    
+    currentQueue.dispatch();
     
     if (error != null) throw error;
   }

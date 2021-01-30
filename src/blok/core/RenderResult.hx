@@ -44,7 +44,8 @@ class RenderResult<RealNode> implements Disposable {
     children.push(r);
     switch r {
       case RComponent(component):
-        for (e in component.getSideEffects()) addEffect(e);
+        var effects = component.getSideEffects();
+        for (e in effects) addEffect(e);
       default:
     }
   }
@@ -57,12 +58,15 @@ class RenderResult<RealNode> implements Disposable {
     for (r in children) switch r {
       case RComponent(component):
         component.getLastRenderResult().dispatchEffects();
-      default:
+      case RNative(node, _):
+        engine.getRendered(node).dispatchEffects();
     }
 
-    if (effects.length > 0) {
-      var e = effects.pop();
-      do e() while ((e = effects.pop()) != null);
-    }
+    for (e in effects) e();
+
+    // if (effects.length > 0) {
+    //   var e = effects.pop();
+    //   do e() while ((e = effects.pop()) != null);
+    // }
   }
 }

@@ -1,8 +1,8 @@
 import blok.Html;
 import blok.Platform;
 import blok.Component;
-import blok.core.Service;
-import blok.components.Provider;
+import blok.Service;
+import blok.Provider;
 
 using Medic;
 using helpers.VNodeAssert;
@@ -33,7 +33,7 @@ class TestService implements TestCase {
   public function testProviderIntegration(done) {
     Provider.node({
       service: new SimpleService('bar'),
-      build: simple -> Html.text(simple.value)
+      build: context -> Html.text(SimpleService.from(context).value)
     }).renders('bar', done);
   }
 

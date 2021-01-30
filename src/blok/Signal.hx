@@ -6,25 +6,19 @@ import haxe.Constraints.Function;
   A generic signal. Can have as many params as you'd like.
 
   Implementation from: https://gist.github.com/nadako/b086569b9fffb759a1b5
-
-  @todo: I'm unsure if this is even needed. We might look into removing
-         it from the few places it's still around and just having an
-         array of callbacks instead.
 **/
 @:genericBuild(blok.SignalBuilder.build())
 class Signal<Rest> {}
 
 /* abstract */ class SignalBase<T:Function> implements Disposable {
   public var isDisposed(default, null):Bool = false;
+  var dispatching:Bool = false;
   var head:SignalSubscription<T>;
   var tail:SignalSubscription<T>;
   var toAddHead:SignalSubscription<T>;
   var toAddTail:SignalSubscription<T>;
-  var dispatching:Bool;
 
-  public function new() {
-    dispatching = false;
-  }
+  public function new() {}
 
   public function add(listener:T, once:Bool = false):Disposable {
     if (isDisposed) {

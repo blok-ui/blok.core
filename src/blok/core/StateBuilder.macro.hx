@@ -20,7 +20,6 @@ class StateBuilder {
     var initializers:Array<ObjectField> = [];
     var subStates:Array<Expr> = [];
     var initHooks:Array<Expr> = [];
-    var registerHooks:Array<Expr> = [];
     var disposeHooks:Array<Expr> = [];
     var id = clsName;
 
@@ -56,13 +55,23 @@ class StateBuilder {
           }
 
           var name = f.name;
+          var getName = 'get_${name}';
           var init = e == null
             ? macro $i{INCOMING_PROPS}.$name
             : macro $i{INCOMING_PROPS}.$name == null ? ${e} : $i{INCOMING_PROPS}.$name;
+          
+          f.kind = FProp('get', 'never', t, null);
+          addProp(name, t, e != null, true);
+          builder.add(macro class {
+            inline function $getName() return $i{PROPS}.$name;
+          });
 
-          addProp(name, t, e != null, false);
-          initHooks.push(macro this.$name = ${init});
-          registerHooks.push(macro if (this.$name != null) this.$name.register(context));
+          initializers.push({
+            field: name,
+            expr: init
+          });
+
+          initHooks.push(macro __register.push(context -> this.$name.register(context)));
 
           if (Context.unify(t.toType(), Context.getType('blok.Disposable'))) {
             disposeHooks.push(macro this.$name.dispose());
@@ -157,12 +166,12 @@ class StateBuilder {
             switch closure() {
               case None | null:
               case Update:
-                notify();
+                __signal.dispatch(this);
               case UpdateState(data):
                 __updateProps(data);
                 if (__dirty) {
                   __dirty = false;
-                  notify();
+                  __signal.dispatch(this);
                 }
               case UpdateStateSilent(data):
                 __updateProps(data);
@@ -224,7 +233,7 @@ class StateBuilder {
             ],
             expr: macro {
               var state = from(context);
-              return blok.NotifyingSubscriber.node({
+              return blok.ChangeSubscriber.node({
                 target: state,
                 build: build
               });
@@ -246,17 +255,12 @@ class StateBuilder {
           $b{initHooks};
         }
 
-        public function notifier():blok.Notifier<$ct> {
+        public function getChangeSignal():blok.Signal<$ct> {
+          return __signal;
+        }
+
+        public function getCurrentValue():$ct {
           return this;
-        }
-
-        public function subscribe(subscription:(value:$ct)->Void):blok.Disposable {
-          subscription(this);
-          return __signal.add(subscription);
-        }
-
-        public function notify():Void {
-          __signal.dispatch(this);
         }
 
         @:noCompletion

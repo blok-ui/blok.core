@@ -2,6 +2,7 @@ import blok.Provider;
 import blok.Html;
 import helpers.Host;
 import helpers.SimpleState;
+import helpers.StateWithServices;
 
 using Medic;
 using helpers.VNodeAssert;
@@ -44,5 +45,18 @@ class TestState implements TestCase {
         }
       }))
     }).renderWithoutAssert();
+  }
+
+  @:test('States can provide services')
+  @:test.async
+  public function testStateWithServices(done) {
+    var state = new StateWithServices({
+      fooService: new FooService('Provided')
+    });
+    Provider.node({
+      service: state,
+      teardown: state -> state.dispose(),
+      build: context -> Html.text(FooService.from(context).foo)
+    }).renders('Provided', done);
   }
 }

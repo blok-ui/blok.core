@@ -63,8 +63,11 @@ class ServiceBuilder {
       ]);
       
       macro class {
+        var __register:Array<(context:blok.core.Context<Dynamic>)->Void> = [];
         public function register(context:blok.core.Context<Dynamic>) {
           context.set($v{id}, this);
+          // clunky :P
+          for (r in __register) r(context);
         }
       }
     }, After);

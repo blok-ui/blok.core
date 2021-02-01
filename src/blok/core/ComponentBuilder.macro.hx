@@ -71,6 +71,7 @@ class ComponentBuilder {
           override function componentIsInvalid():Bool {
             var previousProps = __previousProps;
             __previousProps = $i{PROPS};
+            if (previousProps == null) return true;
             $b{checks};
             return false;
           }

@@ -1,0 +1,14 @@
+{
+  "name": "blok.core",
+  "license": "MIT",
+  "tags": [
+    "ui"
+  ],
+  "contributors": [
+    "wartman"
+  ],
+  "releasenote": "Pre-release",
+  "version": "0.0.1",
+  "url": "https://github.com/blok-ui/blok.core",
+  "dependencies": {}
+}

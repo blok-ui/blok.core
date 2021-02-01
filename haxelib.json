@@ -1,6 +1,7 @@
 {
   "name": "blok.core",
   "license": "MIT",
+  "classPath": "src",
   "tags": [
     "ui"
   ],
@@ -8,7 +9,7 @@
     "wartman"
   ],
   "releasenote": "Pre-release",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "url": "https://github.com/blok-ui/blok.core",
   "dependencies": {}
 }

@@ -9,10 +9,9 @@ using haxe.macro.Tools;
 
 class RecordBuilder {
   public static function build() {
-    var fields = Context.getBuildFields();
-    var cls = Context.getLocalClass().get();
-    var clsTp:TypePath = { pack: cls.pack, name: cls.name };
-    var builder = new ClassBuilder(cls, fields);
+    var builder = ClassBuilder.fromContext();
+    var cls = builder.cls;
+    var clsTp = builder.getTypePath();
     var props:Array<Field> = [];
     var withProps:Array<Field> = [];
     var initializers:Array<Expr> = [];

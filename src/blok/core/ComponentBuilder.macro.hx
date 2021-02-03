@@ -9,11 +9,11 @@ using haxe.macro.Tools;
 
 class ComponentBuilder {
   public static function build(e) {
-    return doBuild(extractBuildCt(e));
+    return doBuild(extractComplexTypeFromExpr(e));
   }
 
   public static function autoBuild(e) {
-    return doAutoBuild(extractBuildCt(e));
+    return doAutoBuild(extractComplexTypeFromExpr(e));
   }
 
   static function doAutoBuild(nodeType:ComplexType):Array<Field> {
@@ -45,7 +45,6 @@ class ComponentBuilder {
       });
     }
 
-    // Todo: this is probably too simple to work well
     builder.addClassMetaHandler({
       name: 'lazy',
       hook: After,
@@ -57,23 +56,9 @@ class ComponentBuilder {
             fields.find(f -> f.name == 'componentIsInvalid').pos
           );
         }
-
-        var propType = TAnonymous(props);
-        var checks:Array<Expr> = [ for (prop in updateProps) {
-          var name = prop.name;
-          macro if ($i{PROPS}.$name != previousProps.$name) return true;
-        } ];
-
-        // will this work???:
         builder.add(macro class {
-          var __previousProps:$propType;
-          
           override function componentIsInvalid():Bool {
-            var previousProps = __previousProps;
-            __previousProps = $i{PROPS};
-            if (previousProps == null) return true;
-            $b{checks};
-            return false;
+            return __currentRevision > __lastRevision;
           }
         });
       } 
@@ -129,6 +114,7 @@ class ComponentBuilder {
                 case [ a, b ] if (!${comparator}):
                   // noop
                 case [ current, value ]:
+                  __currentRevision++;
                   $i{PROPS}.$name = value;
                   $b{onChange}
               }
@@ -317,10 +303,42 @@ class ComponentBuilder {
     });
 
     builder.addFieldMetaHandler({
+      name: 'memo',
+      hook: After,
+      options: [],
+      build: function (_, builder, field) switch field.kind {
+        case FFun(f):
+          var name = field.name;
+          var memoName = '__memo_$name';
+
+          if (f.ret != null && Context.unify(f.ret.toType(), Context.getType('Void'))) {
+            Context.error('@memo functions cannot have a Void return type', field.pos);
+          }
+          if (f.args.length > 0) {
+            Context.error('@memo functions cannot have arguments', field.pos);
+          }
+
+          builder.add(macro class {
+            var $memoName = null;
+          });
+
+          f.expr = macro {
+            if (this.$memoName != null) return this.$memoName;
+            this.$memoName = ${f.expr};
+            return this.$memoName;
+          };
+          
+          updates.push(macro this.$memoName = null);
+        default:
+          Context.error('@memo must be used on a method', field.pos);
+      }
+    });
+
+    builder.addFieldMetaHandler({
       name: 'init',
       hook: After,
       options: [],
-      build: function(_, builder, field) switch field.kind {
+      build: function (_, builder, field) switch field.kind {
         case FFun(func):
           if (func.args.length > 0) {
             Context.error('@init methods cannot have any arguments', field.pos);
@@ -404,7 +422,8 @@ class ComponentBuilder {
         //   return VComponent(__type, props, key);
         // }
 
-        var $PROPS:$propType;
+        @:noCompletion var $PROPS:$propType;
+        @:noCompletion var __hasSideEffects:Bool = true;
 
         public function new($INCOMING_PROPS:$propType, __parent, __context) {
           this.$PROPS = ${ {
@@ -423,17 +442,21 @@ class ComponentBuilder {
           __setContext(context);
           __setParent(parent);
           if (componentIsInvalid()) {
+            __hasSideEffects = true;
             executeRender(false);
+          } else {
+            __hasSideEffects = false;
           }
         }
 
         @:noCompletion
         function __updateProps($INCOMING_PROPS:$updateType) {
+          __lastRevision = __currentRevision;
           $b{updates};
         }
 
         override function getSideEffects() {
-          return [ $a{ effectHooks } ];
+          return if (__hasSideEffects) [ $a{ effectHooks } ] else [];
         }
 
         override function dispose() {
@@ -452,8 +475,10 @@ class ComponentBuilder {
     var clsType = Context.getLocalType().toComplexType();
 
     builder.add(macro class {
-      @:noCompletion public var __alive:Bool = true;
-      @:noCompletion public var __invalid:Bool = false;
+      @:noCompletion var __alive:Bool = true;
+      @:noCompletion var __invalid:Bool = false;
+      @:noCompletion var __lastRevision:Int = -1;
+      @:noCompletion var __currentRevision:Int = 0;
       @:noCompletion var __context:blok.core.Context<$nodeType>;
       @:noCompletion var __parent:blok.core.Component<$nodeType>;
       @:noCompletion var __rendered:blok.core.RenderResult<$nodeType>;

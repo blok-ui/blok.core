@@ -8,13 +8,6 @@ import blok.VNode;
 import blok.Platform;
 
 class VNodeAssert {
-  // public static function runTests(vn:VNode, tests:Array<(node:Element)->Void>) {
-  //   mount(vn, node -> {
-  //     var test = tests.shift();
-  //     if (test != null) test(node);
-  //   });
-  // }
-
   public static function mount(vn:VNode, handler:(node:Element)->Void) {
     var node = Browser.document.createElement('div');
     Platform.mount(node, ctx -> Host.node({

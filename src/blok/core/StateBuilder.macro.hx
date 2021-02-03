@@ -9,7 +9,7 @@ using blok.core.BuilderHelpers;
 
 class StateBuilder {
   public static function autoBuild(e:Expr) {
-    var nodeType = e.extractBuildCt();
+    var nodeType = e.extractComplexTypeFromExpr();
     var builder = ClassBuilder.fromContext();
     var cls = builder.cls;
     var clsName = cls.pack.concat([cls.name]).join('.');

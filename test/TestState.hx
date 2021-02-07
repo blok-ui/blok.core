@@ -1,8 +1,8 @@
 import blok.Provider;
 import blok.Html;
+import blok.State;
+import blok.Service;
 import helpers.Host;
-import helpers.SimpleState;
-import helpers.StateWithServices;
 
 using Medic;
 using helpers.VNodeAssert;
@@ -58,5 +58,33 @@ class TestState implements TestCase {
       teardown: state -> state.dispose(),
       build: context -> Html.text(FooService.from(context).foo)
     }).renders('Provided', done);
+  }
+}
+
+@service(fallback = new SimpleState({ foo: 'foo' }))
+class SimpleState implements State {
+  @prop var foo:String;
+
+  @update
+  public function setFoo(foo) {
+    return UpdateState({ foo: foo });
+  }
+}
+
+@service(fallback = new StateWithServices({
+  fooService: FooService.DEFAULT
+}))
+class StateWithServices implements State {
+  @provide var fooService:FooService;
+}
+
+@service(fallback = FooService.DEFAULT)
+class FooService implements Service {
+  public static final DEFAULT = new FooService('foo');
+
+  public final foo:String;
+
+  public function new(foo) {
+    this.foo = foo;
   }
 }

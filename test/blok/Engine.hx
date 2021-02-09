@@ -19,11 +19,11 @@ class Engine implements blok.core.Engine<Node> {
     return new Cursor(parent, parent.firstChild);
   }
 
-  public function getRendered(node:Node):Null<RenderResult<Node>> {
+  public function getRenderResult(node:Node):Null<RenderResult<Node>> {
     return Reflect.field(node, RENDERED_PROP);
   }
 
-  public function setRendered(node:Node, rendered:Null<RenderResult<Node>>):Void {
+  public function setRenderResult(node:Node, rendered:Null<RenderResult<Node>>):Void {
     Reflect.setField(node, RENDERED_PROP, rendered);
   }
 

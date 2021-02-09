@@ -20,7 +20,7 @@ class RenderResult<RealNode> implements Disposable {
         case RNative(node, _):
           nodes.push(node);
         case RComponent(child):
-          nodes = nodes.concat(child.getLastRenderResult().getNodes());
+          nodes = nodes.concat(child.getRenderResult().getNodes());
       }
     return nodes;
   }
@@ -30,7 +30,7 @@ class RenderResult<RealNode> implements Disposable {
       case RComponent(component):
         component.dispose();
       case RNative(node, _):
-        var sub = engine.getRendered(node);
+        var sub = engine.getRenderResult(node);
         if (sub != null) sub.dispose();
     });
   }
@@ -57,9 +57,9 @@ class RenderResult<RealNode> implements Disposable {
   public function dispatchEffects() {
     for (r in children) switch r {
       case RComponent(component):
-        component.getLastRenderResult().dispatchEffects();
+        component.getRenderResult().dispatchEffects();
       case RNative(node, _):
-        engine.getRendered(node).dispatchEffects();
+        engine.getRenderResult(node).dispatchEffects();
     }
 
     for (e in effects) e();

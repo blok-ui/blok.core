@@ -5,17 +5,17 @@ class DefaultScheduler implements Scheduler {
     static final hasRaf:Bool = js.Syntax.code("typeof window != 'undefined' && 'requestAnimationFrame' in window");
   #end
 
-  var queue:Signal<Void> = null;
+  var onUpdate:Signal<Void> = null;
 
   public function new() {}
 
   public function schedule(item) {
-    if (queue == null) {
-      queue = new Signal();
-      queue.addOnce(item);
-      later(run);
+    if (onUpdate == null) {
+      onUpdate = new Signal();
+      onUpdate.addOnce(item);
+      later(doUpdate);
     } else {
-      queue.addOnce(item);
+      onUpdate.addOnce(item);
     }
   }
 
@@ -28,12 +28,12 @@ class DefaultScheduler implements Scheduler {
     haxe.Timer.delay(() -> exec(), 10);
   }
   
-  function run() {
-    if (queue == null) return;
+  function doUpdate() {
+    if (onUpdate == null) return;
 
     var error = null;
-    var currentQueue = queue;
-    queue = null;
+    var currentQueue = onUpdate;
+    onUpdate = null;
     
     currentQueue.dispatch();
     

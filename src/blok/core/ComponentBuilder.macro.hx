@@ -570,7 +570,7 @@ class ComponentBuilder {
         return [];
       }
 
-      public function getLastRenderResult():blok.core.RenderResult<$nodeType> {
+      public function getRenderResult():blok.core.RenderResult<$nodeType> {
         return __rendered;
       }
 

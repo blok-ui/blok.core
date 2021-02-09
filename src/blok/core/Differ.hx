@@ -56,12 +56,12 @@ class Differ {
     var engine = context.engine;
 
     inline function handleRendered(previousCount, rendered) {
-      engine.setRendered(node, rendered);
+      engine.setRenderResult(node, rendered);
       setChildren(previousCount, engine.traverseChildren(node), rendered);
       if (withSideEffects) rendered.dispatchEffects();
     }
 
-    return switch engine.getRendered(node) {
+    return switch engine.getRenderResult(node) {
       case null: 
         renderAll(nodes, parent, context, rendered -> handleRendered(0, rendered));
       case before: 

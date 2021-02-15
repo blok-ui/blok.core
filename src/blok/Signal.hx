@@ -10,7 +10,7 @@ import haxe.Constraints.Function;
 @:genericBuild(blok.SignalBuilder.build())
 class Signal<Rest> {}
 
-abstract class SignalBase<T:Function> implements Disposable {
+class SignalBase<T:Function> implements Disposable {
   public var isDisposed(default, null):Bool = false;
   var dispatching:Bool = false;
   var head:SignalSubscription<T>;

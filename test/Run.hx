@@ -6,6 +6,7 @@ class Run {
     runner.add(new TestComponent());
     runner.add(new TestService());
     runner.add(new TestState());
+    runner.add(new TestObservable());
     runner.run();
   }
 }

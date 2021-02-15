@@ -5,17 +5,17 @@ class DefaultScheduler implements Scheduler {
     static final hasRaf:Bool = js.Syntax.code("typeof window != 'undefined' && 'requestAnimationFrame' in window");
   #end
 
-  var onUpdate:Signal<Void> = null;
+  var onUpdate:Array<()->Void> = null;
 
   public function new() {}
 
   public function schedule(item) {
     if (onUpdate == null) {
-      onUpdate = new Signal();
-      onUpdate.addOnce(item);
+      onUpdate = [];
+      onUpdate.push(item);
       later(doUpdate);
     } else {
-      onUpdate.addOnce(item);
+      onUpdate.push(item);
     }
   }
 
@@ -32,11 +32,11 @@ class DefaultScheduler implements Scheduler {
     if (onUpdate == null) return;
 
     var error = null;
-    var currentQueue = onUpdate;
+    var currentUpdates = onUpdate;
     onUpdate = null;
     
-    currentQueue.dispatch();
-    
+    for (u in currentUpdates) u();
+
     if (error != null) throw error;
   }
 }

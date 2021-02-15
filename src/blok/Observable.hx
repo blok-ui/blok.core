@@ -30,7 +30,7 @@ abstract ObservableTarget<T>(Observable<T>) from Observable<T> to Observable<T> 
 typedef ObservableComparitor<T> = (a:T, b:T)->Bool; 
 
 @:allow(blok.Observable)
-class Observer<T> implements Disposable {
+private class Observer<T> implements Disposable {
   final listener:(value:T)->Void;
   
   var isDisposed:Bool = false;
@@ -51,7 +51,7 @@ class Observer<T> implements Disposable {
     if (observable != null) observable.remove(this);
   }
 
-  function onRemoved() {
+  function cleanupOnRemoved() {
     if (isDisposed) return;
     isDisposed = true;
     if (observable != null) {
@@ -62,7 +62,7 @@ class Observer<T> implements Disposable {
 }
 
 @:allow(blok.Observable)
-class LinkedObserver<T, R> extends Observer<T> {
+private class LinkedObserver<T, R> extends Observer<T> {
   final linkedObservable:Observable<R>;
 
   public function new(
@@ -71,35 +71,50 @@ class LinkedObserver<T, R> extends Observer<T> {
     transform:(value:T)->R
   ) {
     linkedObservable = linked;
-    super(parent, function (value) linkedObservable.update(transform(value)));
+    linkedObservable.link = this;
+    super(parent, value -> linkedObservable.update(transform(value)));
   }
 
   public function getObservable():Observable<R> {
     return linkedObservable;
   }
   
-  override function onRemoved() {
-    super.onRemoved();
+  override function cleanupOnRemoved() {
+    super.cleanupOnRemoved();
+    linkedObservable.link = null;
     linkedObservable.dispose();
   }
 }
 
+@:allow(blok.Observer)
 class Observable<T> implements Disposable {
   static var uid:Int = 0;
 
-  final comparator:Null<ObservableComparitor<T>>;
+  final comparator:ObservableComparitor<T>;
 
   var notifying:Bool = false;
   var value:T;
   var head:Null<Observer<T>>;
   var toAddHead:Null<Observer<T>>;
+  var link:Null<Disposable> = null;
+
+  public var length(get, never):Int;
+  function get_length() {
+    var len = 0;
+    var current = head;
+    while (current != null) {
+      len++;
+      current = current.next;
+    }
+    return len;
+  }
 
   public function new(value, ?comparator) {
     this.value = value;
-    this.comparator = comparator;
+    this.comparator = comparator == null ? (a, b) -> a != b : comparator;
   }
 
-  public function observe(listener:(value:T)->Void, ?options:ObservableOptions):Observer<T> {
+  public function observe(listener:(value:T)->Void, ?options:ObservableOptions):Disposable {
     if (options == null) options = { defer: false };
 
     var observer = new Observer(this, listener);
@@ -120,12 +135,13 @@ class Observable<T> implements Disposable {
     if (!options.defer) observer.handle(value);
   }
 
-  public function update(value:T):Void {
-    if (comparator != null && !comparator(this.value, value)) return;
-    
-    notifying = true;
+  /**
+    Notify all listeners with the current value.
+  **/
+  public function notify() {
+    if (notifying) return;
 
-    this.value = value;
+    notifying = true;
     
     var current = head;
     
@@ -144,6 +160,19 @@ class Observable<T> implements Disposable {
       }
       toAddHead = null;
     }
+  }
+
+  /**
+    Update the current value and then notify all listeners.
+
+    If the comparator does not detect a change in the value, listeners
+    will NOT be notified. If you want to force notification, use `notify()`
+    instead.
+  **/
+  public function update(value:T):Void {
+    if (comparator != null && !comparator(this.value, value)) return;
+    this.value = value;
+    notify();
   }
   
   public function remove(observer:Observer<T>):Void {
@@ -166,7 +195,7 @@ class Observable<T> implements Disposable {
     iterate(head);
     iterate(toAddHead);
 
-    observer.onRemoved();
+    observer.cleanupOnRemoved();
   }
 
   public function dispose():Void {
@@ -184,37 +213,34 @@ class Observable<T> implements Disposable {
 
     head = null;
     toAddHead = null;
-  }
 
-  /**
-    Select a value from the Observable and only update when that value changes.
-
-    Otherwise works the same as `map`.
-  **/
-  public function select<R>(selector:(value:T)->R) {
-    var observer = new LinkedObserver(
-      this, 
-      new Observable(selector(value), (a, b) -> a != b),
-      selector
-    );
-    addObserver(observer, { defer: false });
-    return observer.getObservable();
+    // Clean things up if this is being used by a LinkedObserver.
+    if (link != null) {
+      link.dispose();
+      link = null;
+    }
   }
 
   /**
     Map this Observable into another.
   **/
-  public inline function map<R>(transform:(value:T)->R):Observable<R> {
+  public inline function map<R>(transform:(value:T)->R, ?comparator):Observable<R> {
     var observer = new LinkedObserver(
       this, 
-      new Observable(transform(value)),
+      new Observable(transform(value), comparator),
       transform
     );
     addObserver(observer, { defer: false });
     return observer.getObservable();
   }
 
+  /**
+    Map this Observable into a VNode.
+  **/
   public inline function mapToVNode<Node>(build) {
-    return ObservableSubscriber.observe(this, build);
+    return ObservableSubscriber.node({
+      target: this,
+      build: build
+    });
   }
 }

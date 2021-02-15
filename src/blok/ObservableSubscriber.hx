@@ -43,4 +43,8 @@ class ObservableSubscriber<T> extends Component {
     if (teardown != null && value != null) teardown(value);
     value = null;
   }
+
+  override function render(context:Context) {
+    return build(value);
+  }
 }

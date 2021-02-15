@@ -166,12 +166,12 @@ class StateBuilder {
             switch closure() {
               case None | null:
               case Update:
-                __signal.dispatch(this);
+                __observable.notify();
               case UpdateState(data):
                 __updateProps(data);
                 if (__dirty) {
                   __dirty = false;
-                  __signal.dispatch(this);
+                  __observable.notify();
                 }
               case UpdateStateSilent(data):
                 __updateProps(data);
@@ -232,9 +232,8 @@ class StateBuilder {
               { name: 'build', type: macro:$observerFactory }
             ],
             expr: macro {
-              var state = from(context);
-              return blok.ChangeSubscriber.node({
-                target: state,
+              return blok.ObservableSubscriber.node({
+                target: from(context),
                 build: build
               });
             }
@@ -245,9 +244,10 @@ class StateBuilder {
       return macro class {
         var $PROPS:$propType;
         var __dirty:Bool = false;
-        final __signal = new blok.Signal<$ct>();
+        final __observable:blok.Observable<$ct>;
         
         public function new($INCOMING_PROPS:$propType) {
+          __observable = new blok.Observable(this);
           this.$PROPS = ${ {
             expr: EObjectDecl(initializers),
             pos: (macro null).pos
@@ -255,12 +255,8 @@ class StateBuilder {
           $b{initHooks};
         }
 
-        public function getChangeSignal():blok.Signal<$ct> {
-          return __signal;
-        }
-
-        public function getCurrentValue():$ct {
-          return this;
+        public function getObservable():blok.Observable<$ct> {
+          return __observable;
         }
 
         @:noCompletion
@@ -269,7 +265,7 @@ class StateBuilder {
         }
 
         public function dispose() {
-          __signal.dispose();
+          __observable.dispose();
           $b{disposeHooks};
         }
       };

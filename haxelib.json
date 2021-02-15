@@ -9,7 +9,7 @@
     "wartman"
   ],
   "releasenote": "Pre-release",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "url": "https://github.com/blok-ui/blok.core",
   "dependencies": {}
 }

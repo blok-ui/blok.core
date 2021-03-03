@@ -50,14 +50,14 @@ class ComponentBuilder {
       hook: After,
       options: [],
       build: function (options:{}, builder, fields) {
-        if (fields.exists(f -> f.name == 'componentIsInvalid')) {
+        if (fields.exists(f -> f.name == 'componentShouldUpdate')) {
           Context.error(
-            'Cannot use @lazy and a custom componentIsInvalid method',
-            fields.find(f -> f.name == 'componentIsInvalid').pos
+            'Cannot use @lazy and a custom componentShouldUpdate method',
+            fields.find(f -> f.name == 'componentShouldUpdate').pos
           );
         }
         builder.add(macro class {
-          override function componentIsInvalid():Bool {
+          override function componentShouldUpdate():Bool {
             return __currentRevision > __lastRevision;
           }
         });
@@ -126,108 +126,6 @@ class ComponentBuilder {
       }
     });
 
-    // // @note: Turning off @signals until I'm sure there's actually a
-    // //        benifit to them. Right now they're just really terrible
-    // //        callbacks -- if they can bubble up or something
-    // //        MAYBE it'll make more sense.
-    // builder.addFieldMetaHandler({
-    //   name: 'signal',
-    //   hook: Normal,
-    //   options: [
-    //     { name: 'userDefined', optional: true },
-    //     { name: 'opaque', optional: true }
-    //   ],
-    //   build: function (options:{ 
-    //     userDefined:Bool, 
-    //     opaque:Bool
-    //   }, builder, f) switch f.kind {
-    //     case FVar(t, e):
-    //       if (t == null) {
-    //         Context.error('@signal fields cannot infer types', f.pos);
-    //       }
-
-    //       if (!f.access.contains(AFinal)) {
-    //         Context.error('@signal fields must be final', f.pos);
-    //       }
-          
-    //       if (!Context.unify(t.toType(), Context.getType('blok.Signal.SignalBase'))) {
-    //         Context.error('@signal fields must be blok.Signals', f.pos);
-    //       }
-
-    //       if (e == null) {
-    //         var params = switch t.toType() {
-    //           case TInst(_, params): [for (t in params) TPType(t.toComplexType())];
-    //           default: [];
-    //         }
-    //         var tp:TypePath = {
-    //           pack: [ 'blok' ],
-    //           name: 'Signal',
-    //           params: params
-    //         };
-    //         f.kind = FVar(t, macro new $tp());
-    //       } else if (options.userDefined != true) {
-    //         Context.warning(
-    //           'Fields marked with @signal are automatically initialized -- no expression is needed'
-    //           + ' You can supress this warning by with `@signal(userDefined)`.', 
-    //           e.pos
-    //         );
-    //       } else {
-    //         Context.error(
-    //           '`@signal(userDefined)` expects you to provide your own expression here.', 
-    //           f.pos
-    //         );
-    //       }
-
-    //       var name = f.name;
-
-    //       if (options.opaque != true) {
-    //         var linkName = '__link_$name';
-    //         var listener = 'on' + name.charAt(0).toUpperCase() + name.substr(1);
-    //         var cbType:ComplexType = TFunction(switch t.toType() {
-    //           case TInst(_, params): params.map(t -> t.toComplexType());
-    //           default: [];
-    //         }, macro:Void);
-
-    //         addProp(listener, cbType, true);
-            
-    //         disposeHooks.push(macro {
-    //           if (this.$linkName != null) {
-    //             this.$linkName.dispose();
-    //             this.$linkName = null;
-    //           }
-    //           this.$name.dispose();
-    //         });
-    //         builder.add(macro class {
-    //           var $linkName:blok.Disposable = null;
-    //         });
-    //         initHooks.push(macro {
-    //           if ($i{INCOMING_PROPS}.$listener != null) 
-    //             this.$linkName = this.$name.add($i{INCOMING_PROPS}.$listener);
-    //         });
-    //         updates.push(macro {
-    //           // todo: come up with something more efficient 
-    //           if ($i{INCOMING_PROPS}.$listener != null) {
-    //             switch [
-    //               $i{PROPS}.$listener, 
-    //               $i{INCOMING_PROPS}.$listener 
-    //             ] {
-    //               case [ a, b ] if (a == b):
-    //                 // noop
-    //               case [ current, value ]:
-    //                 if (this.$linkName != null) this.$linkName.dispose();
-    //                 this.$linkName = this.$name.add(value);
-    //             }
-    //           }
-    //         });
-    //       } else {
-    //         disposeHooks.push(macro this.$name.dispose());
-    //       }
-
-    //     default:
-    //       Context.error('@signal can only be used on vars', f.pos);
-    //   }
-    // });
-
     builder.addFieldMetaHandler({
       name: 'use',
       hook: Normal,
@@ -285,6 +183,9 @@ class ComponentBuilder {
           var e = func.expr;
           func.ret = macro:Void;
           func.expr = macro {
+            if (__isRendering) {
+              throw 'Cannot update a component that is rendering';
+            }
             inline function closure():blok.core.UpdateMessage<$updatePropsRet> ${e};
             switch closure() {
               case None | null:
@@ -441,7 +342,7 @@ class ComponentBuilder {
           __updateProps(props);
           __setContext(context);
           __setParent(parent);
-          if (componentIsInvalid()) {
+          if (componentShouldUpdate()) {
             __hasSideEffects = true;
             executeRender(false);
           } else {
@@ -477,11 +378,12 @@ class ComponentBuilder {
     builder.add(macro class {
       @:noCompletion var __alive:Bool = true;
       @:noCompletion var __invalid:Bool = false;
+      @:noCompletion var __isRendering:Bool = false;
       @:noCompletion var __lastRevision:Int = -1;
       @:noCompletion var __currentRevision:Int = 0;
       @:noCompletion var __context:blok.core.Context<$nodeType>;
       @:noCompletion var __parent:blok.core.Component<$nodeType>;
-      @:noCompletion var __rendered:blok.core.RenderResult<$nodeType>;
+      @:noCompletion var __renderResult:blok.core.RenderResult<$nodeType>;
       @:noCompletion var __pendingChildren:Array<blok.core.Component<$nodeType>> = [];
       @:noCompletion var __previousContext:blok.core.Context<$nodeType>;
 
@@ -497,16 +399,18 @@ class ComponentBuilder {
 
       @:noCompletion
       function executeRender(asRoot:Bool = false) {
+        __isRendering = true;
         __preRender();
-        switch __rendered {
+        switch __renderResult {
           case null:
             blok.core.Differ.renderAll(
               __processRender(),
               this,
               __context,
               result -> {
-                __rendered = result;
-                if (asRoot) __dispatchRootEffects();
+                __renderResult = result;
+                if (asRoot) inline __dispatchRootEffects();
+                __isRendering = false;
               }
             );
           case before:
@@ -519,7 +423,7 @@ class ComponentBuilder {
               this,
               __context,
               result -> {
-                __rendered = result;
+                __renderResult = result;
             
                 for (node in before.getNodes()) {
                   if (first == null) first = node;
@@ -529,10 +433,11 @@ class ComponentBuilder {
                 blok.core.Differ.setChildren(
                   previousCount,
                   __context.engine.traverseSiblings(first),
-                  __rendered
+                  __renderResult
                 );
 
-                if (asRoot) __dispatchRootEffects();
+                if (asRoot) inline __dispatchRootEffects();
+                __isRendering = false;
               }
             );
         }
@@ -542,7 +447,7 @@ class ComponentBuilder {
       //        Keep thinking out it.
       @:noCompletion
       function __dispatchRootEffects() {
-        __rendered.dispatchEffects();
+        __renderResult.dispatchEffects();
         for (e in getSideEffects()) e();
       }
 
@@ -571,7 +476,7 @@ class ComponentBuilder {
       }
 
       public function getRenderResult():blok.core.RenderResult<$nodeType> {
-        return __rendered;
+        return __renderResult;
       }
 
       public function invalidateComponent() {
@@ -587,6 +492,10 @@ class ComponentBuilder {
       }
 
       public function componentIsInvalid():Bool {
+        return __invalid;
+      }
+
+      public function componentShouldUpdate() {
         return true;
       }
 
@@ -599,12 +508,12 @@ class ComponentBuilder {
       }
 
       public function dispose() {
-        if (__rendered != null) __rendered.dispose();
+        if (__renderResult != null) __renderResult.dispose();
         __alive = false;
         __parent = null;
         __pendingChildren = [];
         __context = null;
-        __rendered = null;
+        __renderResult = null;
       }
       
       @:noCompletion

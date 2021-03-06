@@ -140,8 +140,11 @@ class ComponentBuilder {
             Context.error('@use vars cannot be initialized', field.pos);
           }
 
-          if (!Context.unify(t.toType(), Context.getType('blok.Service'))) {
-            Context.error('@use must be a blok.Service', field.pos);
+          if (
+            !Context.unify(t.toType(), Context.getType('blok.Service'))
+            && !Context.unify(t.toType(), Context.getType('blok.State'))
+          ) {
+            Context.error('@use must be a blok.Service or a blok.State', field.pos);
           }
 
           var clsName = t.toType().toString();

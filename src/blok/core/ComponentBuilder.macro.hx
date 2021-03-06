@@ -105,8 +105,7 @@ class ComponentBuilder {
           });
 
           updates.push(macro {
-            // todo: come up with something more efficient 
-            if ($i{INCOMING_PROPS}.$name != null) {
+            if (Reflect.hasField($i{INCOMING_PROPS}, $v{name})) {
               switch [
                 $i{PROPS}.$name, 
                 $i{INCOMING_PROPS}.$name 

@@ -1,7 +1,7 @@
 package blok;
 
-final class Provider<T:Service> extends Component {
-  public inline static function provide<T:Service>(service, build) {
+final class Provider<T:ServiceProvider> extends Component {
+  public inline static function provide<T:ServiceProvider>(service, build) {
     return node({
       service: service,
       build: build

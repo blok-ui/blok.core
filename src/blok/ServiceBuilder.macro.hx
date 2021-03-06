@@ -31,47 +31,52 @@ class ServiceBuilder {
         { name: 'fallback', optional: false, handleValue: expr -> expr },
         { name: 'id', optional: true }
       ],
-      build: ( options:{ fallback:Expr, ?id:String }, builder, fields) -> {
+      build: (options:{ fallback:Expr, ?id:String }, builder, fields) -> {
         fallback = options.fallback;
         if (options.id != null) id = options.id;
       }
     });
 
     builder.addLater(() -> {
-      if (fallback == null) {
-        // todo: better warning
-        Context.error('Services requrie a fallback value', builder.cls.pos);
-      }
+      checkFallback(fallback, builder);
 
       builder.addFields([
-        {
-          name: 'from',
-          pos: (macro null).pos,
-          access: [ APublic, AStatic ],
-          kind: FFun({
-            params: createParams,
-            ret: ct,
-            args: [
-              { name: 'context', type: macro:blok.core.Context<Dynamic> },
-            ],
-            expr: macro {
-              var service = context.get($v{id});
-              return if (service == null) ${fallback} else service;
-            }
-          })
-        }
+        buildFromField(id, fallback, ct, createParams)
       ]);
       
       macro class {
-        var __register:Array<(context:blok.core.Context<Dynamic>)->Void> = [];
         public function register(context:blok.core.Context<Dynamic>) {
           context.set($v{id}, this);
-          // clunky :P
-          for (r in __register) r(context);
         }
       }
     }, After);
 
     return builder.export();
+  }
+
+  public static function buildFromField(id:String, fallback:Expr, type:ComplexType, createParams:Array<TypeParamDecl>):Field {
+    return {
+      name: 'from',
+      pos: (macro null).pos,
+      access: [ APublic, AStatic ],
+      kind: FFun({
+        params: createParams,
+        ret: type,
+        args: [
+          { name: 'context', type: macro:blok.core.Context<Dynamic> },
+        ],
+        expr: macro {
+          var service = context.get($v{id});
+          return if (service == null) ${fallback} else service;
+        }
+      })
+    }
+  }
+
+  public static function checkFallback(fallback:Expr, builder:ClassBuilder) {
+    if (fallback == null) {
+      // todo: better warning
+      Context.error('Services require a fallback value', builder.cls.pos);
+    }
   }
 }

@@ -21,7 +21,9 @@ class StateBuilder {
     var subStates:Array<Expr> = [];
     var initHooks:Array<Expr> = [];
     var disposeHooks:Array<Expr> = [];
+    var registerHooks:Array<Expr> = [];
     var id = clsName;
+    var fallback:Expr = null;
 
     function addProp(name:String, type:ComplexType, isOptional:Bool, isUpdating:Bool) {
       props.push({
@@ -39,6 +41,19 @@ class StateBuilder {
         pos: (macro null).pos
       });
     }
+
+    builder.addClassMetaHandler({
+      name: 'service',
+      hook: Init,
+      options: [
+        { name: 'fallback', optional: false, handleValue: expr -> expr },
+        { name: 'id', optional: true }
+      ],
+      build: (options:{ fallback:Expr, ?id:String }, builder, fields) -> {
+        fallback = options.fallback;
+        if (options.id != null) id = options.id;
+      }
+    });
     
     builder.addFieldMetaHandler({
       name: 'provide',
@@ -50,8 +65,8 @@ class StateBuilder {
             Context.error('Types cannot be inferred for @provide vars', f.pos);
           }
 
-          if (!Context.unify(t.toType(), Context.getType('blok.Service'))) {
-            Context.error('@provide fields must be blok.Services', f.pos);
+          if (!Context.unify(t.toType(), Context.getType('blok.ServiceProvider'))) {
+            Context.error('@provide fields must be blok.ServiceProviders', f.pos);
           }
 
           var name = f.name;
@@ -71,7 +86,7 @@ class StateBuilder {
             expr: init
           });
 
-          initHooks.push(macro __register.push(context -> this.$name.register(context)));
+          registerHooks.push(macro this.$name.register(context));
 
           if (Context.unify(t.toType(), Context.getType('blok.Disposable'))) {
             disposeHooks.push(macro this.$name.dispose());
@@ -184,6 +199,8 @@ class StateBuilder {
     });
 
     builder.addLater(() -> {
+      ServiceBuilder.checkFallback(fallback, builder);
+
       var propType = TAnonymous(props);
       var updatePropsType = TAnonymous(updateProps);
       var type = Context.getLocalType();
@@ -239,6 +256,8 @@ class StateBuilder {
             }
           })
         },
+
+        ServiceBuilder.buildFromField(id, fallback, ct, createParams)
       ]);
 
       return macro class {
@@ -267,6 +286,11 @@ class StateBuilder {
         public function dispose() {
           __observable.dispose();
           $b{disposeHooks};
+        }
+
+        public function register(context:blok.core.Context<Dynamic>) {
+          context.set($v{id}, this);
+          $b{registerHooks};
         }
       };
     });

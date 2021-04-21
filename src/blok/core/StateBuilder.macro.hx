@@ -198,6 +198,10 @@ class StateBuilder {
       }
     });
 
+    builder.addFieldMetaHandler(
+      BuilderHelpers.createMemoFieldHandler(e -> updates.push(e))
+    );
+
     builder.addLater(() -> {
       ServiceBuilder.checkFallback(fallback, builder);
 

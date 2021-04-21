@@ -59,7 +59,11 @@ class RecordBuilder {
         nameBuilder.push(macro $v{name} + ': ' + Std.string(this.$name));
         toJson.push({
           field: name,
-          expr: macro this.$name
+          expr: 
+            if (Context.unify(type.toType(), Context.getType('Date'))) 
+              macro this.$name.toString()
+            else
+              macro this.$name
         });
       }
     }

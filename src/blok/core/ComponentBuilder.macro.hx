@@ -205,37 +205,41 @@ class ComponentBuilder {
       }
     });
 
-    builder.addFieldMetaHandler({
-      name: 'memo',
-      hook: After,
-      options: [],
-      build: function (_, builder, field) switch field.kind {
-        case FFun(f):
-          var name = field.name;
-          var memoName = '__memo_$name';
+    builder.addFieldMetaHandler(
+      BuilderHelpers.createMemoFieldHandler(e -> updates.push(e))
+    );
 
-          if (f.ret != null && Context.unify(f.ret.toType(), Context.getType('Void'))) {
-            Context.error('@memo functions cannot have a Void return type', field.pos);
-          }
-          if (f.args.length > 0) {
-            Context.error('@memo functions cannot have arguments', field.pos);
-          }
+    // builder.addFieldMetaHandler({
+    //   name: 'memo',
+    //   hook: After,
+    //   options: [],
+    //   build: function (_, builder, field) switch field.kind {
+    //     case FFun(f):
+    //       var name = field.name;
+    //       var memoName = '__memo_$name';
 
-          builder.add(macro class {
-            var $memoName = null;
-          });
+    //       if (f.ret != null && Context.unify(f.ret.toType(), Context.getType('Void'))) {
+    //         Context.error('@memo functions cannot have a Void return type', field.pos);
+    //       }
+    //       if (f.args.length > 0) {
+    //         Context.error('@memo functions cannot have arguments', field.pos);
+    //       }
 
-          f.expr = macro {
-            if (this.$memoName != null) return this.$memoName;
-            this.$memoName = ${f.expr};
-            return this.$memoName;
-          };
+    //       builder.add(macro class {
+    //         var $memoName = null;
+    //       });
+
+    //       f.expr = macro {
+    //         if (this.$memoName != null) return this.$memoName;
+    //         this.$memoName = ${f.expr};
+    //         return this.$memoName;
+    //       };
           
-          updates.push(macro this.$memoName = null);
-        default:
-          Context.error('@memo must be used on a method', field.pos);
-      }
-    });
+    //       updates.push(macro this.$memoName = null);
+    //     default:
+    //       Context.error('@memo must be used on a method', field.pos);
+    //   }
+    // });
 
     builder.addFieldMetaHandler({
       name: 'init',

@@ -4,6 +4,7 @@ import haxe.ds.Option;
 import haxe.macro.Context;
 import haxe.macro.Expr;
 import haxe.macro.Type;
+import blok.core.ClassBuilder;
 
 using haxe.macro.Tools;
 using StringTools;
@@ -75,4 +76,40 @@ class BuilderHelpers {
         Some(Context.getBuildFields());
     }
   }
+
+  public static function createMemoFieldHandler(onInvalidate:(e:Expr)->Void):FieldMetaHandler<{}> {
+    return {
+      name: 'memo',
+      hook: After,
+      options: [],
+      build: function (_, builder, field) switch field.kind {
+        case FFun(f):
+          var name = field.name;
+          var memoName = '__memo_$name';
+
+          if (f.ret != null && Context.unify(f.ret.toType(), Context.getType('Void'))) {
+            Context.error('@memo functions cannot have a Void return type', field.pos);
+          }
+          if (f.args.length > 0) {
+            Context.error('@memo functions cannot have arguments', field.pos);
+          }
+
+          builder.add(macro class {
+            var $memoName = null;
+          });
+
+          f.expr = macro {
+            if (this.$memoName != null) return this.$memoName;
+            this.$memoName = ${f.expr};
+            return this.$memoName;
+          };
+          
+          onInvalidate(macro this.$memoName = null);
+        default:
+          Context.error('@memo must be used on a method', field.pos);
+      }
+    };
+  }
+
+  // @todo: Extract more shared handlers to here.
 }

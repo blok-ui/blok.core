@@ -58,6 +58,15 @@ class TestService implements TestCase {
       UsesSimpleService.node({}), // Should use default
     ]).renders('defaultbardefault', done);
   }
+
+  @:test('Services can provide other services')
+  @:test.async
+  public function testServiceProvider(done) {
+    Provider.node({
+      service: new HasProviders(),
+      build: _ -> UsesSimpleService.node({})
+    }).renders('provided', done);
+  }
 }
 
 @service(fallback = new SimpleService('default'))
@@ -67,6 +76,13 @@ class SimpleService implements Service {
   public function new(value) {
     this.value = value;
   }
+}
+
+@service(fallback = new HasProviders())
+class HasProviders implements Service {
+  @provide public final simple:SimpleService = new SimpleService('provided');
+
+  public function new() {}
 }
 
 class UsesSimpleService extends Component {

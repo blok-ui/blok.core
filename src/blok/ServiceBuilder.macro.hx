@@ -23,6 +23,7 @@ class ServiceBuilder {
       case TInst(t, _): haxe.macro.Type.TInst(t, cls.params.map(f -> f.t));
       default: throw 'assert';
     }).toComplexType();
+    var registerHooks:Array<Expr> = [];
 
     builder.addClassMetaHandler({
       name: 'service',
@@ -31,9 +32,35 @@ class ServiceBuilder {
         { name: 'fallback', optional: false, handleValue: expr -> expr },
         { name: 'id', optional: true }
       ],
-      build: (options:{ fallback:Expr, ?id:String }, builder, fields) -> {
+      build: function (options:{ fallback:Expr, ?id:String }, builder, fields) {
         fallback = options.fallback;
         if (options.id != null) id = options.id;
+      }
+    });
+
+    builder.addFieldMetaHandler({
+      name: 'provide',
+      hook: Normal,
+      options: [],
+      build: function (options:{}, builder, f) switch f.kind {
+        case FVar(t, e):
+          if (t == null) {
+            Context.error('Types cannot be inferred for @provide vars', f.pos);
+          }
+
+          if (!Context.unify(t.toType(), Context.getType('blok.ServiceProvider'))) {
+            Context.error('@provide fields must be blok.ServiceProviders', f.pos);
+          }
+
+          if (!f.access.contains(AFinal)) {
+            Context.error('@provide fields must be final', f.pos);
+          }
+
+          var name = f.name;
+
+          registerHooks.push(macro this.$name.register(context));
+        default:
+          Context.error('@provide may only be used on vars', f.pos);
       }
     });
 
@@ -47,6 +74,7 @@ class ServiceBuilder {
       macro class {
         public function register(context:blok.core.Context<Dynamic>) {
           context.set($v{id}, this);
+          $b{registerHooks};
         }
       }
     }, After);

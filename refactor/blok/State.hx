@@ -1,0 +1,4 @@
+package blok;
+
+
+interface State {}

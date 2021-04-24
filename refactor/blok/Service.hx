@@ -1,3 +1,0 @@
-package blok;
-
-interface Service {}

@@ -1,10 +1,10 @@
 package blok;
 
+import js.Browser;
 import js.html.Node;
-import blok.core.Context;
-import blok.core.Differ;
+import blok.core.ObjectTools;
 
-class NodeType<Props:{}> {
+class NodeType<Attrs:{}> {
   static var types:Map<String, NodeType<Dynamic>> = [];
 
   public static function get<Props:{}>(tag:String):NodeType<Props> {
@@ -42,32 +42,46 @@ class NodeType<Props:{}> {
   }
 
   final tag:String;
+  final isSvg:Bool;
 
   public function new(tag, isSvg = false) {
     this.tag = tag;
+    this.isSvg = isSvg;
   }
 
-  public function create(props:Props, context:Context<js.html.Node>):js.html.Node {
-    var node = js.Browser.document.createElement(tag);
-    Differ.diffObject(
-      {}, 
-      props, 
-      updateNodeAttribute.bind(node)
+  public function create(props:{
+    attributes: Attrs,
+    ?ref:(node:Node)->Void,
+    children: Array<VNode>
+  }) {
+    var node = isSvg 
+      ? Browser.document.createElementNS('', tag) // todo
+      : Browser.document.createElement(tag);
+    
+    var component = new NativeComponent(node, {
+      attributes: props.attributes,
+      children: props.children 
+    }, props.ref);
+    ObjectTools.diffObject(
+      {},
+      props.attributes, 
+      updateNodeAttribute.bind(component.node)
     );
-    return node;
+    
+    return component;
   }
 
-  public function update(
-    node:js.html.Node, 
-    previousProps:Props,
-    props:Props,
-    context:Context<js.html.Node>
-  ):js.html.Node {
-    Differ.diffObject(
-      previousProps, 
-      props, 
-      updateNodeAttribute.bind(node)
+  public function update(component:NativeComponent<Attrs>, props:{
+    attributes: Attrs,
+    ?ref:(node:Node)->Void,
+    children: Array<VNode>
+  }) {
+    var previousProps = component.__props;
+    component.updateComponentProperties(props);
+    ObjectTools.diffObject(
+      previousProps.attributes,
+      props.attributes, 
+      updateNodeAttribute.bind(component.node)
     );
-    return node;
   }
 }

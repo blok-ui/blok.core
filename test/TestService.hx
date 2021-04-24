@@ -1,3 +1,4 @@
+import blok.Context;
 import blok.Html;
 import blok.Platform;
 import blok.Component;
@@ -12,14 +13,14 @@ class TestService implements TestCase {
 
   @:test('Services fallback to a default value')
   public function testServiceFallback() {
-    var context = Platform.createContext();
+    var context = new Context();
     var service = SimpleService.from(context);
     service.value.equals('default');
   }
 
   @:test('Services can be registered to Context')
   public function testServiceRegister() {
-    var context = Platform.createContext();
+    var context = new Context();
     var service = new SimpleService('foo');
     service.register(context);
     SimpleService.from(context).value.equals('foo');
@@ -88,7 +89,7 @@ class HasProviders implements Service {
 class UsesSimpleService extends Component {
   @use final service:SimpleService;
 
-  override function render(context) {
+  public function render(context) {
     return Html.text(service.value);
   }
 }

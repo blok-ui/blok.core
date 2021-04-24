@@ -63,6 +63,14 @@ class ClassBuilder {
     this.fields = fields;
   }
 
+  public function fieldExists(name:String) {
+    return fields.exists(f -> f.name == name);
+  }
+
+  public function getField(name:String):Null<Field> {
+    return fields.find(f -> f.name == name);
+  }
+
   public inline function isInterface() {
     return cls.isInterface;
   }

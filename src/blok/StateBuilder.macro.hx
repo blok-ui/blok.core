@@ -1,15 +1,15 @@
-package blok.core;
+package blok;
 
 import haxe.macro.Expr;
 import haxe.macro.Context;
 import blok.core.BuilderHelpers.*;
+import blok.core.ClassBuilder;
 
 using haxe.macro.Tools;
 using blok.core.BuilderHelpers;
 
 class StateBuilder {
-  public static function autoBuild(e:Expr) {
-    var nodeType = e.extractComplexTypeFromExpr();
+  public static function build() {
     var builder = ClassBuilder.fromContext();
     var cls = builder.cls;
     var clsName = cls.pack.concat([cls.name]).join('.');
@@ -177,7 +177,7 @@ class StateBuilder {
           func.ret = macro:Void;
           
           func.expr = macro {
-            inline function closure():blok.core.UpdateMessage<$updatePropsRet> ${e};
+            inline function closure():blok.UpdateMessage<$updatePropsRet> ${e};
             switch closure() {
               case None | null:
               case Update:
@@ -215,8 +215,8 @@ class StateBuilder {
         case TInst(t, _): haxe.macro.Type.TInst(t, cls.params.map(f -> f.t));
         default: throw 'assert';
       }).toComplexType();
-      var providerFactory = macro:(context:blok.core.Context<$nodeType>)->blok.core.VNode<$nodeType>;
-      var observerFactory = macro:(data:$ct)->blok.core.VNode<$nodeType>;
+      var providerFactory = macro:(context:blok.Context)->blok.VNode;
+      var observerFactory = macro:(data:$ct)->blok.VNode;
 
       builder.addFields([
         {
@@ -225,7 +225,7 @@ class StateBuilder {
           access: [ APublic, AStatic ],
           kind: FFun({
             params: createParams,
-            ret: macro:blok.core.VNode<$nodeType>,
+            ret: macro:blok.VNode,
             args: [
               { name: 'props', type: macro:$propType },
               { name: 'build', type: macro:$providerFactory  }
@@ -247,9 +247,9 @@ class StateBuilder {
           access: [ APublic, AStatic ],
           kind: FFun({
             params: createParams,
-            ret: macro:blok.core.VNode<$nodeType>,
+            ret: macro:blok.VNode,
             args: [
-              { name: 'context', type: macro:blok.core.Context<$nodeType> },
+              { name: 'context', type: macro:blok.Context },
               { name: 'build', type: macro:$observerFactory }
             ],
             expr: macro {
@@ -292,7 +292,7 @@ class StateBuilder {
           $b{disposeHooks};
         }
 
-        public function register(context:blok.core.Context<Dynamic>) {
+        public function register(context:blok.Context) {
           context.set($v{id}, this);
           $b{registerHooks};
         }

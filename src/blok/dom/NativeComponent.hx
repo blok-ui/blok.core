@@ -20,7 +20,7 @@ class NativeComponent<Attrs> extends Component {
     return shouldUpdate;
   }
 
-  public function render():VNode {
+  public function render(context:Context):VNode {
     return if (children.length > 0) VFragment(children) else None;
   }
 }

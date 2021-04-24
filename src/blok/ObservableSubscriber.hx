@@ -27,7 +27,7 @@ class ObservableSubscriber<T> extends Component {
         if (this.value != null) maybeTeardown();
         this.value = value;
       }
-      if (!first) invalidateComponent();
+      if (!first) updateComponent();
       first = false;
     });
   }
@@ -44,7 +44,7 @@ class ObservableSubscriber<T> extends Component {
     value = null;
   }
 
-  override function render(context:Context) {
+  public function render(context:Context) {
     return build(value);
   }
 }

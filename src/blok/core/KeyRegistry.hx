@@ -2,13 +2,13 @@ package blok.core;
 
 import haxe.ds.Map;
 
-class KeyRegistry<Node> implements Registry<Key, RNode<Node>> {
-  var strings:Map<String, RNode<Node>>;
-  var objects:Map<{}, RNode<Node>>;
+class KeyRegistry implements Registry<Key, Component> {
+  var strings:Map<String, Component>;
+  var objects:Map<{}, Component>;
 
   public function new() {}
 
-  public function put(?key:Key, value:RNode<Node>):Void {
+  public function put(?key:Key, value:Component):Void {
     if (key == null) {
       throw 'Key cannot be null';
     } if (key.isString()) {
@@ -20,9 +20,9 @@ class KeyRegistry<Node> implements Registry<Key, RNode<Node>> {
     }
   }
 
-  public function pull(?key:Key):RNode<Node> {
+  public function pull(?key:Key):Component {
     if (key == null) return null;
-    var map:Map<Dynamic, RNode<Node>> = if (key.isString()) strings else objects;
+    var map:Map<Dynamic, Component> = if (key.isString()) strings else objects;
     if (map == null) return null;
     var out = map.get(key);
     map.remove(key);
@@ -30,12 +30,12 @@ class KeyRegistry<Node> implements Registry<Key, RNode<Node>> {
   }
 
   public function exists(key:Key):Bool {
-    var map:Map<Dynamic, RNode<Node>> = if (key.isString()) strings else objects;
+    var map:Map<Dynamic, Component> = if (key.isString()) strings else objects;
     if (map == null) return false;
     return map.exists(key);
   }
 
-  public function each(cb:(value:RNode<Node>)->Void) {
+  public function each(cb:(value:Component)->Void) {
     if (strings != null) for (v in strings) cb(v);
     if (objects != null) for (v in objects) cb(v);
   }

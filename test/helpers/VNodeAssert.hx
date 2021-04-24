@@ -10,7 +10,7 @@ import blok.Platform;
 class VNodeAssert {
   public static function mount(vn:VNode, handler:(node:Element)->Void) {
     var node = Browser.document.createElement('div');
-    Platform.mount(node, ctx -> Host.node({
+    Platform.mount(node, Host.node({
       children: [ vn ],
       onComplete: node -> handler(cast node)
     }));
@@ -30,6 +30,6 @@ class VNodeAssert {
 
   public static function renderWithoutAssert(vn:VNode) {
     var node = Browser.document.createElement('div');
-    Platform.mount(node, ctx -> vn);
+    Platform.mount(node, vn);
   }
 }

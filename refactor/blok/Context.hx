@@ -1,5 +1,0 @@
-package blok;
-
-class Context {
-  
-}

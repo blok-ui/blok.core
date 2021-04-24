@@ -1,20 +1,21 @@
 package helpers;
 
+import blok.Component;
 import js.Browser;
-import blok.Context;
 import blok.Platform;
 import blok.VNode;
 
 class TestContext {
   public final el:js.html.Element;
-  public final context:Context;
-  
+  final root:Component;
+
   public function new() {
-    context = Platform.createContext();
     el = Browser.document.createElement('div');
+    root = Platform.mount(el, None);
   }
 
   public function render(vn:VNode) {
-    Platform.patch(el, _ -> vn, context);
+    root.updateComponentProperties({ children: [ vn ] });
+    root.patchRootComponent();
   }
 }

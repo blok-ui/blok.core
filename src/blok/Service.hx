@@ -1,4 +1,4 @@
 package blok;
 
-@:autoBuild(blok.ServiceBuilder.autoBuild())
+@:autoBuild(blok.ServiceBuilder.build())
 interface Service {}

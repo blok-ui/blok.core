@@ -15,7 +15,7 @@ class Host extends Component {
     onComplete(ref);
   }
 
-  override function render(context:Context) {
+  public function render(context:Context) {
     return Html.h('div', {}, children, node -> ref = node);
   }
 }

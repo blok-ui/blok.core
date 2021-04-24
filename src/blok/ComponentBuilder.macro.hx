@@ -166,8 +166,8 @@ class ComponentBuilder {
             var $backingName:$t = null;
 
             function $getter() {
-              if (this.$backingName == null) 
-                this.$backingName = $p{path}.from(__context);
+              if (this.$backingName == null && __engine != null) 
+                this.$backingName = $p{path}.from(__engine.getContext());
               return this.$backingName;
             } 
           });

@@ -19,10 +19,11 @@ abstract class Component implements Disposable {
   var __renderedChildren:Rendered = new Rendered();
 
   public function initializeComponent(engine:Engine, ?parent:Component) {
-    if (__isMounted) throw new ComponentRemountedException();
+    if (__isMounted || __engine != null) throw new ComponentRemountedException();
     __isMounted = true;
     __runInitHooks();
-    __engine = engine;
+    __setEngine(engine);
+    if (__engine == null) throw new NoEngineException();
     __parent = parent;
     __renderedChildren = __engine.initialize(this);
     __enqueueEffect(__runEffectHooks);
@@ -33,32 +34,42 @@ abstract class Component implements Disposable {
   }
 
   final public function updateComponent() {
-    if (!__isMounted || __engine == null) throw new ComponentNotMountedException();
+    if (!__isMounted) throw new ComponentNotMountedException();
+    if (__engine == null) throw new NoEngineException();
     if (__isInvalid) return;
 
     __isInvalid = true;
+
     if (__parent == null) {
-      __engine.schedule(() -> {
-        renderComponent();
-        __dequeueEffects();
-      });
+      __engine.schedule(patchRootComponent);
     } else {
       __parent.__enqueueChildForUpdate(this);
     } 
   } 
+  
+  public function initializeRootComponent(engine:Engine) {
+    initializeComponent(engine);
+    __dequeueEffects();
+  }
+
+  public function patchRootComponent() {
+    if (__parent != null) throw 'Cannot patch a non-root component';
+    
+    renderComponent();
+    __dequeueEffects();
+  }
 
   public function renderComponent() {
     __isInvalid = false;
     
-    if (!__isMounted || __engine == null) throw new ComponentNotMountedException();
-
-    __runBeforeHooks();
+    if (!__isMounted) throw new ComponentNotMountedException();
+    if (__engine == null) throw new NoEngineException();
     
     __renderedChildren = __engine.update(this);
     __enqueueEffect(__runEffectHooks);
   }
   
-  abstract function render():VNode;
+  abstract function render(context:Context):VNode;
 
   public function dispose() {
     for (registry in __renderedChildren.types) {
@@ -92,14 +103,13 @@ abstract class Component implements Disposable {
     // noop
   }
 
-  function __runBeforeHooks():Void {
-    // noop
-  }
-
   function __runEffectHooks() {
     // noop
   }
 
+  function __setEngine(engine:Engine) {
+    __engine = engine;
+  }
   
   function __enqueueChildForUpdate(child:Component) {
     if (componentIsInvalid() || __updateQueue.contains(child)) return;

@@ -1,20 +1,17 @@
-package blok.core;
+package blok;
 
 import haxe.ds.Map;
 
-class Context<RealNode> {
-  public final engine:Engine<RealNode>;
-  public final scheduler:Scheduler;
-  public final parent:Null<Context<RealNode>>;
+@:nullSafety
+class Context {
   final data:Map<String, Dynamic> = [];
+  final parent:Null<Context>;
 
-  public function new(engine, ?scheduler, ?parent) {
-    this.engine = engine;
-    this.scheduler = if (scheduler == null) new DefaultScheduler() else scheduler;
+  public function new(?parent) {
     this.parent = parent;
   }
 
-  public function get<T>(name:String, ?def:T):T {
+  public function get<T>(name:String, ?def:T):Null<T> {
     if (parent == null) {
       return data.exists(name) ? data.get(name) : def; 
     }
@@ -28,8 +25,8 @@ class Context<RealNode> {
   public function set<T>(name:String, value:T) {
     data.set(name, value);
   }
-
+  
   public function getChild() {
-    return new Context(engine, scheduler, this);
+    return new Context(this);
   }
 }

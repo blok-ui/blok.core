@@ -8,7 +8,7 @@ import blok.core.BuilderHelpers;
 using haxe.macro.Tools;
 
 class ServiceBuilder {
-  public static function autoBuild() {
+  public static function build() {
     var builder = ClassBuilder.fromContext();
 
     if (builder.isInterface()) return builder.export();
@@ -72,7 +72,7 @@ class ServiceBuilder {
       ]);
       
       macro class {
-        public function register(context:blok.core.Context<Dynamic>) {
+        public function register(context:blok.Context) {
           context.set($v{id}, this);
           $b{registerHooks};
         }
@@ -91,7 +91,7 @@ class ServiceBuilder {
         params: createParams,
         ret: type,
         args: [
-          { name: 'context', type: macro:blok.core.Context<Dynamic> },
+          { name: 'context', type: macro:blok.Context },
         ],
         expr: macro {
           var service = context.get($v{id});

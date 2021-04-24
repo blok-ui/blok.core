@@ -18,14 +18,13 @@ final class Provider<T:ServiceProvider> extends Component {
     __props.service = null;
   }
 
-  override function __setContext(context:Context) {
-    if (__context == null || __context.parent != context) {
-      __context = context.getChild();
-    }
-    service.register(__context);
+  override function __setEngine(engine:Engine) {
+    __engine = engine.withNewContext();
+    service.register(__engine.getContext());
   }
 
-  override function render(context):VNode {
+  public function render(context):VNode {
     return build(context);
   }
 }
+

@@ -95,7 +95,7 @@ class SimpleComponent extends Component {
     return UpdateState({ content: content });
   }
   
-  override function render(context) {
+  public function render(context) {
     return Html.h('p', { className: className }, [ Html.text(content) ], node -> ref = cast node);
   }
 }
@@ -111,7 +111,7 @@ class LazyComponent extends Component {
     test(this);
   }
 
-  override function render(context:Context) {
+  public function render(context:Context) {
     return Html.text(foo + ' | ' + bar);
   }
 }

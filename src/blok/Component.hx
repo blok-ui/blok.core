@@ -1,5 +1,6 @@
 package blok;
 
+import haxe.Exception;
 import haxe.ds.Option;
 import blok.core.Rendered;
 import blok.exception.*;
@@ -10,6 +11,7 @@ import blok.exception.*;
 abstract class Component implements Disposable {
   var __isMounted:Bool = false;
   var __isInvalid:Bool = false;
+  var __isRendering:Bool = false;
   var __currentRevision:Int = 0;
   var __lastRevision:Int = 0;
   var __engine:Null<Engine>;
@@ -19,23 +21,18 @@ abstract class Component implements Disposable {
   var __renderedChildren:Rendered = new Rendered();
 
   public function initializeComponent(engine:Engine, ?parent:Component) {
-    if (__isMounted || __engine != null) throw new ComponentRemountedException();
+    if (__isMounted || __engine != null) throw new ComponentRemountedException(this);
     __isMounted = true;
     __runInitHooks();
-    __setEngine(engine);
-    if (__engine == null) throw new NoEngineException();
+    __engine = engine;
     __parent = parent;
     __renderedChildren = __engine.initialize(this);
     __enqueueEffect(__runEffectHooks);
   }
-  
-  public function updateComponentProperties(props:Dynamic) {
-    // noop
-  }
 
   final public function updateComponent() {
-    if (!__isMounted) throw new ComponentNotMountedException();
-    if (__engine == null) throw new NoEngineException();
+    if (!__isMounted) throw new ComponentNotMountedException(this);
+    if (__engine == null) throw new NoEngineException(this);
     if (__isInvalid) return;
 
     __isInvalid = true;
@@ -45,7 +42,17 @@ abstract class Component implements Disposable {
     } else {
       __parent.__enqueueChildForUpdate(this);
     } 
-  } 
+  }
+
+  public function renderComponent() {
+    __isInvalid = false;
+    
+    if (!__isMounted) throw new ComponentNotMountedException(this);
+    if (__engine == null) throw new NoEngineException(this);
+    
+    __renderedChildren = __engine.update(this);
+    __enqueueEffect(__runEffectHooks);
+  }
   
   public function initializeRootComponent(engine:Engine) {
     initializeComponent(engine);
@@ -53,23 +60,12 @@ abstract class Component implements Disposable {
   }
 
   public function patchRootComponent() {
-    if (__parent != null) throw 'Cannot patch a non-root component';
+    if (__parent != null) 
+      throw new BlokException('Cannot patch a non-root component', this);
     
     renderComponent();
     __dequeueEffects();
   }
-
-  public function renderComponent() {
-    __isInvalid = false;
-    
-    if (!__isMounted) throw new ComponentNotMountedException();
-    if (__engine == null) throw new NoEngineException();
-    
-    __renderedChildren = __engine.update(this);
-    __enqueueEffect(__runEffectHooks);
-  }
-  
-  abstract function render(context:Context):VNode;
 
   public function dispose() {
     for (registry in __renderedChildren.types) {
@@ -90,6 +86,10 @@ abstract class Component implements Disposable {
   public function componentIsInvalid() {
     return __isInvalid;
   }
+
+  public function componentDidCatch(exception:Exception) {
+    __bubbleExceptionUpwards(exception);
+  }
   
   public function findInheritedComponentOfType<T:Component>(kind:Class<T>):Option<T> {
     if (__parent == null) return None; 
@@ -99,16 +99,42 @@ abstract class Component implements Disposable {
     }
   }
   
-  function __runInitHooks():Void {
-    // noop
+  abstract public function updateComponentProperties(props:Dynamic):Void;
+
+  abstract public function render():VNode;
+
+  abstract function __runBeforeHooks():Void;
+
+  abstract function __runInitHooks():Void;
+
+  abstract function __runEffectHooks():Void;
+
+  function __doRenderLifecycle():VNode {
+    var exception:Null<Exception> = null;
+
+    __runBeforeHooks();
+    __isRendering = true;
+    var vn:VNode = try render() catch (e) {
+      // @todo: We should wrap the exception here to ensure we have
+      //        access to the component tree and know where the exception
+      //        happened. Maybe only a debug feature?
+      exception = e;
+      // @todo: What should be returned here?
+      None;
+    }
+    __isRendering = false;
+
+    if (exception != null) componentDidCatch(exception);
+
+    return vn;
   }
 
-  function __runEffectHooks() {
-    // noop
-  }
-
-  function __setEngine(engine:Engine) {
-    __engine = engine;
+  function __bubbleExceptionUpwards(exception:Exception) {
+    if (__parent == null) {
+      throw exception;
+    } else {
+      __parent.componentDidCatch(exception);
+    }
   }
   
   function __enqueueChildForUpdate(child:Component) {
@@ -119,7 +145,7 @@ abstract class Component implements Disposable {
     if (__parent != null) {
       __parent.__enqueueChildForUpdate(this);
     } else {
-      if (__engine == null) throw new ComponentNotMountedException();
+      if (__engine == null) throw new NoEngineException(this);
       __engine.schedule(__dequeueUpdates);
     }
   }

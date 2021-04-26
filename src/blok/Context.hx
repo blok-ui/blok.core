@@ -4,6 +4,10 @@ import haxe.ds.Map;
 
 @:nullSafety
 class Context {
+  public inline static function wrap(build) {
+    return ContextConsumer.node({ build: build });
+  }
+
   final data:Map<String, Dynamic> = [];
   final parent:Null<Context>;
 

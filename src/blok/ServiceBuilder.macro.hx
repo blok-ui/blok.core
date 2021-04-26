@@ -91,9 +91,10 @@ class ServiceBuilder {
         params: createParams,
         ret: type,
         args: [
-          { name: 'context', type: macro:blok.Context },
+          { name: 'context', type: macro:Null<blok.Context>, opt:true },
         ],
         expr: macro {
+          if (context == null) return ${fallback};
           var service = context.get($v{id});
           return if (service == null) ${fallback} else service;
         }

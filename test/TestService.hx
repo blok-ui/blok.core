@@ -1,6 +1,5 @@
-import blok.Context;
 import blok.Html;
-import blok.Platform;
+import blok.Context;
 import blok.Component;
 import blok.Service;
 import blok.Provider;
@@ -24,6 +23,15 @@ class TestService implements TestCase {
     var service = new SimpleService('foo');
     service.register(context);
     SimpleService.from(context).value.equals('foo');
+  }
+
+  @:test('Services are available inside context scopes')
+  @:test.async
+  public function testScope(done) {
+    Provider.node({
+      service: new SimpleService('bar'),
+      build: _ -> Context.wrap(context -> Html.text(SimpleService.from(context).value)) 
+    }).renders('bar', done);
   }
 
   // Todo: the following tests should probably be pulled out
@@ -89,7 +97,7 @@ class HasProviders implements Service {
 class UsesSimpleService extends Component {
   @use final service:SimpleService;
 
-  public function render(context) {
+  public function render() {
     return Html.text(service.value);
   }
 }

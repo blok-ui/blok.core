@@ -44,7 +44,7 @@ class ObservableSubscriber<T> extends Component {
     value = null;
   }
 
-  public function render(context:Context) {
+  public function render() {
     return build(value);
   }
 }

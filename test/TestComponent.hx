@@ -1,6 +1,7 @@
+import haxe.Exception;
 import haxe.ds.Option;
+import blok.VNode;
 import blok.Html;
-import blok.Context;
 import blok.Component;
 import helpers.TestContext;
 
@@ -77,6 +78,23 @@ class TestComponent implements TestCase {
     testCtx.render(comp('foo', 'bin', Some('foo | bin')));
     testCtx.render(comp('bif', 'bin', Some('bif | bin')));
   }
+
+  @:test('Components catch exceptions')
+  @:test.async
+  function testExceptionBoundaries(done) {
+    ExceptionBoundary.node({
+      handle: e -> {
+        e.message.equals('Was caught');
+        done();
+      },
+      build: () -> {
+        throw new Exception('Was caught');
+        return Html.text('Should not render');
+      }
+    }).renderWithoutAssert();
+  }
+
+  // @todo: Test that exceptions bubble.
 }
 
 class SimpleComponent extends Component {
@@ -95,7 +113,7 @@ class SimpleComponent extends Component {
     return UpdateState({ content: content });
   }
   
-  public function render(context) {
+  public function render() {
     return Html.h('p', { className: className }, [ Html.text(content) ], node -> ref = cast node);
   }
 }
@@ -111,7 +129,20 @@ class LazyComponent extends Component {
     test(this);
   }
 
-  public function render(context:Context) {
+  public function render() {
     return Html.text(foo + ' | ' + bar);
+  }
+}
+
+class ExceptionBoundary extends Component {
+  @prop var build:()->VNode;
+  @prop var handle:(e:Exception)->Void;
+  
+  override function componentDidCatch(exception:Exception) {
+    handle(exception);
+  }
+
+  public function render() {
+    return build();
   }
 }

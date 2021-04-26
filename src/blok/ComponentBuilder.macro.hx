@@ -19,6 +19,7 @@ class ComponentBuilder {
     var initializers:Array<ObjectField> = [];
     var initHooks:Array<Expr> = [];
     var disposeHooks:Array<Expr> = [];
+    var beforeHooks:Array<Expr> = [];
     var effectHooks:Array<Expr> = [];
     var dontGenerateType:Bool = false;
     
@@ -166,8 +167,13 @@ class ComponentBuilder {
             var $backingName:$t = null;
 
             function $getter() {
-              if (this.$backingName == null && __engine != null) 
-                this.$backingName = $p{path}.from(__engine.getContext());
+              if (this.$backingName == null) {
+                var context = switch findInheritedComponentOfType(blok.Provider) {
+                  case None: null;
+                  case Some(provider): provider.getContext();
+                }
+                this.$backingName = $p{path}.from(context);
+              }
               return this.$backingName;
             } 
           });
@@ -191,9 +197,9 @@ class ComponentBuilder {
           var e = func.expr;
           func.ret = macro:Void;
           func.expr = macro {
-            // if (componentIsRendering) {
-            //   throw 'Cannot update a component that is rendering';
-            // }
+            if (__isRendering) {
+              throw new blok.exception.ComponentIsRenderingException(this);
+            }
             inline function closure():blok.UpdateMessage<$updatePropsRet> ${e};
             switch closure() {
               case None | null:
@@ -242,6 +248,22 @@ class ComponentBuilder {
           disposeHooks.push(macro @:pos(field.pos) inline this.$name());
         default:
           Context.error('@dispose must be used on a method', field.pos);
+      }
+    });
+
+    builder.addFieldMetaHandler({
+      name: 'before',
+      hook: After,
+      options: [],
+      build: function (_, builder, field) switch field.kind {
+        case FFun(func):
+          if (func.args.length > 0) {
+            Context.error('@before methods cannot have any arguments', field.pos);
+          }
+          var name = field.name;
+          beforeHooks.push(macro inline this.$name());
+        default:
+          Context.error('@before must be used on a method', field.pos);
       }
     });
 
@@ -319,19 +341,19 @@ class ComponentBuilder {
           } };
         }
 
-        override function __runInitHooks() {
+        function __runInitHooks() {
           $b{initHooks}
         }
 
-        // override function __runBeforeHooks() {
-        //   $b{beforeHooks}
-        // }
+        function __runBeforeHooks() {
+          $b{beforeHooks}
+        }
 
-        override function __runEffectHooks() {
+        function __runEffectHooks() {
           $b{effectHooks}
         }
 
-        override function updateComponentProperties(props:Dynamic) {
+        public function updateComponentProperties(props:Dynamic) {
           var $INCOMING_PROPS:$updateType = cast props;
           __lastRevision = __currentRevision;
           $b{updates};

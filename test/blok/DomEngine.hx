@@ -17,14 +17,7 @@ class DomEngine implements Engine {
   public function initialize(component:Component) {
     return switch Std.downcast(component, NativeComponent) {
       case null:
-        var result = Differ.initialize(component.__doRenderLifecycle(), this, component);
-        if (result.children.length == 0) {
-          var placeholder = TextType.create({ content: '' });
-          placeholder.initializeComponent(this, component);
-          result.addChild(TextType, null, placeholder);
-        }
-        var nodes = getNodesFromRendered(result);
-        setChildren(0, new Cursor(nodes[0].parentNode, nodes[0]), result);
+        var result = Differ.initialize(doRenderAndEnsurePlaceholder(component), this, component);
         result;
       case native if (!(native.node is Text)):
         var result = Differ.initialize(component.__doRenderLifecycle(), this, component);
@@ -40,12 +33,12 @@ class DomEngine implements Engine {
       case null:
         var previousCount = 0;
         var first:Node = null;
-        var nodes = getNodesFromRendered(component.__renderedChildren);
-        for (node in nodes) {
+        var currentNodes = getNodesFromRendered(component.__renderedChildren);
+        for (node in currentNodes) {
           if (first == null) first = node;
           previousCount++;
         }
-        var result = Differ.diff(component.__doRenderLifecycle(), this, component, component.__renderedChildren);
+        var result = Differ.diff(doRenderAndEnsurePlaceholder(component), this, component, component.__renderedChildren);
         setChildren(previousCount, new Cursor(first.parentNode, first), result);
         result;
       case native:
@@ -53,14 +46,6 @@ class DomEngine implements Engine {
         var result = Differ.diff(component.__doRenderLifecycle(), this, component, component.__renderedChildren);
         setChildren(previousCount, new Cursor(native.node, native.node.firstChild), result);
         result;
-    }
-  }
-
-  public function remove(component:Component) {
-    switch Std.downcast(component, NativeComponent) {
-      case null:
-      case native:
-        native.node.parentNode.removeChild(native.node);
     }
   }
 
@@ -98,6 +83,13 @@ class DomEngine implements Engine {
     
     for (i in 0...deleteCount) {
       if (!cursor.delete()) break;
+    }
+  }
+
+  function doRenderAndEnsurePlaceholder(component:Component):VNode {
+    return switch component.__doRenderLifecycle() {
+      case null | None | VFragment([]): VComponent(TextType, { content: '' });
+      case vn: vn;
     }
   }
 }

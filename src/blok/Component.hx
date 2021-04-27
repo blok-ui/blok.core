@@ -74,8 +74,7 @@ abstract class Component implements Disposable {
     __renderedChildren = new Rendered();
 
     if (__engine == null) return;
-
-    __engine.remove(this);
+    
     __engine = null;
   }
 

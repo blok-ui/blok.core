@@ -76,12 +76,11 @@ class NodeType<Attrs:{}> {
     ?ref:(node:Node)->Void,
     children: Array<VNode>
   }) {
-    var previousProps = component.__props;
-    component.updateComponentProperties(props);
     ObjectTools.diffObject(
-      previousProps.attributes,
+      component.attributes,
       props.attributes, 
       updateNodeAttribute.bind(component.node)
     );
+    component.updateComponentProperties(props);
   }
 }

@@ -30,7 +30,16 @@ class TestService implements TestCase {
   public function testScope(done) {
     Provider.node({
       service: new SimpleService('bar'),
-      build: _ -> Context.wrap(context -> Html.text(SimpleService.from(context).value)) 
+      build: _ -> Context.use(context -> Html.text(SimpleService.from(context).value)) 
+    }).renders('bar', done);
+  }
+
+  @:test('The `use` static function will get the service from the closest context')
+  @:test.async
+  public function testUse(done) {
+    Provider.node({
+      service: new SimpleService('bar'),
+      build: _ -> SimpleService.use(service -> Html.text(service.value)) 
     }).renders('bar', done);
   }
 
@@ -73,7 +82,7 @@ class TestService implements TestCase {
   public function testServiceProvider(done) {
     Provider.node({
       service: new HasProviders(),
-      build: _ -> UsesSimpleService.node({})
+      build: _ -> SimpleService.use(service -> Html.text(service.value))
     }).renders('provided', done);
   }
 }

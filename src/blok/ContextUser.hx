@@ -1,14 +1,21 @@
 package blok;
 
-class ContextConsumer extends Component {
+import blok.exception.NoProviderException;
+
+class ContextUser extends Component {
   @prop var build:(context:Context)->VNode;
+  @prop var fallback:Null<Context> = null;
   var context:Null<Context> = null;
 
   @before
   public function findContext() {
     context = switch findInheritedComponentOfType(Provider) {
-      case None: new Context();
-      case Some(provider): provider.getContext(); 
+      case None if (fallback != null):
+        fallback;
+      case None:
+        throw new NoProviderException(this); 
+      case Some(provider): 
+        provider.getContext(); 
     }
   }
 

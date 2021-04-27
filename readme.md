@@ -24,8 +24,3 @@ class Foo extends Component {
   }
 }
 ```
-
-Services, Providers and Context
--------------------------------
-
-

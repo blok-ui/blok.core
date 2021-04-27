@@ -228,7 +228,7 @@ class StateBuilder {
             ret: macro:blok.VNode,
             args: [
               { name: 'props', type: macro:$propType },
-              { name: 'build', type: macro:$providerFactory  }
+              { name: 'build', type: macro:$providerFactory }
             ],
             expr: macro {
               var state = new $clsTp(props);
@@ -244,7 +244,7 @@ class StateBuilder {
         {
           name: 'observe',
           pos: (macro null).pos,
-          access: [ APublic, AStatic ],
+          access: [ APublic, AStatic, AInline ],
           kind: FFun({
             params: createParams,
             ret: macro:blok.VNode,
@@ -257,6 +257,22 @@ class StateBuilder {
                 target: from(context),
                 build: build
               });
+            }
+          })
+        },
+
+        {
+          name: 'use',
+          pos: (macro null).pos,
+          access: [ APublic, AStatic, AInline ],
+          kind: FFun({
+            params: createParams,
+            ret: macro:blok.VNode,
+            args: [
+              { name: 'build', type: macro:$observerFactory }
+            ],
+            expr: macro {
+              return blok.Context.use(context -> observe(context, build));
             }
           })
         },

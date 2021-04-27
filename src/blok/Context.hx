@@ -4,8 +4,8 @@ import haxe.ds.Map;
 
 @:nullSafety
 class Context {
-  public inline static function wrap(build) {
-    return ContextConsumer.node({ build: build });
+  public inline static function use(build, ?fallback) {
+    return ContextUser.node({ build: build, fallback: fallback });
   }
 
   final data:Map<String, Dynamic> = [];

@@ -20,6 +20,15 @@ class TestState implements TestCase {
     ).renders('Registered', done);
   }
 
+  @:test('Static `use` is a shortcut')
+  @:test.async
+  public function testUse(done) {
+    SimpleState.provide({
+      foo: 'Registered'
+    }, _ -> SimpleState.use(state -> Html.text(state.foo))
+    ).renders('Registered', done);
+  }
+
   @:test('States are observed')
   @:test.async
   public function testUpdates(done) {
@@ -38,6 +47,35 @@ class TestState implements TestCase {
       service: state,
       teardown: state -> state.dispose(),
       build: context -> SimpleState.observe(context, state -> Host.node({
+        children: [ Html.text(state.foo) ],
+        onComplete: (node) -> {
+          var test = tests.shift();
+          if (test != null) test(cast node);
+        }
+      }))
+    }).renderWithoutAssert();
+  }
+
+  @:test('`State.use` is a shortcut for observing the state')
+  @:test.async
+  public function testUseUpdates(done) {
+    var state = new SimpleState({ foo: 'foo' });
+    var tests = [
+      (node:js.html.Element) -> {
+        node.innerHtmlEquals('foo');
+        state.setFoo('bar');
+      },
+      (node:js.html.Element) -> {
+        node.innerHtmlEquals('bar');
+        done();
+      }
+    ];
+    Provider.node({
+      service: state,
+      teardown: state -> state.dispose(),
+      // Note: this is not optimal -- if we have access to `context` we
+      //       should use it directly (`SimpleState.observe(context, ...)`)
+      build: _ -> SimpleState.use(state -> Host.node({
         children: [ Html.text(state.foo) ],
         onComplete: (node) -> {
           var test = tests.shift();

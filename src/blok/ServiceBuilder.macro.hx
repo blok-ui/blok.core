@@ -68,7 +68,23 @@ class ServiceBuilder {
       checkFallback(fallback, builder);
 
       builder.addFields([
-        buildFromField(id, fallback, ct, createParams)
+        buildFromField(id, fallback, ct, createParams),
+
+        {
+          name: 'use',
+          pos: (macro null).pos,
+          access: [ AStatic, APublic, AInline ],
+          kind: FFun({
+            params: createParams,
+            ret: macro:blok.VNode,
+            args: [
+              { name: 'build', type: macro:(service:$ct)->blok.VNode }
+            ],
+            expr: macro {
+              return blok.Context.use(context -> build(from(context)));
+            }
+          })
+        }
       ]);
       
       macro class {

@@ -84,7 +84,7 @@ class TestComponent implements TestCase {
   function testExceptionBoundaries(done) {
     ExceptionBoundary.node({
       handle: e -> {
-        e.message.equals('Was caught');
+        e.message.equals('Was caught : blok.NativeComponent -> ExceptionBoundary');
         done();
       },
       build: () -> {

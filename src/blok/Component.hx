@@ -21,36 +21,48 @@ abstract class Component implements Disposable {
   var __renderedChildren:Rendered = new Rendered();
 
   public function initializeComponent(engine:Engine, ?parent:Component) {
-    if (__isMounted || __engine != null) throw new ComponentRemountedException(this);
-    __isMounted = true;
-    __runInitHooks();
-    __engine = engine;
-    __parent = parent;
-    __renderedChildren = __engine.initialize(this);
-    __enqueueEffect(__runEffectHooks);
+    try {
+      if (__isMounted || __engine != null) throw new ComponentRemountedException(this);
+      __isMounted = true;
+      __engine = engine;
+      __parent = parent;
+      __runInitHooks();
+      __renderedChildren = __engine.initialize(this);
+      __enqueueEffect(__runEffectHooks);
+    } catch (e:BlokException) {
+      componentDidCatch(e);
+    }
   }
 
   final public function updateComponent() {
-    if (!__isMounted) throw new ComponentNotMountedException(this);
-    if (__engine == null) throw new NoEngineException(this);
-    if (__isInvalid) return;
+    try {
+      if (!__isMounted) throw new ComponentNotMountedException(this);
+      if (__engine == null) throw new NoEngineException(this);
+      if (__isInvalid) return;
 
-    __isInvalid = true;
+      __isInvalid = true;
 
-    if (__parent == null) {
-      __engine.schedule(patchRootComponent);
-    } else {
-      __parent.__enqueueChildForUpdate(this);
-    } 
+      if (__parent == null) {
+        __engine.schedule(patchRootComponent);
+      } else {
+        __parent.__enqueueChildForUpdate(this);
+      }
+    } catch (e:BlokException) {
+      componentDidCatch(e);
+    }
   }
 
   public function renderComponent() {
     __isInvalid = false;
     
     if (!__isMounted) throw new ComponentNotMountedException(this);
+    if (__isRendering) throw new ComponentIsRenderingException(this);
     if (__engine == null) throw new NoEngineException(this);
     
+    __isRendering = true;
     __renderedChildren = __engine.update(this);
+    __isRendering = false;
+
     __enqueueEffect(__runEffectHooks);
   }
   
@@ -70,11 +82,7 @@ abstract class Component implements Disposable {
   public function dispose() {
     for (registry in __renderedChildren.types) {
       registry.each(comp -> comp.dispose());
-    }
-    __renderedChildren = new Rendered();
-
-    if (__engine == null) return;
-    
+    }   
     __engine = null;
   }
 
@@ -91,7 +99,11 @@ abstract class Component implements Disposable {
   }
   
   public function findInheritedComponentOfType<T:Component>(kind:Class<T>):Option<T> {
-    if (__parent == null) return None; 
+    if (__parent == null) {
+      if (Std.isOfType(this, kind)) return Some(cast this);
+      return None;
+    }
+    
     return switch (Std.downcast(__parent, kind):Null<T>) {
       case null: __parent.findInheritedComponentOfType(kind);
       case found: Some(cast found);
@@ -110,18 +122,16 @@ abstract class Component implements Disposable {
 
   function __doRenderLifecycle():VNode {
     var exception:Null<Exception> = null;
+    var vn:VNode = VNone;
 
-    __runBeforeHooks();
-    __isRendering = true;
-    var vn:VNode = try render() catch (e) {
-      // @todo: We should wrap the exception here to ensure we have
-      //        access to the component tree and know where the exception
-      //        happened. Maybe only a debug feature?
+    try {
+      __runBeforeHooks();
+      vn = render();
+    } catch (e:BlokException) {
       exception = e;
-      // @todo: What should be returned here?
-      None;
+    } catch (e) {
+      exception = new WrappedException(e, this);
     }
-    __isRendering = false;
 
     if (exception != null) componentDidCatch(exception);
 

@@ -88,7 +88,7 @@ class DomEngine implements Engine {
 
   function doRenderAndEnsurePlaceholder(component:Component):VNode {
     return switch component.__doRenderLifecycle() {
-      case null | None | VFragment([]): VComponent(TextType, { content: '' });
+      case null | VNone | VFragment([]): VComponent(TextType, { content: '' });
       case vn: vn;
     }
   }

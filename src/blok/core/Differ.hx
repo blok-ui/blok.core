@@ -13,7 +13,7 @@ class Differ {
 
     function process(nodes:Array<VNode>) for (n in nodes) {
       switch n {
-        case None:
+        case VNone | null:
           // noop
         case VComponent(type, properties, key):
           var comp = type.create(properties);
@@ -47,7 +47,7 @@ class Differ {
 
     function process(nodes:Array<VNode>) for (n in nodes) {
       switch n {
-        case None:
+        case VNone | null:
           // noop
         case VComponent(type, properties, key): switch previous(type, key) {
           case None:

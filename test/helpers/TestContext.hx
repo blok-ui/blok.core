@@ -11,7 +11,7 @@ class TestContext {
 
   public function new() {
     el = Browser.document.createElement('div');
-    root = Platform.mount(el, None);
+    root = Platform.mount(el, VNone);
   }
 
   public function render(vn:VNode) {

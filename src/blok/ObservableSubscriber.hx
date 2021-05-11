@@ -3,7 +3,7 @@ package blok;
 import blok.Observable;
 
 class ObservableSubscriber<T> extends Component {
-  public static function observe(target, build, ?teardown) {
+  public inline static function observe(target, build, ?teardown) {
     return ObservableSubscriber.node({
       target: target,
       build: build,
@@ -17,8 +17,7 @@ class ObservableSubscriber<T> extends Component {
   var link:Disposable;
   var value:T;
 
-  @init
-  @effect
+  @before
   function track() {
     if (link != null) return;
     var first = true;

@@ -19,9 +19,9 @@ function getComponentInheritance(component:Component) {
 }
 
 class BlokException extends Exception {
-  public function new(message, component:Component) {
+  public function new(message, component:Component, ?previous) {
     var tree = getComponentInheritance(component);
     message = message + ' : ' + tree.join(' -> ');
-    super(message);
+    super(message, previous);
   }
 }

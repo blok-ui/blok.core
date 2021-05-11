@@ -28,6 +28,6 @@ class NativeComponent<Attrs> extends Component {
   }
 
   public function render():VNode {
-    return if (children.length > 0) VFragment(children) else None;
+    return if (children.length > 0) VFragment(children) else VNone;
   }
 }

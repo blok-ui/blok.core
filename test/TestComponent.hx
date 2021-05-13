@@ -1,7 +1,7 @@
 import haxe.Exception;
 import haxe.ds.Option;
 import blok.VNode;
-import blok.Html;
+import blok.Text;
 import blok.Component;
 import helpers.TestContext;
 
@@ -11,13 +11,12 @@ using helpers.VNodeAssert;
 class TestComponent implements TestCase {
   public function new() {}
 
-  @:test('Components render to html')
+  @:test('Components render')
   @:test.async
   public function testSimple(done) {
     SimpleComponent.node({
       content: 'foo',
-      className: 'bar'
-    }).renders('<p class="bar">foo</p>', done);
+    }).renders('foo', done);
   }
 
   @:test('Components can update themselves')
@@ -25,17 +24,16 @@ class TestComponent implements TestCase {
   public function testUpdate(done) {
     var tests = [
       (comp:SimpleComponent) -> {
-        comp.ref.outerHTML.equals('<p class="bar">foo</p>');
+        comp.ref.equals('foo');
         comp.setContent('bin');
       },
       (comp:SimpleComponent) -> {
-        comp.ref.outerHTML.equals('<p class="bar">bin</p>');
+        comp.ref.equals('bin');
         done();
       }
     ];
     SimpleComponent.node({
       content: 'foo',
-      className: 'bar',
       test: comp -> {
         var test = tests.shift();
         if (test != null) test(comp);
@@ -54,7 +52,7 @@ class TestComponent implements TestCase {
       switch expected {
         case Some(v):
           rendered++;
-          testCtx.el.innerHTML.equals(v);
+          testCtx.root.toString().equals(v);
         case None:
           Assert.fail('Lazy component updated when it should not have');
       }
@@ -84,12 +82,12 @@ class TestComponent implements TestCase {
   function testExceptionBoundaries(done) {
     ExceptionBoundary.node({
       handle: e -> {
-        e.message.equals('Was caught : blok.NativeComponent -> ExceptionBoundary');
+        e.message.equals('Was caught : blok.ChildrenComponent -> ExceptionBoundary');
         done();
       },
       build: () -> {
         throw new Exception('Was caught');
-        return Html.text('Should not render');
+        return Text.text('Should not render');
       }
     }).renderWithoutAssert();
   }
@@ -98,10 +96,9 @@ class TestComponent implements TestCase {
 }
 
 class SimpleComponent extends Component {
-  @prop public var className:String;
   @prop public var content:String;
   @prop var test:(comp:SimpleComponent)->Void = null;
-  public var ref:js.html.Element = null;
+  public var ref:String = null;
 
   @effect
   public function maybeRunTest() {
@@ -114,7 +111,7 @@ class SimpleComponent extends Component {
   }
   
   public function render() {
-    return Html.h('p', { className: className }, [ Html.text(content) ], node -> ref = cast node);
+    return Text.text(content, result -> ref = result);
   }
 }
 
@@ -130,7 +127,7 @@ class LazyComponent extends Component {
   }
 
   public function render() {
-    return Html.text(foo + ' | ' + bar);
+    return Text.text(foo + ' | ' + bar);
   }
 }
 

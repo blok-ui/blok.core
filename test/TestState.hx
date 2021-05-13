@@ -1,8 +1,8 @@
+import blok.ChildrenComponent;
 import blok.Provider;
-import blok.Html;
+import blok.Text;
 import blok.State;
 import blok.Service;
-import helpers.Host;
 
 using Medic;
 using helpers.VNodeAssert;
@@ -16,7 +16,7 @@ class TestState implements TestCase {
     SimpleState.provide({
       foo: 'Registered'
     }, context -> 
-      Html.text(SimpleState.from(context).foo)
+      Text.text(SimpleState.from(context).foo)
     ).renders('Registered', done);
   }
 
@@ -25,7 +25,7 @@ class TestState implements TestCase {
   public function testUse(done) {
     SimpleState.provide({
       foo: 'Registered'
-    }, _ -> SimpleState.use(state -> Html.text(state.foo))
+    }, _ -> SimpleState.use(state -> Text.text(state.foo))
     ).renders('Registered', done);
   }
 
@@ -34,23 +34,23 @@ class TestState implements TestCase {
   public function testUpdates(done) {
     var state = new SimpleState({ foo: 'foo' });
     var tests = [
-      (node:js.html.Element) -> {
-        node.innerHtmlEquals('foo');
+      (result:String) -> {
+        result.equals('foo');
         state.setFoo('bar');
       },
-      (node:js.html.Element) -> {
-        node.innerHtmlEquals('bar');
+      (result:String) -> {
+        result.equals('bar');
         done();
       }
     ];
     Provider.node({
       service: state,
       teardown: state -> state.dispose(),
-      build: context -> SimpleState.observe(context, state -> Host.node({
-        children: [ Html.text(state.foo) ],
-        onComplete: (node) -> {
+      build: context -> SimpleState.observe(context, state -> ChildrenComponent.node({
+        children: [ Text.text(state.foo) ],
+        ref: (result) -> {
           var test = tests.shift();
-          if (test != null) test(cast node);
+          if (test != null) test(result);
         }
       }))
     }).renderWithoutAssert();
@@ -61,12 +61,12 @@ class TestState implements TestCase {
   public function testUseUpdates(done) {
     var state = new SimpleState({ foo: 'foo' });
     var tests = [
-      (node:js.html.Element) -> {
-        node.innerHtmlEquals('foo');
+      (result:String) -> {
+        result.equals('foo');
         state.setFoo('bar');
       },
-      (node:js.html.Element) -> {
-        node.innerHtmlEquals('bar');
+      (result:String) -> {
+        result.equals('bar');
         done();
       }
     ];
@@ -75,11 +75,11 @@ class TestState implements TestCase {
       teardown: state -> state.dispose(),
       // Note: this is not optimal -- if we have access to `context` we
       //       should use it directly (`SimpleState.observe(context, ...)`)
-      build: _ -> SimpleState.use(state -> Host.node({
-        children: [ Html.text(state.foo) ],
-        onComplete: (node) -> {
+      build: _ -> SimpleState.use(state -> ChildrenComponent.node({
+        children: [ Text.text(state.foo) ],
+        ref: (result) -> {
           var test = tests.shift();
-          if (test != null) test(cast node);
+          if (test != null) test(result);
         }
       }))
     }).renderWithoutAssert();
@@ -94,7 +94,7 @@ class TestState implements TestCase {
     Provider.node({
       service: state,
       teardown: state -> state.dispose(),
-      build: context -> Html.text(FooService.from(context).foo)
+      build: context -> Text.text(FooService.from(context).foo)
     }).renders('Provided', done);
   }
 }

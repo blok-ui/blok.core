@@ -1,4 +1,4 @@
-import blok.Html;
+import blok.Text;
 import blok.Context;
 import blok.Component;
 import blok.Service;
@@ -30,7 +30,7 @@ class TestService implements TestCase {
   public function testScope(done) {
     Provider.node({
       service: new SimpleService('bar'),
-      build: _ -> Context.use(context -> Html.text(SimpleService.from(context).value)) 
+      build: _ -> Context.use(context -> Text.text(SimpleService.from(context).value)) 
     }).renders('bar', done);
   }
 
@@ -39,7 +39,7 @@ class TestService implements TestCase {
   public function testUse(done) {
     Provider.node({
       service: new SimpleService('bar'),
-      build: _ -> SimpleService.use(service -> Html.text(service.value)) 
+      build: _ -> SimpleService.use(service -> Text.text(service.value)) 
     }).renders('bar', done);
   }
 
@@ -51,7 +51,7 @@ class TestService implements TestCase {
   public function testProviderIntegration(done) {
     Provider.node({
       service: new SimpleService('bar'),
-      build: context -> Html.text(SimpleService.from(context).value)
+      build: context -> Text.text(SimpleService.from(context).value)
     }).renders('bar', done);
   }
 
@@ -67,14 +67,14 @@ class TestService implements TestCase {
   @:test('Provider scopes services')
   @:test.async
   public function testComponentIntegrationScope(done) {
-    Html.fragment([
+    Text.fragment([
       UsesSimpleService.node({}), // Should use default
       Provider.node({
         service: new SimpleService('bar'),
         build: _ -> UsesSimpleService.node({}) // should use provided service
       }),
       UsesSimpleService.node({}), // Should use default
-    ]).renders('defaultbardefault', done);
+    ]).renders('default bar default', done);
   }
 
   @:test('Services can provide other services')
@@ -82,7 +82,7 @@ class TestService implements TestCase {
   public function testServiceProvider(done) {
     Provider.node({
       service: new HasProviders(),
-      build: _ -> SimpleService.use(service -> Html.text(service.value))
+      build: _ -> SimpleService.use(service -> Text.text(service.value))
     }).renders('provided', done);
   }
 }
@@ -107,6 +107,6 @@ class UsesSimpleService extends Component {
   @use final service:SimpleService;
 
   public function render() {
-    return Html.text(service.value);
+    return Text.text(service.value);
   }
 }

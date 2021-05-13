@@ -1,17 +1,14 @@
 package helpers;
 
-import blok.Component;
-import js.Browser;
-import blok.Platform;
 import blok.VNode;
+import blok.TestPlatform;
+import blok.ChildrenComponent;
 
 class TestContext {
-  public final el:js.html.Element;
-  final root:Component;
+  public final root:ChildrenComponent;
 
   public function new() {
-    el = Browser.document.createElement('div');
-    root = Platform.mount(el, VNone);
+    root = TestPlatform.mount(VNone);
   }
 
   public function render(vn:VNode) {

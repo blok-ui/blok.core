@@ -6,6 +6,5 @@
 -dce full
 
 -lib medic
--lib nodom
 
 -main Run

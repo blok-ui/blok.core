@@ -12,6 +12,7 @@ abstract class Component implements Disposable {
   var __isMounted:Bool = false;
   var __isInvalid:Bool = false;
   var __isRendering:Bool = false;
+  var __isRecoveringFrom:Null<BlokException> = null;
   var __currentRevision:Int = 0;
   var __lastRevision:Int = 0;
   var __engine:Null<Engine>;
@@ -21,8 +22,9 @@ abstract class Component implements Disposable {
   var __renderedChildren:Rendered = new Rendered();
 
   public function initializeComponent(engine:Engine, ?parent:Component) {
+    if (__isMounted || __engine != null) throw new ComponentRemountedException(this);
+    
     try {
-      if (__isMounted || __engine != null) throw new ComponentRemountedException(this);
       __isMounted = true;
       __engine = engine;
       __parent = parent;
@@ -30,40 +32,50 @@ abstract class Component implements Disposable {
       __renderedChildren = __engine.initialize(this);
       __enqueueEffect(__runEffectHooks);
     } catch (e:BlokException) {
-      componentDidCatch(e);
+      __isRendering = false;
+      if (__isRecoveringFrom != null) throw e;
+      __engine = null;
+      __parent = null;
+      __isMounted = false;
+      __isRecoveringFrom = e;
+      initializeComponent(engine, parent);
+      __isRecoveringFrom = null;
     }
   }
 
-  final public function updateComponent() {
-    try {
-      if (!__isMounted) throw new ComponentNotMountedException(this);
-      if (__engine == null) throw new NoEngineException(this);
-      if (__isInvalid) return;
-
-      __isInvalid = true;
-
-      if (__parent == null) {
-        __engine.schedule(patchRootComponent);
-      } else {
-        __parent.__enqueueChildForUpdate(this);
-      }
-    } catch (e:BlokException) {
-      componentDidCatch(e);
-    }
-  }
-
-  public function renderComponent() {
+  final public function renderComponent() {
     __isInvalid = false;
     
     if (!__isMounted) throw new ComponentNotMountedException(this);
     if (__isRendering) throw new ComponentIsRenderingException(this);
     if (__engine == null) throw new NoEngineException(this);
     
-    __isRendering = true;
-    __renderedChildren = __engine.update(this);
-    __isRendering = false;
+    try {
+      __isRendering = true;
+      __renderedChildren = __engine.update(this);
+      __isRendering = false;
+      __enqueueEffect(__runEffectHooks);
+    } catch (e:BlokException) {
+      __isRendering = false;
+      if (__isRecoveringFrom != null) throw e;
+      __isRecoveringFrom = e;
+      renderComponent();
+      __isRecoveringFrom = null;
+    }
+  }
 
-    __enqueueEffect(__runEffectHooks);
+  final public function updateComponent() {
+    if (!__isMounted) throw new ComponentNotMountedException(this);
+    if (__engine == null) throw new NoEngineException(this);
+    if (__isInvalid) return;
+    
+    __isInvalid = true;
+    
+    if (__parent == null) {
+      __engine.schedule(patchRootComponent);
+    } else {
+      __parent.__enqueueChildForUpdate(this);
+    }
   }
   
   public function initializeRootComponent(engine:Engine) {
@@ -95,7 +107,7 @@ abstract class Component implements Disposable {
   }
 
   public function componentDidCatch(exception:Exception):VNode {
-    __bubbleExceptionUpwards(exception);
+    throw exception;
     return VNone;
   }
   
@@ -131,26 +143,19 @@ abstract class Component implements Disposable {
 
     try {
       __runBeforeHooks();
-      vn = render();
+      vn = if (__isRecoveringFrom != null)
+        componentDidCatch(__isRecoveringFrom)
+      else 
+        render();
     } catch (e:BlokException) {
       exception = e;
     } catch (e) {
       exception = new WrappedException(e, this);
     }
 
-    if (exception != null) {
-      vn = componentDidCatch(exception);
-    }
+    if (exception != null) throw exception;
 
     return vn;
-  }
-
-  function __bubbleExceptionUpwards(exception:Exception) {
-    if (__parent == null) {
-      throw exception;
-    } else {
-      __parent.componentDidCatch(exception);
-    }
   }
   
   function __enqueueChildForUpdate(child:Component) {

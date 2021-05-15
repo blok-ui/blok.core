@@ -1,7 +1,7 @@
 package blok;
 
 final class Provider<T:ServiceProvider> extends Component {
-  public inline static function provide<T:ServiceProvider>(service, build) {
+  public inline static function provide<T:ServiceProvider>(service:T, build) {
     return node({
       service: service,
       build: build
@@ -20,7 +20,7 @@ final class Provider<T:ServiceProvider> extends Component {
   }
 
   @before
-  public function setContext() {
+  public function findOrSyncContext() {
     context = switch findInheritedComponentOfType(Provider) {
       case None: new Context();
       case Some(provider): provider.getContext().getChild();

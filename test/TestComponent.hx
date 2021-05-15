@@ -82,16 +82,11 @@ class TestComponent implements TestCase {
   function testExceptionBoundaries(done) {
     ExceptionBoundary.node({
       handle: e -> {
-        e.message.equals('Was caught : blok.ChildrenComponent -> ExceptionBoundary');
+        e.message.equals('Was caught : blok.ChildrenComponent -> ExceptionBoundary -> ThrowsException');
         done();
       },
-      fallback: () -> {
-        return Text.text('Fell back');
-      },
-      build: () -> {
-        throw new Exception('Was caught');
-        return Text.text('Should not render');
-      }
+      fallback: () -> Text.text('Fell back'),
+      build: () -> ThrowsException.node({})
     }).renderWithoutAssert();
   }
 
@@ -102,14 +97,26 @@ class TestComponent implements TestCase {
       handle: e -> {
         // noop
       },
-      fallback: () -> {
-        return Text.text('Fell back');
-      },
-      build: () -> {
-        throw new Exception('Was caught');
-        return Text.text('Should not render');
-      }
+      fallback: () ->  Text.text('Fell back'),
+      build: () -> ThrowsException.node({})
     }).renders('Fell back', done);
+  }
+
+  @:test('If the fallback throws an exception things do not die')
+  @:test.async
+  function testExceptionBoundariesWithFallbackFailing(done) {
+    try {
+      ExceptionBoundary.node({
+        handle: e -> {
+          // noop
+        },
+        fallback: () -> ThrowsException.node({}),
+        build: () -> ThrowsException.node({})
+      }).renders('Fell back', done);
+    } catch (e) {
+      Assert.pass();
+      done();
+    }
   }
 }
 
@@ -161,5 +168,11 @@ class ExceptionBoundary extends Component {
 
   public function render() {
     return build();
+  }
+}
+
+class ThrowsException extends Component {
+  public function render():VNode {
+    throw new Exception('Was caught');
   }
 }

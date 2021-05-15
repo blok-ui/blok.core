@@ -90,12 +90,13 @@ abstract class Component implements Disposable {
     return true;
   }
 
-  public function componentIsInvalid() {
+  public function componentIsInvalid():Bool {
     return __isInvalid;
   }
 
-  public function componentDidCatch(exception:Exception) {
+  public function componentDidCatch(exception:Exception):VNode {
     __bubbleExceptionUpwards(exception);
+    return VNone;
   }
   
   public function findInheritedComponentOfType<T:Component>(kind:Class<T>):Option<T> {
@@ -113,6 +114,10 @@ abstract class Component implements Disposable {
   abstract public function updateComponentProperties(props:Dynamic):Void;
 
   abstract public function render():VNode;
+
+  function __renderFallbackForException():VNode {
+    return try render() catch (e) VNone;
+  }
 
   abstract function __runBeforeHooks():Void;
 
@@ -133,7 +138,9 @@ abstract class Component implements Disposable {
       exception = new WrappedException(e, this);
     }
 
-    if (exception != null) componentDidCatch(exception);
+    if (exception != null) {
+      vn = componentDidCatch(exception);
+    }
 
     return vn;
   }

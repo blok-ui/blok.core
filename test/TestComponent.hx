@@ -85,6 +85,9 @@ class TestComponent implements TestCase {
         e.message.equals('Was caught : blok.ChildrenComponent -> ExceptionBoundary');
         done();
       },
+      fallback: () -> {
+        return Text.text('Fell back');
+      },
       build: () -> {
         throw new Exception('Was caught');
         return Text.text('Should not render');
@@ -92,7 +95,22 @@ class TestComponent implements TestCase {
     }).renderWithoutAssert();
   }
 
-  // @todo: Test that exceptions bubble.
+  @:test('Components catch exceptions and have fallbacks')
+  @:test.async
+  function testExceptionBoundariesWithFallback(done) {
+    ExceptionBoundary.node({
+      handle: e -> {
+        // noop
+      },
+      fallback: () -> {
+        return Text.text('Fell back');
+      },
+      build: () -> {
+        throw new Exception('Was caught');
+        return Text.text('Should not render');
+      }
+    }).renders('Fell back', done);
+  }
 }
 
 class SimpleComponent extends Component {
@@ -133,10 +151,12 @@ class LazyComponent extends Component {
 
 class ExceptionBoundary extends Component {
   @prop var build:()->VNode;
+  @prop var fallback:()->VNode;
   @prop var handle:(e:Exception)->Void;
   
   override function componentDidCatch(exception:Exception) {
     handle(exception);
+    return fallback();
   }
 
   public function render() {

@@ -1,11 +1,21 @@
 package blok.core;
 
+@:nullSafety
 class DefaultScheduler implements Scheduler {
+  static var instance:Null<Scheduler>;
+
+  public static function getInstance():Scheduler {
+    if (instance == null) {
+      instance = new DefaultScheduler();
+    }
+    return instance;
+  }
+
   #if js
     static final hasRaf:Bool = js.Syntax.code("typeof window != 'undefined' && 'requestAnimationFrame' in window");
   #end
 
-  var onUpdate:Array<()->Void> = null;
+  var onUpdate:Null<Array<()->Void>> = null;
 
   public function new() {}
 
@@ -31,12 +41,9 @@ class DefaultScheduler implements Scheduler {
   function doUpdate() {
     if (onUpdate == null) return;
 
-    var error = null;
     var currentUpdates = onUpdate;
-    onUpdate = null;
+    onUpdate = null;    
     
     for (u in currentUpdates) u();
-
-    if (error != null) throw error;
   }
 }

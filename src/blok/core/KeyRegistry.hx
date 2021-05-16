@@ -2,9 +2,10 @@ package blok.core;
 
 import haxe.ds.Map;
 
+@:nullSafety
 class KeyRegistry implements Registry<Key, Component> {
-  var strings:Map<String, Component>;
-  var objects:Map<{}, Component>;
+  var strings:Null<Map<String, Component>>;
+  var objects:Null<Map<{}, Component>>;
 
   public function new() {}
 
@@ -20,9 +21,9 @@ class KeyRegistry implements Registry<Key, Component> {
     }
   }
 
-  public function pull(?key:Key):Component {
+  public function pull(?key:Key):Null<Component> {
     if (key == null) return null;
-    var map:Map<Dynamic, Component> = if (key.isString()) strings else objects;
+    var map:Null<Map<Dynamic, Component>> = if (key.isString()) strings else objects;
     if (map == null) return null;
     var out = map.get(key);
     map.remove(key);
@@ -30,7 +31,7 @@ class KeyRegistry implements Registry<Key, Component> {
   }
 
   public function exists(key:Key):Bool {
-    var map:Map<Dynamic, Component> = if (key.isString()) strings else objects;
+    var map:Null<Map<Dynamic, Component>> = if (key.isString()) strings else objects;
     if (map == null) return false;
     return map.exists(key);
   }

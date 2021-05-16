@@ -1,8 +1,9 @@
 package blok.core;
 
+@:nullSafety
 class ComponentTypeRegistry implements Registry<Key, Component> {
-  var keyed:KeyRegistry;
-  var unkeyed:Array<Component>;
+  var keyed:Null<KeyRegistry>;
+  var unkeyed:Null<Array<Component>>;
 
   public function new() {}
 
@@ -18,7 +19,7 @@ class ComponentTypeRegistry implements Registry<Key, Component> {
     }
   }
 
-  public function pull(?key:Key):Component {
+  public function pull(?key:Key):Null<Component> {
     if (key == null) {
       return if (unkeyed != null) unkeyed.shift() else null;
     } else {

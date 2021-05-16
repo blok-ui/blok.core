@@ -8,7 +8,9 @@ class TestEngine implements Engine {
   final scheduler:Scheduler;
   
   public function new(?scheduler) {
-    this.scheduler = scheduler == null ? new DefaultScheduler() : scheduler;
+    this.scheduler = scheduler == null 
+      ? DefaultScheduler.getInstance() 
+      : scheduler;
   }
   
   public function initialize(component:Component) {

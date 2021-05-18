@@ -3,7 +3,24 @@ package blok;
 import haxe.ds.Option;
 
 class Differ {
-  public static function initialize(
+  static var instance:Null<Differ>;
+
+  public static function getInstance():Differ {
+    if (instance == null) {
+      instance = new Differ();
+    }
+    return instance;
+  }
+
+  final options:DifferOptions;
+
+  public function new(?options) {
+    this.options = options != null
+      ? options
+      : {};
+  }
+
+  public function initialize(
     node:VNode,
     parent:Null<Component>
   ) {
@@ -20,9 +37,11 @@ class Differ {
     }
 
     process([ node ]);
+    
+    if (options.onInitialize != null) options.onInitialize(parent);
   }
   
-  public static function diff(
+  public function diff(
     node:VNode,
     parent:Component
   ) {
@@ -68,12 +87,17 @@ class Differ {
 
     process([ node ]);
 
+    // // Remove excess
+    // var toDispose = [];
+    // while (cursor.current() != null) {
+    //   toDispose.push(cursor.current());
+    //   cursor.step();
+    // }
+    // if (toDispose.length > 0) for (item in toDispose) item.dispose();
+
     // Remove excess
-    var toDispose = [];
-    while (cursor.current() != null) {
-      toDispose.push(cursor.current());
-      cursor.step();
-    }
-    if (toDispose.length > 0) for (item in toDispose) item.dispose();
+    while (cursor.current() != null) if (!cursor.delete()) break;
+
+    if (options.onUpdate != null) options.onUpdate(parent);
   }
 }

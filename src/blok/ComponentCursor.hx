@@ -24,6 +24,15 @@ class ComponentCursor {
     parent.moveComponentTo(pos, comp);
   }
 
+  public function delete() {
+    return switch current() {
+      case null: false;
+      case comp:
+        comp.dispose();
+        true;
+    }
+  }
+
   public function step() {
     pos++;
   }

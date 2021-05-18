@@ -20,16 +20,18 @@ abstract class Component implements Disposable {
   var __effectQueue:Array<()->Void> = [];
   var __updateQueue:Array<Component> = [];
   var __scheduler:Null<Scheduler>;
+  var __differ:Null<Differ>;
   var __parent:Null<Component> = null;
   var __children:Array<Component> = [];
 
-  public function initializeComponent(?parent:Component, ?key:Key) {
+  public function initializeComponent(?parent:Component, ?key:Key, ?differ:Differ) {
     if (__isMounted) throw new ComponentRemountedException(this);
     
     try {
       __key = key;
       __isMounted = true;
       __parent = parent;
+      __differ = differ;
       __runInitHooks();
       __doInitialize();
       __enqueueEffect(__runEffectHooks);
@@ -38,7 +40,7 @@ abstract class Component implements Disposable {
       if (__isRecoveringFrom != null) throw e;
       __isMounted = false;
       __isRecoveringFrom = e;
-      initializeComponent(parent, key);
+      initializeComponent(parent, key, differ);
       __isRecoveringFrom = null;
     }
   }
@@ -76,8 +78,8 @@ abstract class Component implements Disposable {
     }
   }
 
-  public function initializeRootComponent() {
-    initializeComponent();
+  public function initializeRootComponent(?differ:Differ) {
+    initializeComponent(null, null, differ);
     __dequeueEffects();
   }
 
@@ -124,6 +126,10 @@ abstract class Component implements Disposable {
       case null: __parent.findInheritedComponentOfType(kind);
       case found: Some(cast found);
     }
+  }
+
+  public inline function getChildComponents() {
+    return __children;
   }
 
   public function addComponent(component:Component, ?key:Key) {
@@ -190,11 +196,21 @@ abstract class Component implements Disposable {
   }
   
   function __doInitialize() {
-    Differ.initialize(__doRenderLifecycle(), this); 
+    __getDiffer().initialize(__doRenderLifecycle(), this); 
   }
 
   function __doUpdate() {
-    Differ.diff(__doRenderLifecycle(), this);
+    __getDiffer().diff(__doRenderLifecycle(), this);
+  }
+
+  function __getDiffer() {
+    return if (__differ != null) {
+      __differ;
+    } else if (__parent != null) {
+      __parent.__getDiffer();
+    } else {
+      Differ.getInstance();
+    }
   }
 
   function __schedule(cb:()->Void) {

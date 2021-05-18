@@ -1,17 +1,15 @@
 package blok;
 
-import blok.core.Rendered;
-
 class Text {
-  public static function getTextFromRendered(rendered:Rendered) {
+  public static function getTextFromComponent(comp:Component) {
     var text:Array<String> = [];
-    for (child in rendered.children) switch Std.downcast(child, TextComponent) {
+    for (child in comp.__children) switch Std.downcast(child, TextComponent) {
       case null:
-        text.push(getTextFromRendered(child.__renderedChildren));
+        text.push(getTextFromComponent(child));
       case comp: 
         text.push(comp.content);
     }
-    return text.join(' ');
+    return text.filter(t -> t.length > 0).join(' ');
   }
 
   public static function fragment(children:Array<VNode>):VNode {

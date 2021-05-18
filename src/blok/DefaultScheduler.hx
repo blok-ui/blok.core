@@ -1,4 +1,4 @@
-package blok.core;
+package blok;
 
 @:nullSafety
 class DefaultScheduler implements Scheduler {

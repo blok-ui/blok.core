@@ -1,4 +1,4 @@
-package blok.core;
+package blok.tools;
 
 import haxe.macro.Context;
 import haxe.macro.Expr;

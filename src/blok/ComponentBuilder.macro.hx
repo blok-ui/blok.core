@@ -2,8 +2,8 @@ package blok;
 
 import haxe.macro.Context;
 import haxe.macro.Expr;
-import blok.core.BuilderHelpers.*;
-import blok.core.ClassBuilder;
+import blok.tools.BuilderHelpers.*;
+import blok.tools.ClassBuilder;
 
 using Lambda;
 using haxe.macro.Tools;
@@ -160,7 +160,7 @@ class ComponentBuilder {
           var name = field.name;
           var getter = 'get_$name';
           var backingName = '__computedValue_$name';
-
+          
           field.kind = FProp('get', 'never', t, null);
 
           builder.add(macro class {
@@ -329,6 +329,14 @@ class ComponentBuilder {
           'Cannot use a custom constructor unless `@component(dontGenerateType)` is set', 
           builder.getField('new').pos
         );
+      }
+
+      if (!dontGenerateType) {
+        builder.add(macro class {
+          function isComponentType(type:blok.ComponentType<Dynamic, Dynamic>) {
+            return __type == type;
+          }
+        });
       }
 
       return macro class {

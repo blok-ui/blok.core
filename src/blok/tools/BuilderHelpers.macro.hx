@@ -1,10 +1,10 @@
-package blok.core;
+package blok.tools;
 
 import haxe.ds.Option;
 import haxe.macro.Context;
 import haxe.macro.Expr;
 import haxe.macro.Type;
-import blok.core.ClassBuilder;
+import blok.tools.ClassBuilder;
 
 using haxe.macro.Tools;
 using StringTools;

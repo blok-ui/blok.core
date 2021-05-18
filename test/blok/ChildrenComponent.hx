@@ -12,7 +12,7 @@ class ChildrenComponent extends Component {
   }
 
   public function toString() {
-    return Text.getTextFromRendered(__renderedChildren); 
+    return Text.getTextFromComponent(this); 
   }
 
   public function render():VNode {

@@ -1,6 +1,6 @@
+import blok.VNode;
 import haxe.Exception;
 import haxe.ds.Option;
-import blok.VNode;
 import blok.Text;
 import blok.Component;
 import helpers.TestContext;

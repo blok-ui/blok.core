@@ -2,8 +2,8 @@ package blok;
 
 import haxe.macro.Context;
 import haxe.macro.Expr;
-import blok.core.ClassBuilder;
-import blok.core.BuilderHelpers;
+import blok.tools.ClassBuilder;
+import blok.tools.BuilderHelpers;
 
 using haxe.macro.Tools;
 

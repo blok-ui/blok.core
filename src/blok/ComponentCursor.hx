@@ -26,9 +26,11 @@ class ComponentCursor {
 
   public function delete() {
     return switch current() {
-      case null: false;
-      case comp:
-        comp.dispose();
+      case null: 
+        false;
+      case child:
+        parent.removeComponent(child);
+        step();
         true;
     }
   }

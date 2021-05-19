@@ -13,6 +13,7 @@ abstract class Component implements Disposable {
   var __key:Null<Key> = null;
   var __isMounted:Bool = false;
   var __isInvalid:Bool = false;
+  var __isDisposed:Bool = false;
   var __isRendering:Bool = false;
   var __isRecoveringFrom:Null<BlokException> = null;
   var __currentRevision:Int = 0;
@@ -91,10 +92,19 @@ abstract class Component implements Disposable {
     __dequeueEffects();
   }
 
+  public function remove() {
+    if (__isDisposed) return;
+    if (__parent != null) { 
+      __parent.removeComponent(this);
+    } else {
+      dispose();
+    } 
+  }
+
   public function dispose() {
+    if (__isDisposed) return;
+    __isDisposed = true;
     for (child in __children) child.dispose();
-    if (__parent != null) __parent.__children.remove(this);
-    __parent = null;
   }
 
   public function shouldComponentUpdate():Bool {
@@ -138,7 +148,10 @@ abstract class Component implements Disposable {
   }
 
   public function removeComponent(component:Component) {
-    if (hasComponent(component)) component.dispose();
+    if (hasComponent(component)) {
+      component.dispose();
+      __children.remove(component);
+    }
   }
 
   public function insertComponentAt(pos:Int, component:Component, ?key:Key) {
@@ -178,8 +191,8 @@ abstract class Component implements Disposable {
       addComponent(newComponent, oldComponent.__key);
     }
     var pos = getPositionOfComponent(oldComponent);
-    oldComponent.dispose();
     insertComponentAt(pos, newComponent, oldComponent.__key);
+    removeComponent(oldComponent);
   }
 
   public function getPositionOfComponent(component:Component) {

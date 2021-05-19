@@ -36,7 +36,13 @@ class Differ {
       }
     }
 
-    process([ node ]);
+    switch node {
+      case VNone | VFragment([]) | null if (options.createPlaceholder != null):
+        var child = options.createPlaceholder(parent);
+        if (child != null) parent.addComponent(child);
+      default:
+        process([ node ]);
+    }
     
     if (options.onInitialize != null) options.onInitialize(parent);
   }
@@ -45,6 +51,7 @@ class Differ {
     node:VNode,
     parent:Component
   ) {
+    var previousComponents = parent.getChildComponents().copy();
     var cursor = new ComponentCursor(parent);
 
     function previous(key:Null<Key>):Option<Component> {
@@ -85,19 +92,20 @@ class Differ {
       }
     }
 
-    process([ node ]);
-
-    // // Remove excess
-    // var toDispose = [];
-    // while (cursor.current() != null) {
-    //   toDispose.push(cursor.current());
-    //   cursor.step();
-    // }
-    // if (toDispose.length > 0) for (item in toDispose) item.dispose();
+    switch node {
+      case VNone | VFragment([]) | null if (options.createPlaceholder != null):
+        var child = options.createPlaceholder(parent);
+        if (child != null) {
+          cursor.insert(child);
+          cursor.step();
+        }
+      default:
+        process([ node ]);
+    }
 
     // Remove excess
     while (cursor.current() != null) if (!cursor.delete()) break;
 
-    if (options.onUpdate != null) options.onUpdate(parent);
+    if (options.onUpdate != null) options.onUpdate(parent, previousComponents);
   }
 }

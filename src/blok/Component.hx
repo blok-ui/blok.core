@@ -10,7 +10,7 @@ import blok.exception.*;
 @:autoBuild(blok.ComponentBuilder.build())
 abstract class Component implements Disposable {
   var __isMounted:Bool = false;
-  var __isInvalid:Bool = false;
+  var __isAwaitingUpdate:Bool = false;
   var __isRendering:Bool = false;
   var __isRecoveringFrom:Null<BlokException> = null;
   var __currentRevision:Int = 0;
@@ -44,7 +44,7 @@ abstract class Component implements Disposable {
   }
 
   final public function renderComponent() {
-    __isInvalid = false;
+    __isAwaitingUpdate = false;
     
     if (!__isMounted) throw new ComponentNotMountedException(this);
     if (__isRendering) throw new ComponentIsRenderingException(this);
@@ -67,9 +67,9 @@ abstract class Component implements Disposable {
   final public function updateComponent() {
     if (!__isMounted) throw new ComponentNotMountedException(this);
     if (__engine == null) throw new NoEngineException(this);
-    if (__isInvalid) return;
+    if (__isAwaitingUpdate) return;
     
-    __isInvalid = true;
+    __isAwaitingUpdate = true;
     
     if (__parent == null) {
       __engine.schedule(patchRootComponent);
@@ -100,10 +100,6 @@ abstract class Component implements Disposable {
 
   public function shouldComponentUpdate():Bool {
     return true;
-  }
-
-  public function componentIsInvalid():Bool {
-    return __isInvalid;
   }
 
   public function componentDidCatch(exception:Exception):VNode {
@@ -159,7 +155,7 @@ abstract class Component implements Disposable {
   }
   
   function __enqueueChildForUpdate(child:Component) {
-    if (componentIsInvalid() || __updateQueue.contains(child)) return;
+    if (__isAwaitingUpdate || __updateQueue.contains(child)) return;
 
     __updateQueue.push(child);
 
@@ -178,7 +174,7 @@ abstract class Component implements Disposable {
     __updateQueue = [];
 
     for (component in updates) {
-      if (component.componentIsInvalid()) {
+      if (component.__isAwaitingUpdate) {
         component.renderComponent();
       } else {
         component.__dequeueUpdates();
@@ -197,6 +193,8 @@ abstract class Component implements Disposable {
   }
 
   function __dequeueEffects() {
+    if (__effectQueue.length == 0) return;
+    
     var effects = __effectQueue.copy();
 
     __effectQueue = [];

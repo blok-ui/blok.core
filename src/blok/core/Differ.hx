@@ -56,7 +56,7 @@ class Differ {
             newRendered.addChild(type, key, comp);
           case Some(comp):
             type.update(cast comp, properties);
-            if (comp.shouldComponentUpdate() || comp.componentIsInvalid()) {
+            if (comp.shouldComponentUpdate() || comp.__isAwaitingUpdate) {
               comp.renderComponent();
             }
             newRendered.addChild(type, key, comp);

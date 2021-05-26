@@ -1,3 +1,4 @@
+import blok.VNode;
 import blok.Text;
 import blok.Context;
 import blok.Component;
@@ -31,7 +32,7 @@ class TestService implements TestCase {
     Provider.node({
       service: new SimpleService('bar'),
       build: _ -> Context.use(context -> Text.text(SimpleService.from(context).value)) 
-    }).renders('bar', done);
+    }).toResult().renders('bar', done);
   }
 
   @:test('The `use` static function will get the service from the closest context')
@@ -40,7 +41,7 @@ class TestService implements TestCase {
     Provider.node({
       service: new SimpleService('bar'),
       build: _ -> SimpleService.use(service -> Text.text(service.value)) 
-    }).renders('bar', done);
+    }).toResult().renders('bar', done);
   }
 
   // Todo: the following tests should probably be pulled out
@@ -52,7 +53,7 @@ class TestService implements TestCase {
     Provider.node({
       service: new SimpleService('bar'),
       build: context -> Text.text(SimpleService.from(context).value)
-    }).renders('bar', done);
+    }).toResult().renders('bar', done);
   }
 
   @:test('Services work with @use')
@@ -61,7 +62,7 @@ class TestService implements TestCase {
     Provider.node({
       service: new SimpleService('bar'),
       build: _ -> UsesSimpleService.node({})
-    }).renders('bar', done);
+    }).toResult().renders('bar', done);
   }
 
   @:test('Provider scopes services')
@@ -83,7 +84,7 @@ class TestService implements TestCase {
     Provider.node({
       service: new HasProviders(),
       build: _ -> SimpleService.use(service -> Text.text(service.value))
-    }).renders('provided', done);
+    }).toResult().renders('provided', done);
   }
 }
 
@@ -106,7 +107,7 @@ class HasProviders implements Service {
 class UsesSimpleService extends Component {
   @use final service:SimpleService;
 
-  public function render() {
+  public function render():VNode {
     return Text.text(service.value);
   }
 }

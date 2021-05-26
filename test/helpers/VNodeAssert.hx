@@ -1,5 +1,6 @@
 package helpers;
 
+import blok.VNode;
 import blok.ChildrenComponent;
 import haxe.PosInfos;
 import medic.Assert;
@@ -7,9 +8,13 @@ import blok.VNode;
 import blok.TestPlatform;
 
 class VNodeAssert {
-  public static function mount(vn:VNode, handler:(result:String)->Void) {
+  public static inline function toResult(vn:VNode):VNode {
+    return vn;
+  }
+
+  public static function mount(result:VNode, handler:(result:String)->Void) {
     TestPlatform.mount(ChildrenComponent.node({
-      children: [ vn ],
+      children: [ result ],
       ref: handler
     }));
   }

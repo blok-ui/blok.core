@@ -1,5 +1,6 @@
 package blok;
 
+import blok.VNodeType.getUniqueTypeId;
 import haxe.macro.Context;
 import haxe.macro.Expr;
 import blok.tools.BuilderHelpers.*;
@@ -303,7 +304,7 @@ class ComponentBuilder {
                 { name: 'props', type: macro:$propType },
                 { name: 'key', type: macro:Null<blok.Key>, opt: true }
               ],
-              expr: macro return VComponent(__type, props, key),
+              expr: macro return new blok.VComponent(__type, props, props -> new $clsTp(props), key),
               ret: macro:blok.VNode
             })
           }
@@ -311,10 +312,7 @@ class ComponentBuilder {
 
         builder.add(macro class {
           @:noCompletion
-          static public final __type = {
-            create: (props) -> new $clsTp(props),
-            update: (component, properties) -> component.updateComponentProperties(properties)
-          }
+          static public final __type = blok.VNodeType.getUniqueTypeId();
         });
       }
 
@@ -333,9 +331,7 @@ class ComponentBuilder {
 
       if (!dontGenerateType) {
         builder.add(macro class {
-          function isComponentType(type:blok.ComponentType<Dynamic, Dynamic>) {
-            return __type == type;
-          }
+          public function getComponentType() return __type;
         });
       }
 

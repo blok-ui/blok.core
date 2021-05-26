@@ -1,5 +1,7 @@
 package blok;
 
+import blok.VNode;
+
 class Text {
   public static function getTextFromComponent(comp:Component) {
     var text:Array<String> = [];
@@ -13,7 +15,7 @@ class Text {
   }
 
   public static function fragment(children:Array<VNode>):VNode {
-    return VFragment(children);
+    return new VFragment(children);
   }
 
   public static function text(text:String, ?ref, ?key):VNode {

@@ -16,7 +16,7 @@ class TestComponent implements TestCase {
   public function testSimple(done) {
     SimpleComponent.node({
       content: 'foo',
-    }).renders('foo', done);
+    }).toResult().renders('foo', done);
   }
 
   @:test('Components can update themselves')
@@ -38,7 +38,7 @@ class TestComponent implements TestCase {
         var test = tests.shift();
         if (test != null) test(comp);
       }
-    }).renderWithoutAssert();
+    }).toResult().renderWithoutAssert();
   }
 
   @:test('Components can be lazy')
@@ -62,7 +62,7 @@ class TestComponent implements TestCase {
     }
 
     function comp(foo, bar, e) {
-      expected = e;  
+      expected = e;
       return LazyComponent.node({
         foo: foo,
         bar: bar,
@@ -87,7 +87,7 @@ class TestComponent implements TestCase {
       },
       fallback: () -> Text.text('Fell back'),
       build: () -> ThrowsException.node({})
-    }).renderWithoutAssert();
+    }).toResult().renderWithoutAssert();
   }
 
   @:test('Components catch exceptions and have fallbacks')
@@ -99,7 +99,7 @@ class TestComponent implements TestCase {
       },
       fallback: () ->  Text.text('Fell back'),
       build: () -> ThrowsException.node({})
-    }).renders('Fell back', done);
+    }).toResult().renders('Fell back', done);
   }
 
   @:test('If the fallback throws an exception things do not die')
@@ -112,7 +112,7 @@ class TestComponent implements TestCase {
         },
         fallback: () -> ThrowsException.node({}),
         build: () -> ThrowsException.node({})
-      }).renders('Fell back', done);
+      }).toResult().renders('Fell back', done);
     } catch (e) {
       Assert.pass();
       done();
@@ -135,7 +135,7 @@ class SimpleComponent extends Component {
     return UpdateState({ content: content });
   }
   
-  public function render() {
+  public function render():VNode {
     return Text.text(content, result -> ref = result);
   }
 }
@@ -151,7 +151,7 @@ class LazyComponent extends Component {
     test(this);
   }
 
-  public function render() {
+  public function render():VNode {
     return Text.text(foo + ' | ' + bar);
   }
 }

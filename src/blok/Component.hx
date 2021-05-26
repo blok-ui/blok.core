@@ -3,8 +3,10 @@ package blok;
 import haxe.Exception;
 import haxe.ds.Option;
 import blok.exception.*;
+import blok.VNodeType;
 
 using Lambda;
+using blok.Differ;
 
 @:nullSafety
 @:allow(blok)
@@ -21,32 +23,23 @@ abstract class Component implements Disposable {
   var __effectQueue:Array<()->Void> = [];
   var __updateQueue:Array<Component> = [];
   var __scheduler:Null<Scheduler>;
-  var __differ:Null<Differ>;
   var __parent:Null<Component> = null;
   var __children:Array<Component> = [];
 
-  public function initializeComponent(?parent:Component, ?key:Key, ?differ:Differ) {
+  abstract public function render():VNode;
+  abstract public function getComponentType():VNodeType;
+  abstract public function updateComponentProperties(props:Dynamic):Void;
+
+  public function initializeComponent(?parent:Component, ?key:Key) {
     if (__isMounted) throw new ComponentRemountedException(this);
     
-    try {
-      __key = key;
-      __isMounted = true;
-      __parent = parent;
-      __differ = differ;
-      __runInitHooks();
-      __doInitialize();
-      __enqueueEffect(__runEffectHooks);
-    } catch (e:BlokException) {
-      __isRendering = false;
-      if (__isRecoveringFrom != null) throw e;
-      __isMounted = false;
-      __isRecoveringFrom = e;
-      initializeComponent(parent, key, differ);
-      __isRecoveringFrom = null;
-    }
+    __key = key;
+    __isMounted = true;
+    __parent = parent;
+    __runInitHooks();
   }
 
-  final public function renderComponent() {
+  public function renderComponent() {
     __isInvalid = false;
     
     if (!__isMounted) throw new ComponentNotMountedException(this);
@@ -54,7 +47,7 @@ abstract class Component implements Disposable {
     
     try {
       __isRendering = true;
-      __doUpdate();
+      this.diffChildren([ __doRenderLifecycle() ]);
       __isRendering = false;
       __enqueueEffect(__runEffectHooks);
     } catch (e:BlokException) {
@@ -77,11 +70,6 @@ abstract class Component implements Disposable {
     } else {
       __parent.__enqueueChildForUpdate(this);
     }
-  }
-
-  public function initializeRootComponent(?differ:Differ) {
-    initializeComponent(null, null, differ);
-    __dequeueEffects();
   }
 
   public function patchRootComponent() {
@@ -107,24 +95,9 @@ abstract class Component implements Disposable {
     for (child in __children) child.dispose();
   }
 
-  public function shouldComponentUpdate():Bool {
-    return true;
+  public inline function getComponentKey() {
+    return __key;
   }
-
-  public function componentIsInvalid():Bool {
-    return __isInvalid;
-  }
-
-  public function componentDidCatch(exception:Exception):VNode {
-    throw exception;
-    return VNone;
-  }
-  
-  abstract public function render():VNode;
-
-  abstract public function updateComponentProperties(props:Dynamic):Void;
-
-  abstract public function isComponentType(type:ComponentType<Dynamic, Dynamic>):Bool;
   
   public function findInheritedComponentOfType<T:Component>(kind:Class<T>):Option<T> {
     if (__parent == null) {
@@ -142,21 +115,46 @@ abstract class Component implements Disposable {
     return __children;
   }
 
-  public function addComponent(component:Component, ?key:Key) {
+  public function componentIsInvalid():Bool {
+    return __isInvalid;
+  }
+  
+  public function componentDidCatch(exception:Exception):VNode {
+    throw exception;
+    return VNodeNone.instance;
+  }
+
+  public function shouldComponentUpdate():Bool {
+    return true;
+  }
+
+  public function addComponent(component:Component) {
     __children.push(component);
-    component.initializeComponent(this, key);
   }
 
   public function removeComponent(component:Component) {
-    if (hasComponent(component)) {
+    if (component != null && hasComponent(component)) {
       component.dispose();
       __children.remove(component);
     }
   }
 
-  public function insertComponentAt(pos:Int, component:Component, ?key:Key) {
+  public function insertComponentAt(pos:Int, component:Component) {
     __children.insert(pos, component);
-    component.initializeComponent(this, key);
+  }
+
+  public function insertComponentBefore(reference:Null<Component>, component:Component) {
+    if (reference == null || !hasComponent(reference)) {
+      return addComponent(component);
+    }
+    var pos = getPositionOfComponent(reference);
+    if (pos == -1) {
+      addComponent(component);
+    } else if (pos == 0) {
+      insertComponentAt(0, component);
+    } else {
+      insertComponentAt(pos - 1, component);
+    } 
   }
 
   public function moveComponentTo(pos:Int, component:Component) {
@@ -169,29 +167,17 @@ abstract class Component implements Disposable {
     return __children[pos];
   }
 
-  public function repaceComponentAt(pos:Int, component:Component) {
-    var comp = getComponentAt(pos);
-    if (comp != null) {
-      comp.dispose();
-      insertComponentAt(pos, component, comp.__key);
-    }
+  public function repaceComponentAt(pos:Int, newComponent:Component) {
+    var oldComponent = getComponentAt(pos);
+    insertComponentBefore(newComponent, oldComponent);
+    removeComponent(oldComponent);
   }
 
-  public function replaceComponentByKey(key:Key, component:Component) {
-    var comp = findComponentByKey(key);
-    if (comp != null) {
-      var pos = getPositionOfComponent(comp);
-      comp.dispose();
-      insertComponentAt(pos, component, key);
+  public function replaceComponent(oldComponent:Null<Component>, newComponent:Component) {
+    if (oldComponent == null || !hasComponent(oldComponent)) {
+      return addComponent(newComponent);
     }
-  }
-
-  public function replaceComponent(oldComponent:Component, newComponent:Component) {
-    if (!hasComponent(oldComponent)) {
-      addComponent(newComponent, oldComponent.__key);
-    }
-    var pos = getPositionOfComponent(oldComponent);
-    insertComponentAt(pos, newComponent, oldComponent.__key);
+    insertComponentBefore(oldComponent, newComponent);
     removeComponent(oldComponent);
   }
 
@@ -208,47 +194,9 @@ abstract class Component implements Disposable {
     return __children.find(comp -> comp.__key == key);
   }
   
-  function __doInitialize() {
-    __getDiffer().initialize(__doRenderLifecycle(), this); 
-  }
-
-  function __doUpdate() {
-    __getDiffer().diff(__doRenderLifecycle(), this);
-  }
-
-  function __getDiffer() {
-    return if (__differ != null) {
-      __differ;
-    } else if (__parent != null) {
-      __parent.__getDiffer();
-    } else {
-      Differ.getInstance();
-    }
-  }
-
-  function __schedule(cb:()->Void) {
-    if (__scheduler != null) {
-      __scheduler.schedule(cb);
-    } else if (__parent != null) {
-      __parent.__schedule(cb);
-    } else {
-      DefaultScheduler.getInstance().schedule(cb);
-    }
-  }
-
-  function __renderFallbackForException():VNode {
-    return try render() catch (e) VNone;
-  }
-
-  abstract function __runBeforeHooks():Void;
-
-  abstract function __runInitHooks():Void;
-
-  abstract function __runEffectHooks():Void;
-
   function __doRenderLifecycle():VNode {
     var exception:Null<Exception> = null;
-    var vn:VNode = VNone;
+    var vn:VNode = VNodeNone.instance;
 
     try {
       __runBeforeHooks();
@@ -266,6 +214,26 @@ abstract class Component implements Disposable {
 
     return vn;
   }
+  
+  function __schedule(cb:()->Void) {
+    if (__scheduler != null) {
+      __scheduler.schedule(cb);
+    } else if (__parent != null) {
+      __parent.__schedule(cb);
+    } else {
+      DefaultScheduler.getInstance().schedule(cb);
+    }
+  }
+
+  function __renderFallbackForException():VNode {
+    return try render() catch (e) VNodeNone.instance;
+  }
+
+  abstract function __runBeforeHooks():Void;
+
+  abstract function __runInitHooks():Void;
+
+  abstract function __runEffectHooks():Void;
   
   function __enqueueChildForUpdate(child:Component) {
     if (componentIsInvalid() || __updateQueue.contains(child)) return;

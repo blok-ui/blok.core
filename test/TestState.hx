@@ -53,7 +53,7 @@ class TestState implements TestCase {
           if (test != null) test(result);
         }
       }))
-    }).renderWithoutAssert();
+    }).toResult().renderWithoutAssert();
   }
 
   @:test('`State.use` is a shortcut for observing the state')
@@ -82,7 +82,7 @@ class TestState implements TestCase {
           if (test != null) test(result);
         }
       }))
-    }).renderWithoutAssert();
+    }).toResult().renderWithoutAssert();
   }
 
   @:test('States can provide services')
@@ -95,7 +95,7 @@ class TestState implements TestCase {
       service: state,
       teardown: state -> state.dispose(),
       build: context -> Text.text(FooService.from(context).foo)
-    }).renders('Provided', done);
+    }).toResult().renders('Provided', done);
   }
 }
 

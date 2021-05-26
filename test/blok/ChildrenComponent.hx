@@ -16,6 +16,6 @@ class ChildrenComponent extends Component {
   }
 
   public function render():VNode {
-    return VFragment(children);
+    return new VFragment(children);
   }
 }

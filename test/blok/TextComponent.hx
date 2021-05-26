@@ -10,6 +10,6 @@ class TextComponent extends Component {
   }
   
   public function render():VNode {
-    return VNone;
+    return VNodeNone.instance;
   }
 }

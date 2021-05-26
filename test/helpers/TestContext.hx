@@ -8,7 +8,7 @@ class TestContext {
   public final root:ChildrenComponent;
 
   public function new() {
-    root = TestPlatform.mount(VNone);
+    root = TestPlatform.mount(null);
   }
 
   public function render(vn:VNode) {

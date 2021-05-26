@@ -1,7 +1,9 @@
 package blok;
 
-enum VNode {
-  VNone;
-  VComponent<T:Component, Props:{}>(type:ComponentType<T, Props>, properties:Props, ?key:Key);
-  VFragment(nodes:Array<VNode>);
+interface VNode {
+  public final type:VNodeType;
+  public final key:Null<Key>;
+  public final props:Dynamic;
+  public final children:Null<Array<VNode>>;
+  public function createComponent():Component;
 }

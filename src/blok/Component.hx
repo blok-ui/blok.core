@@ -6,7 +6,6 @@ import blok.exception.*;
 import blok.VNodeType;
 
 using Lambda;
-using blok.Differ;
 
 @:nullSafety
 @:allow(blok)
@@ -16,6 +15,7 @@ abstract class Component implements Disposable {
   var __isMounted:Bool = false;
   var __isInvalid:Bool = false;
   var __isDisposed:Bool = false;
+  var __isFirstRender:Bool = true;
   var __isRendering:Bool = false;
   var __isRecoveringFrom:Null<BlokException> = null;
   var __currentRevision:Int = 0;
@@ -23,6 +23,7 @@ abstract class Component implements Disposable {
   var __effectQueue:Array<()->Void> = [];
   var __updateQueue:Array<Component> = [];
   var __scheduler:Null<Scheduler>;
+  var __differ:Null<Differ> = null;
   var __parent:Null<Component> = null;
   var __children:Array<Component> = [];
 
@@ -49,8 +50,9 @@ abstract class Component implements Disposable {
     
     try {
       __isRendering = true;
-      this.diffChildren([ __doRenderLifecycle() ]);
+      __getDiffer().patchComponent(this, [ __doRenderLifecycle() ], __isFirstRender);
       __isRendering = false;
+      __isFirstRender = false;
       __enqueueEffect(__runEffectHooks);
     } catch (e:BlokException) {
       __isRendering = false;
@@ -72,6 +74,13 @@ abstract class Component implements Disposable {
     } else {
       __parent.__enqueueChildForUpdate(this);
     }
+  }
+
+  public function initializeRootComponent(differ:Differ) {
+    __differ = differ;
+    initializeComponent();
+    renderComponent();
+    __dequeueEffects();
   }
 
   public function patchRootComponent() {
@@ -134,15 +143,25 @@ abstract class Component implements Disposable {
     __children.push(component);
   }
 
-  public function removeComponent(component:Component) {
+  public function removeComponent(component:Component):Bool {
     if (component != null && hasComponent(component)) {
       component.dispose();
       __children.remove(component);
+      return true;
     }
+    return false;
   }
 
   public function insertComponentAt(pos:Int, component:Component) {
     __children.insert(pos, component);
+  }
+
+  public function setComponentAt(pos:Int, component:Component) {
+    __children[pos] = component;
+  }
+
+  public function getComponentAt(pos:Int) {
+    return __children[pos];
   }
 
   public function insertComponentBefore(reference:Null<Component>, component:Component) {
@@ -151,7 +170,7 @@ abstract class Component implements Disposable {
     }
     var pos = getPositionOfComponent(reference);
     if (pos == 0) {
-      __children.unshift(component);
+      insertComponentAt(0, component);
     } else {
       insertComponentAt(pos - 1, component);
     } 
@@ -185,22 +204,18 @@ abstract class Component implements Disposable {
     if (from < pos) {
       var i = from;
       while (i < pos) {
-        __children[i] = __children[i + 1];
+        setComponentAt(i, __children[i + 1]);
         i++;
       } 
     } else {
       var i = from;
       while (i > pos) {
-        __children[i] = __children[i - 1];
+        setComponentAt(i, __children[i - 1]);
         i--;
       }
     }
 
-    __children[pos] = component;
-  }
-
-  public function getComponentAt(pos:Int) {
-    return __children[pos];
+    setComponentAt(pos, component);
   }
 
   public function replaceComponentAt(pos:Int, newComponent:Component) {
@@ -255,6 +270,16 @@ abstract class Component implements Disposable {
     if (exception != null) throw exception;
 
     return vn;
+  }
+
+  function __getDiffer():Differ {
+    return if (__differ != null) {
+      cast __differ; // I promise you null safety, I just checked.
+    } else if (__parent != null) {
+      __parent.__getDiffer();
+    } else {
+      Differ.getInstance();
+    }
   }
   
   function __schedule(cb:()->Void) {

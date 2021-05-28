@@ -111,6 +111,14 @@ class ComponentBuilder {
             field: name,
             expr: init
           });
+          
+          if (onChange.length > 0 ) {
+            initHooks.push(macro {
+              var previous = null;
+              var value = __props.$name;
+              $b{onChange};
+            });
+          }
 
           updates.push(macro {
             if (Reflect.hasField($i{INCOMING_PROPS}, $v{name})) {
@@ -120,7 +128,7 @@ class ComponentBuilder {
               ] {
                 case [ a, b ] if (!${comparator}):
                   // noop
-                case [ current, value ]:
+                case [ previous, value ]:
                   __currentRevision++;
                   $i{PROPS}.$name = value;
                   $b{onChange}

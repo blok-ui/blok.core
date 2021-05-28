@@ -5,7 +5,22 @@ import blok.VNodeType.fragmentType;
 
 @:nullSafety
 class Differ {
-  public static function diffComponent(
+  static var instance:Null<Differ> = null;
+
+  public static function getInstance():Differ {
+    if (instance == null) {
+      instance = new Differ();
+    }
+    return instance;
+  }
+
+  public function new() {}
+
+  public function patchComponent(component:Component, vnodes:Array<VNode>, isInit:Bool) {
+    diffChildren(component, vnodes);
+  }
+
+  public function diffComponent(
     parent:Component,
     component:Null<Component>,
     vNode:VNode
@@ -17,7 +32,7 @@ class Differ {
     }
   }
 
-  public static function diffChildren(
+  public function diffChildren(
     parent:Component,
     vnodes:Array<VNode>
   ) {
@@ -146,30 +161,30 @@ class Differ {
     }
   }
 
-  static function getVNodeKey(vNode:VNode) {
+  function getVNodeKey(vNode:VNode) {
     return if (vNode == null) null else vNode.key;
   }
 
-  static function getKey(component:Null<Component>) {
+  function getKey(component:Null<Component>) {
     return if (component == null) null else component.getComponentKey();
   }
 
-  static function createComponent(parent:Component, vNode:VNode) {
+  function createComponent(parent:Component, vNode:VNode) {
     var component = vNode.createComponent();
     component.initializeComponent(parent, vNode.key);
     component.renderComponent();
     return component;
   }
   
-  static function updateComponent(component:Component, vNode:VNode) {
-    component.updateComponentProperties(vNode.props);
+  function updateComponent(component:Component, vNode:VNode) {
+    vNode.updateComponent(component);
     if (component.shouldComponentUpdate()) {
       component.renderComponent();
     }
     return component;
   }
 
-  static function flatten(vnodes:Array<VNode>) {
+  function flatten(vnodes:Array<VNode>) {
     var flattened:Array<VNode> = [];
     // todo: not including nulls and noneTypes will probably 
     //       break things?

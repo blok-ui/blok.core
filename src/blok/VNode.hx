@@ -6,4 +6,5 @@ interface VNode {
   public final props:Dynamic;
   public final children:Null<Array<VNode>>;
   public function createComponent():Component;
+  public function updateComponent(component:Component):Component;
 }

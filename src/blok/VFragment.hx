@@ -16,4 +16,8 @@ class VFragment implements VNode {
   public function createComponent():Component {
     throw 'Invalid';
   }
+
+  public function updateComponent(component:Component):Component {
+    throw 'Invalid';
+  }
 }

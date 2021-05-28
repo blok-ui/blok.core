@@ -27,9 +27,11 @@ abstract class Component implements Disposable {
   var __children:Array<Component> = [];
 
   abstract public function render():VNode;
-  abstract public function getComponentType():VNodeType;
-  abstract public function updateComponentProperties(props:Dynamic):Void;
 
+  abstract public function getComponentType():VNodeType;
+
+  abstract public function updateComponentProperties(props:Dynamic):Void;
+  
   public function initializeComponent(?parent:Component, ?key:Key) {
     if (__isMounted) throw new ComponentRemountedException(this);
     
@@ -148,32 +150,72 @@ abstract class Component implements Disposable {
       return addComponent(component);
     }
     var pos = getPositionOfComponent(reference);
-    if (pos == -1) {
-      addComponent(component);
-    } else if (pos == 0) {
-      insertComponentAt(0, component);
+    if (pos == 0) {
+      __children.unshift(component);
     } else {
       insertComponentAt(pos - 1, component);
     } 
   }
 
+  public function insertComponentAfter(reference:Null<Component>, component:Component) {
+    if (reference == null || !hasComponent(reference)) {
+      return addComponent(component);
+    }
+    var pos = getPositionOfComponent(reference);
+    if (pos >= __children.length) {
+      addComponent(component);
+    } else {
+      insertComponentAt(pos + 1, component);
+    }
+  }
+
   public function moveComponentTo(pos:Int, component:Component) {
-    if (!__children.has(component)) return;
-    __children.remove(component);
-    __children.insert(pos, component);
+    if (!__children.has(component)) {
+      return insertComponentAt(pos, component);
+    }
+
+    if (pos >= __children.length) {
+      pos = __children.length;
+    }
+    
+    var from = __children.indexOf(component);
+    if (pos == from) return;
+
+    // Note: there may be a better sorting algo than this
+    if (from < pos) {
+      var i = from;
+      while (i < pos) {
+        __children[i] = __children[i + 1];
+        i++;
+      } 
+    } else {
+      var i = from;
+      while (i > pos) {
+        __children[i] = __children[i - 1];
+        i--;
+      }
+    }
+
+    __children[pos] = component;
   }
 
   public function getComponentAt(pos:Int) {
     return __children[pos];
   }
 
-  public function repaceComponentAt(pos:Int, newComponent:Component) {
+  public function replaceComponentAt(pos:Int, newComponent:Component) {
     var oldComponent = getComponentAt(pos);
-    insertComponentBefore(newComponent, oldComponent);
-    removeComponent(oldComponent);
+    if (oldComponent == newComponent) return;
+    if (oldComponent == null) {
+      insertComponentAt(pos, newComponent);
+    } else {
+      insertComponentBefore(oldComponent, newComponent);
+      removeComponent(oldComponent);
+    }
   }
 
   public function replaceComponent(oldComponent:Null<Component>, newComponent:Component) {
+    if (oldComponent == newComponent) return;
     if (oldComponent == null || !hasComponent(oldComponent)) {
       return addComponent(newComponent);
     }

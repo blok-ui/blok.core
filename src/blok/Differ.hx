@@ -69,11 +69,11 @@ class Differ {
         parent.removeComponent(children[oldHead++]);
       }
     } else {
-      var keyed:Map<Key, Component> = new Map();
-      var newKeyed:Map<Key, Bool> = new Map();
+      var keyed:KeyMap<Component> = new KeyMap();
+      var newKeyed:KeyMap<Bool> = new KeyMap();
       var existingComponent:Null<Component> = null;
 
-      for (i in oldHead...oldTail) {
+      for (i in oldHead...(oldTail+1)) {
         oldKey = getKey(children[i]);
         if (oldKey != null) keyed.set(oldKey, children[i]);
       }
@@ -81,6 +81,7 @@ class Differ {
       while (newHead <= newTail) {
         oldKey = getKey((existingComponent = children[oldHead]));
         newKey = getVNodeKey(vnodes[newHead]);
+
         var hasKey = oldKey != null && newKeyed.get(oldKey);
 
         if (hasKey || (newKey != null && newKey == getKey(children[oldHead + 1]))) {
@@ -113,19 +114,20 @@ class Differ {
           } else {
             var keyedComponent = keyed.get(newKey);
             if (keyedComponent != null) {
-              updateComponent(keyedComponent, vnodes[newHead]);
+              var vn = vnodes[newHead];
               parent.moveComponentTo(
-                oldHead,
-                keyedComponent
+                newHead,
+                updateComponent(keyedComponent, vn)
               );
+              newKeyed.set(newKey, true);
             } else {
-              diffComponent(
-                parent,
-                null,
-                vnodes[newHead]
+              parent.insertComponentAt(
+                newHead,
+                createComponent(parent, vnodes[newHead])
               );
             }
           }
+
           newHead++;
         }
       }
@@ -136,11 +138,11 @@ class Differ {
         }
       }
 
-      for (key => comp in keyed) {
-        if (newKeyed[key] == null) {
+      keyed.each((key, comp) -> {
+        if (newKeyed.get(key) == null) {
           parent.removeComponent(comp);
         }
-      }
+      });
     }
   }
 
@@ -169,6 +171,8 @@ class Differ {
 
   static function flatten(vnodes:Array<VNode>) {
     var flattened:Array<VNode> = [];
+    // todo: not including nulls and noneTypes will probably 
+    //       break things?
     for (vn in vnodes) if (vn != null && vn.type != noneType) { 
       if (vn.type == fragmentType) {
         if (vn.children != null) {

@@ -1,3 +1,5 @@
+import blok.TextComponent;
+import blok.ChildrenComponent;
 import blok.VNode;
 import haxe.Exception;
 import haxe.ds.Option;
@@ -112,11 +114,111 @@ class TestComponent implements TestCase {
         },
         fallback: () -> ThrowsException.node({}),
         build: () -> ThrowsException.node({})
-      }).toResult().renders('Fell back', done);
+      }).toResult().renders('Fell back', () -> {
+        Assert.fail('Should not have rendered');
+        done();
+      });
     } catch (e) {
       Assert.pass();
       done();
     }
+  }
+
+  @:test('Keys work')
+  @:test.async
+  function testKeys(done) {
+    var testCtx = new TestContext();
+    var one = Text.text('one', null, 'one');
+    var two = Text.text('two', null, 'two');
+    var three = Text.text('three', null, 'three');
+    var oneComp:Component = null;
+    var twoComp:Component = null;
+    var threeComp:Component = null;
+
+    function test5() {
+      testCtx.render(ChildrenComponent.node({
+        children: [ three, two, Text.text('interloper'), one ],
+        onupdate: comp -> {
+          var children = comp.getChildComponents();
+          
+          children.length.equals(4);
+
+          oneComp.equals(children[3]);
+          twoComp.equals(children[1]);
+          threeComp.equals(children[0]);
+          
+          done();
+        }
+      }));
+    }
+    
+    function test4() {
+      testCtx.render(ChildrenComponent.node({
+        children: [ three, two, one ],
+        onupdate: comp -> {
+          var children = comp.getChildComponents();
+          
+          children.length.equals(3);
+
+          oneComp.equals(children[2]);
+          twoComp.equals(children[1]);
+          threeComp.equals(children[0]);
+          
+          test5();
+        }
+      }));
+    }
+
+    function test3() {
+      testCtx.render(ChildrenComponent.node({
+        children: [ two, three, one ],
+        onupdate: comp -> {
+          var children = comp.getChildComponents();
+          
+          children.length.equals(3);
+
+          oneComp.equals(children[2]);
+          twoComp.equals(children[0]);
+          threeComp.equals(children[1]);
+          
+          test4();
+        }
+      }));
+    }
+
+    function test2() {
+      testCtx.render(ChildrenComponent.node({
+        children: [ one, three, two ],
+        onupdate: comp -> {
+          var children = comp.getChildComponents();
+          
+          children.length.equals(3);
+
+          oneComp.equals(children[0]);
+          twoComp.equals(children[2]);
+          threeComp.equals(children[1]);
+          
+          test3();
+        }
+      }));
+    }
+
+    testCtx.render(ChildrenComponent.node({
+      children: [ one, two, three ],
+      onupdate: comp -> {
+        var children = comp.getChildComponents();
+        
+        oneComp = children[0];
+        twoComp = children[1];
+        threeComp = children[2];
+
+        children[0].getComponentKey().equals(one.key);
+        children[1].getComponentKey().equals(two.key);
+        children[2].getComponentKey().equals(three.key);
+
+        test2();
+      }
+    }));
   }
 }
 

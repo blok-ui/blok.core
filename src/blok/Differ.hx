@@ -1,6 +1,5 @@
 package blok;
 
-import blok.VNodeType.noneType;
 import blok.VNodeType.fragmentType;
 
 @:nullSafety
@@ -15,6 +14,10 @@ class Differ {
   }
 
   public function new() {}
+
+  public function getPlaceholder():VNode {
+    return new VFragment([]);
+  }
 
   public function patchComponent(component:Component, vnodes:Array<VNode>, isInit:Bool) {
     diffChildren(component, vnodes);
@@ -72,7 +75,7 @@ class Differ {
       );
     }
 
-    if (oldHead > newTail) {
+    if (oldHead > oldTail) {
       while (newHead <= newTail) {
         parent.insertComponentBefore(
           children[oldHead],
@@ -186,9 +189,7 @@ class Differ {
 
   function flatten(vnodes:Array<VNode>) {
     var flattened:Array<VNode> = [];
-    // todo: not including nulls and noneTypes will probably 
-    //       break things?
-    for (vn in vnodes) if (vn != null && vn.type != noneType) { 
+    for (vn in vnodes) if (vn != null) { 
       if (vn.type == fragmentType) {
         if (vn.children != null) {
           flattened = flattened.concat(flatten(vn.children));

@@ -135,6 +135,19 @@ class TestComponent implements TestCase {
     var twoComp:Component = null;
     var threeComp:Component = null;
 
+    function test6() {
+      testCtx.render(ChildrenComponent.node({
+        children: [],
+        onupdate: comp -> {
+          var children = comp.getChildComponents();
+          
+          children.length.equals(0);
+
+          done();
+        }
+      }));
+    }
+
     function test5() {
       testCtx.render(ChildrenComponent.node({
         children: [ three, two, Text.text('interloper'), one ],
@@ -147,7 +160,7 @@ class TestComponent implements TestCase {
           twoComp.equals(children[1]);
           threeComp.equals(children[0]);
           
-          done();
+          test6();
         }
       }));
     }

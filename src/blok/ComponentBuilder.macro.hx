@@ -114,7 +114,7 @@ class ComponentBuilder {
           
           if (onChange.length > 0 ) {
             initHooks.push(macro {
-              var previous = null;
+              var prev = null;
               var value = __props.$name;
               $b{onChange};
             });
@@ -128,7 +128,7 @@ class ComponentBuilder {
               ] {
                 case [ a, b ] if (!${comparator}):
                   // noop
-                case [ previous, value ]:
+                case [ prev, value ]:
                   __currentRevision++;
                   $i{PROPS}.$name = value;
                   $b{onChange}

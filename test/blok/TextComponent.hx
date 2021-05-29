@@ -10,6 +10,10 @@ class TextComponent extends Component {
   }
   
   public function render():VNode {
-    return VNodeNone.instance;
+    return null;
+  }
+
+  override function __ensureVNode(vn:Null<VNode>):VNode {
+    return cast vn;
   }
 }

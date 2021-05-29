@@ -132,7 +132,7 @@ abstract class Component implements Disposable {
   
   public function componentDidCatch(exception:Exception):VNode {
     throw exception;
-    return VNodeNone.instance;
+    return new VFragment([]);
   }
 
   public function shouldComponentUpdate():Bool {
@@ -253,7 +253,7 @@ abstract class Component implements Disposable {
   
   function __doRenderLifecycle():VNode {
     var exception:Null<Exception> = null;
-    var vn:VNode = VNodeNone.instance;
+    var vn:Null<VNode> = null;
 
     try {
       __runBeforeHooks();
@@ -269,7 +269,17 @@ abstract class Component implements Disposable {
 
     if (exception != null) throw exception;
 
-    return vn;
+    return __ensureVNode(vn);
+  }
+
+  function __ensureVNode(vn:Null<VNode>):VNode {
+    if (vn == null) {
+      return __getDiffer().getPlaceholder();
+    }
+    if (vn.type == fragmentType && (vn.children == null || vn.children.length == 0)) {
+      return __getDiffer().getPlaceholder();
+    }
+    return vn; 
   }
 
   function __getDiffer():Differ {
@@ -293,7 +303,7 @@ abstract class Component implements Disposable {
   }
 
   function __renderFallbackForException():VNode {
-    return try render() catch (e) VNodeNone.instance;
+    return try render() catch (e) null;
   }
 
   abstract function __runBeforeHooks():Void;

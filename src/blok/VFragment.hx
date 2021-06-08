@@ -3,6 +3,15 @@ package blok;
 import blok.VNodeType.fragmentType;
 
 class VFragment implements VNode {
+  static var emptyInst:Null<VFragment> = null;
+
+  public static function empty():VNode {
+    if (emptyInst == null) {
+      emptyInst = new VFragment([]);
+    }
+    return emptyInst;
+  }
+
   public final type:VNodeType = fragmentType;
   public final key:Null<Key>;
   public final props:Dynamic = {};

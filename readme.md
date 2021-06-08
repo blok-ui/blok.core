@@ -3,11 +3,6 @@ Blok Core
 
 Blok's core functionality.
 
-Basics
-------
-
-Blok's API should be very familiar if you've used React (or anything like it). 
-
 ```haxe
 using Blok;
 
@@ -24,3 +19,5 @@ class Foo extends Component {
   }
 }
 ```
+
+> More to come

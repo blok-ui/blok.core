@@ -45,10 +45,11 @@ abstract class Component implements Disposable {
   public function renderComponent() {
     __isInvalid = false;
     
-    if (!__isMounted) throw new ComponentNotMountedException(this);
+    if (__isDisposed || !__isMounted) throw new ComponentNotMountedException(this);
     if (__isRendering) throw new ComponentIsRenderingException(this);
     
     try {
+      __updateQueue = []; // Always clear the queue.
       __isRendering = true;
       __getDiffer().patchComponent(this, [ __doRenderLifecycle() ], __isFirstRender);
       __isRendering = false;
@@ -104,6 +105,12 @@ abstract class Component implements Disposable {
     if (__isDisposed) return;
     __isDisposed = true;
     for (child in __children) child.dispose();
+  }
+
+  public function isComponentLive() {
+    if (!__isMounted) return false;
+    if (__parent != null) return __parent.isComponentLive();
+    return true;
   }
 
   public inline function getComponentKey() {
@@ -249,6 +256,12 @@ abstract class Component implements Disposable {
   public function findComponentByKey(key:Null<Key>):Null<Component> {
     if (key == null) return null;
     return __children.find(comp -> comp.__key == key);
+  }
+
+  public function findComponentOfType<T:Component>(kind:Class<T>):Option<T> {
+    var found = __children.find(c -> Std.isOfType(c, kind));
+    if (found == null) return None;
+    return Some(cast found);
   }
   
   function __doRenderLifecycle():VNode {

@@ -1,7 +1,5 @@
 package blok;
 
-import blok.VNodeType.fragmentType;
-
 // Adapted from superfine: https://github.com/jorgebucaran/superfine
 @:nullSafety
 class Differ {
@@ -17,7 +15,7 @@ class Differ {
   public function new() {}
 
   public function getPlaceholder():VNode {
-    return VFragment.empty();
+    return cast null; // todo: improve this somehow
   }
 
   public function patchComponent(component:Component, vnodes:Array<VNode>, isInit:Bool) {

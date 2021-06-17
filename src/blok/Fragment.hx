@@ -18,10 +18,6 @@ class Fragment extends Component {
     return fragmentType;
   }
 
-  override function __ensureVNode(vn:Null<VNodeResult>):VNodeResult {
-    return if (vn == null) new VNodeResult(VNone) else vn;
-  }
-
   public function render() {
     return children;
   }

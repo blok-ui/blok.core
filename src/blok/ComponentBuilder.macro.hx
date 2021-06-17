@@ -1,6 +1,5 @@
 package blok;
 
-import blok.VNodeType.getUniqueTypeId;
 import haxe.macro.Context;
 import haxe.macro.Expr;
 import blok.tools.BuilderHelpers.*;

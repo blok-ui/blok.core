@@ -10,13 +10,13 @@ class KeyMap<T> {
     if (key.isString()) {
       var key:String = cast key;
       if (strings == null) {
-        strings = [key => value];
+        strings = [ key => value ];
       } else {
         strings.set(key, value);
       }
     } else {
       if (objects == null) {
-        objects = [key => value];
+        objects = [ key => value ];
       } else {
         objects.set(key, value);
       }

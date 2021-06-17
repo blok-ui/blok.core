@@ -15,12 +15,18 @@ class VComponent<Props:{}> implements VNode {
     this.factory = factory;
   }
 
-  public function createComponent():Component {
-    return factory(props);
+  public function createComponent(?parent:Component):Component {
+    var component = factory(props);
+    component.initializeComponent(parent, key);
+    component.renderComponent();
+    return component;
   }
 
   public function updateComponent(component:Component) {
     component.updateComponentProperties(props);
+    if (component.shouldComponentRender()) {
+      component.renderComponent();
+    }
     return component;
   }
 }

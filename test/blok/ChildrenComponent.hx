@@ -19,7 +19,7 @@ class ChildrenComponent extends Component {
     return Text.getTextFromComponent(this); 
   }
 
-  public function render():VNode {
-    return new VFragment(children);
+  public function render() {
+    return children;
   }
 }

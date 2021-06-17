@@ -32,7 +32,7 @@ final class Provider<T:ServiceProvider> extends Component {
     return context;
   }
 
-  public function render():VNode {
+  public function render() {
     return build(context);
   }
 }

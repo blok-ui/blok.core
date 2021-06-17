@@ -27,7 +27,7 @@ abstract class Component implements Disposable {
   var __parent:Null<Component> = null;
   var __children:Array<Component> = [];
 
-  abstract public function render():VNode;
+  abstract public function render():VNodeResult;
 
   abstract public function getComponentType():VNodeType;
 
@@ -51,7 +51,7 @@ abstract class Component implements Disposable {
     try {
       __updateQueue = []; // Always clear the queue.
       __isRendering = true;
-      __getDiffer().patchComponent(this, [ __doRenderLifecycle() ], __isFirstRender);
+      __getDiffer().patchComponent(this, __doRenderLifecycle(), __isFirstRender);
       __isRendering = false;
       __isFirstRender = false;
       __enqueueEffect(__runEffectHooks);
@@ -137,12 +137,12 @@ abstract class Component implements Disposable {
     return __isInvalid;
   }
   
-  public function componentDidCatch(exception:Exception):VNode {
+  public function componentDidCatch(exception:Exception):VNodeResult {
     throw exception;
-    return new VFragment([]);
+    return [];
   }
 
-  public function shouldComponentUpdate():Bool {
+  public function shouldComponentRender():Bool {
     return true;
   }
 
@@ -264,13 +264,13 @@ abstract class Component implements Disposable {
     return Some(cast found);
   }
   
-  function __doRenderLifecycle():VNode {
+  function __doRenderLifecycle():VNodeResult {
     var exception:Null<Exception> = null;
-    var vn:Null<VNode> = null;
+    var vnr:VNodeResult = new VNodeResult(VNone);
 
     try {
       __runBeforeHooks();
-      vn = if (__isRecoveringFrom != null)
+      vnr = if (__isRecoveringFrom != null)
         componentDidCatch(__isRecoveringFrom)
       else 
         render();
@@ -282,17 +282,17 @@ abstract class Component implements Disposable {
 
     if (exception != null) throw exception;
 
-    return __ensureVNode(vn);
+    return __ensureVNode(vnr);
   }
 
-  function __ensureVNode(vn:Null<VNode>):VNode {
+  function __ensureVNode(vn:Null<VNodeResult>):VNodeResult {
     if (vn == null) {
       return __getDiffer().getPlaceholder();
     }
-    if (vn.type == fragmentType && (vn.children == null || vn.children.length == 0)) {
-      return __getDiffer().getPlaceholder();
+    return switch vn.unwrap() {
+      case VNone | VGroup([]): __getDiffer().getPlaceholder();
+      default: vn;
     }
-    return vn; 
   }
 
   function __getDiffer():Differ {
@@ -313,10 +313,6 @@ abstract class Component implements Disposable {
     } else {
       DefaultScheduler.getInstance().schedule(cb);
     }
-  }
-
-  function __renderFallbackForException():VNode {
-    return try render() catch (e) null;
   }
 
   abstract function __runBeforeHooks():Void;

@@ -9,11 +9,11 @@ class TextComponent extends Component {
     if (ref != null) ref(content);
   }
   
-  public function render():VNode {
+  public function render() {
     return null;
   }
 
-  override function __ensureVNode(vn:Null<VNode>):VNode {
-    return cast vn;
+  override function __ensureVNode(vn) {
+    return vn;
   }
 }

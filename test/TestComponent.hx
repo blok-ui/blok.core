@@ -141,7 +141,7 @@ class TestComponent implements TestCase {
         onupdate: comp -> {
           var children = comp.getChildComponents();
           
-          children.length.equals(0);
+          children.length.equals(1); // Should have a placeholder.
 
           done();
         }
@@ -250,7 +250,7 @@ class SimpleComponent extends Component {
     return UpdateState({ content: content });
   }
   
-  public function render():VNode {
+  public function render() {
     return Text.text(content, result -> ref = result);
   }
 }
@@ -266,7 +266,7 @@ class LazyComponent extends Component {
     test(this);
   }
 
-  public function render():VNode {
+  public function render() {
     return Text.text(foo + ' | ' + bar);
   }
 }
@@ -287,7 +287,7 @@ class ExceptionBoundary extends Component {
 }
 
 class ThrowsException extends Component {
-  public function render():VNode {
+  public function render() {
     throw new Exception('Was caught');
   }
 }

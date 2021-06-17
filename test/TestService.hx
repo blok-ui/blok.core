@@ -107,7 +107,7 @@ class HasProviders implements Service {
 class UsesSimpleService extends Component {
   @use final service:SimpleService;
 
-  public function render():VNode {
+  public function render() {
     return Text.text(service.value);
   }
 }

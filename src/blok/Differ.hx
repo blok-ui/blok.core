@@ -30,9 +30,9 @@ class Differ {
     vNode:VNode
   ) {
     if (component == null || vNode.type != component.getComponentType()) {
-      parent.replaceComponent(component, createComponent(parent, vNode));
+      parent.replaceComponent(component, vNode.createComponent(parent));
     } else {
-      updateComponent(component, vNode);
+      vNode.updateComponent(component);
     }
   }
 
@@ -80,7 +80,7 @@ class Differ {
       while (newHead <= newTail) {
         parent.insertComponentBefore(
           children[oldHead],
-          createComponent(parent, vnodes[newHead++])
+          vnodes[newHead++].createComponent(parent)
         );
       }
     } else if (newHead > newTail) {
@@ -136,13 +136,13 @@ class Differ {
               var vn = vnodes[newHead];
               parent.moveComponentTo(
                 newHead,
-                updateComponent(keyedComponent, vn)
+                vn.updateComponent(keyedComponent)
               );
               newKeyed.set(newKey, true);
             } else {
               parent.insertComponentAt(
                 newHead,
-                createComponent(parent, vnodes[newHead])
+                vnodes[newHead].createComponent(parent)
               );
             }
           }
@@ -173,32 +173,7 @@ class Differ {
     return if (component == null) null else component.getComponentKey();
   }
 
-  function createComponent(parent:Component, vNode:VNode) {
-    var component = vNode.createComponent();
-    component.initializeComponent(parent, vNode.key);
-    component.renderComponent();
-    return component;
-  }
-  
-  function updateComponent(component:Component, vNode:VNode) {
-    vNode.updateComponent(component);
-    if (component.shouldComponentUpdate()) {
-      component.renderComponent();
-    }
-    return component;
-  }
-
   function flatten(vnodes:Array<VNode>) {
-    var flattened:Array<VNode> = [];
-    for (vn in vnodes) if (vn != null) { 
-      if (vn.type == fragmentType) {
-        if (vn.children != null) {
-          flattened = flattened.concat(flatten(vn.children));
-        }
-      } else {
-        flattened.push(vn);
-      }
-    }
-    return flattened;
+    return vnodes.filter(vn -> vn != null);
   }
 }

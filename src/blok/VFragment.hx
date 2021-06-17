@@ -22,11 +22,16 @@ class VFragment implements VNode {
     this.key = key;
   }
 
-  public function createComponent():Component {
-    throw 'Invalid';
+  public function createComponent(?parent:Component):Component {
+    var component = new Fragment({ children: children });
+    component.initializeComponent(parent, key);
+    component.__getDiffer().diffChildren(component, component.render());
+    return component;
   }
 
   public function updateComponent(component:Component):Component {
-    throw 'Invalid';
+    component.updateComponentProperties({ children: children });
+    component.__getDiffer().diffChildren(component, component.render());
+    return component;
   }
 }

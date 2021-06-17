@@ -57,14 +57,14 @@ class ComponentBuilder {
       hook: After,
       options: [],
       build: function (options:{}, builder, fields) {
-        if (fields.exists(f -> f.name == 'shouldComponentUpdate')) {
+        if (fields.exists(f -> f.name == 'shouldComponentRender')) {
           Context.error(
-            'Cannot use @lazy and a custom shouldComponentUpdate method',
-            fields.find(f -> f.name == 'shouldComponentUpdate').pos
+            'Cannot use @lazy and a custom shouldComponentRender method',
+            fields.find(f -> f.name == 'shouldComponentRender').pos
           );
         }
         builder.add(macro class {
-          override function shouldComponentUpdate():Bool {
+          override function shouldComponentRender():Bool {
             return __currentRevision > __lastRevision;
           }
         });
@@ -215,7 +215,7 @@ class ComponentBuilder {
                 updateComponent();
               case UpdateState(data): 
                 updateComponentProperties(data);
-                if (shouldComponentUpdate()) updateComponent();
+                if (shouldComponentRender()) updateComponent();
               case UpdateStateSilent(data):
                 updateComponentProperties(data);
             }
@@ -291,12 +291,29 @@ class ComponentBuilder {
       }
     });
 
+    // Makes functions return a VNodeResult to ease writing Components.
+    function ensureReturnTypes(name:String) {
+      var method = builder.getField(name);
+      if (method == null) return;
+      switch method.kind {
+        case FFun(f):
+          if (f.ret == null) {
+            f.ret = macro:blok.VNodeResult;
+          }
+        default: 
+          throw 'assert';
+      }
+    }
+
     builder.addLater(() -> {
       var propType = TAnonymous(props);
       var updateType = TAnonymous(updateProps);
       var createParams = builder.cls.params.length > 0
         ? [ for (p in builder.cls.params) { name: p.name, constraints: extractTypeParams(p) } ]
         : [];
+
+      ensureReturnTypes('render');
+      ensureReturnTypes('componentDidCatch');
 
       if (!dontGenerateType) {
         builder.addFields([

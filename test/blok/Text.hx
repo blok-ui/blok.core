@@ -14,10 +14,6 @@ class Text {
     return text.filter(t -> t.length > 0).join(' ');
   }
 
-  public static function fragment(children:Array<VNode>):VNode {
-    return new VFragment(children);
-  }
-
   public static function text(text:String, ?ref, ?key):VNode {
     return TextComponent.node({ content: text, ref: ref }, key);
   }

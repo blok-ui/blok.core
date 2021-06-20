@@ -107,12 +107,6 @@ abstract class Component implements Disposable {
     for (child in __children) child.dispose();
   }
 
-  public function isComponentLive() {
-    if (!__isMounted) return false;
-    if (__parent != null) return __parent.isComponentLive();
-    return true;
-  }
-
   public inline function getComponentKey() {
     return __key;
   }

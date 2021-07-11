@@ -9,7 +9,7 @@ class ContextUser extends Component {
 
   @before
   public function findContext() {
-    context = switch findInheritedComponentOfType(Provider) {
+    context = switch findParentOfType(Provider) {
       case None if (fallback != null):
         fallback;
       case None:

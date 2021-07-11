@@ -13,6 +13,6 @@ class TestContext {
 
   public function render(vn:VNode) {
     root.updateComponentProperties({ children: [ vn ] });
-    root.patchRootComponent();
+    root.renderRootComponent();
   }
 }

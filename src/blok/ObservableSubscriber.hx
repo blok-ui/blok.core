@@ -26,7 +26,7 @@ class ObservableSubscriber<T> extends Component {
         if (this.value != null) maybeTeardown();
         this.value = value;
       }
-      if (!first) updateComponent();
+      if (!first) invalidateComponent();
       first = false;
     });
   }

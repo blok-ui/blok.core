@@ -176,7 +176,7 @@ class ComponentBuilder {
 
             function $getter() {
               if (this.$backingName == null) {
-                var context = switch findInheritedComponentOfType(blok.Provider) {
+                var context = switch findParentOfType(blok.Provider) {
                   case None: null;
                   case Some(provider): provider.getContext();
                 }
@@ -212,10 +212,10 @@ class ComponentBuilder {
             switch closure() {
               case None | null:
               case Update:
-                updateComponent();
+                invalidateComponent();
               case UpdateState(data): 
                 updateComponentProperties(data);
-                if (shouldComponentRender()) updateComponent();
+                if (shouldComponentRender()) invalidateComponent();
               case UpdateStateSilent(data):
                 updateComponentProperties(data);
             }

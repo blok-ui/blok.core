@@ -7,6 +7,11 @@ import blok.VNodeType;
 
 using Lambda;
 
+/**
+  Blok apps are made up of declarative trees of Components, which
+  do everything from displaying simple text to setting up states and
+  services.
+**/
 @:nullSafety
 @:allow(blok)
 @:autoBuild(blok.ComponentBuilder.build())
@@ -23,9 +28,10 @@ abstract class Component implements Disposable {
   var __effectQueue:Array<()->Void> = [];
   var __updateQueue:Array<Component> = [];
   var __scheduler:Null<Scheduler>;
-  var __differ:Null<Differ> = null;
   var __parent:Null<Component> = null;
+  var __engine:Null<Engine> = null;
   var __children:Array<Component> = [];
+  var __previousChildren:Null<Array<Component>> = null;
 
   abstract public function render():VNodeResult;
 
@@ -33,27 +39,55 @@ abstract class Component implements Disposable {
 
   abstract public function updateComponentProperties(props:Dynamic):Void;
   
-  public function initializeComponent(?parent:Component, ?key:Key) {
+  /**
+    Set up a component. Should only be called once, before the first render.
+  **/
+  public function initializeComponent(parent:Null<Component>, engine:Engine, ?key:Key) {
     if (__isMounted) throw new ComponentRemountedException(this);
     
     __key = key;
     __isMounted = true;
     __parent = parent;
+    __engine = engine;
     __runInitHooks();
+    __getEngine().plugins.wasInitialized(this);
   }
 
+  /**
+    Set up a component to be the root of a component tree.
+  **/
+  public inline function initializeRootComponent(engine:Engine) {
+    initializeComponent(null, engine, null);
+  }
+
+  /**
+    Render the component and diff its children.
+
+    Note that this will run *immediately*, which is generally not the
+    behavior you want. Only call this method if you have a really good
+    reason -- otherwise, use `invalidateComponent`.
+  **/
   public function renderComponent() {
     __isInvalid = false;
     
     if (__isDisposed || !__isMounted) throw new ComponentNotMountedException(this);
     if (__isRendering) throw new ComponentIsRenderingException(this);
+
+    var engine = __getEngine();
     
     try {
-      __updateQueue = []; // Always clear the queue.
+      __updateQueue = [];
+      __previousChildren = __children.copy();
       __isRendering = true;
-      __getDiffer().patchComponent(this, __doRenderLifecycle(), __isFirstRender);
+
+      engine.differ.patchComponent(this, __doRenderLifecycle());
+
       __isRendering = false;
+      engine.plugins.wasRendered(this);
+
       __isFirstRender = false;
+      __previousChildren = null;
+
       __enqueueEffect(__runEffectHooks);
     } catch (e:BlokException) {
       __isRendering = false;
@@ -64,134 +98,187 @@ abstract class Component implements Disposable {
     }
   }
 
-  final public function updateComponent() {
+  /**
+    Render a root component. This mostly just ensures that effects are 
+    dispatched.
+  **/
+  public function renderRootComponent() {
+    if (__parent != null) {
+      throw new BlokException('Attempted to render a non-root component as a root component', this);
+    }
+
+    renderComponent();
+    __dequeueEffects();
+  }
+
+  /**
+    Mark this component as invalid and schedule it for rendering. 
+
+    You should *always* use this method instead of `renderComponent`
+    unless you know what you're doing.
+  **/
+  final public function invalidateComponent() {
     if (!__isMounted) throw new ComponentNotMountedException(this);
     if (__isInvalid) return;
     
     __isInvalid = true;
     
     if (__parent == null) {
-      __schedule(patchRootComponent);
+      __schedule(renderRootComponent);
     } else {
       __parent.__enqueueChildForUpdate(this);
     }
   }
 
-  public function initializeRootComponent(differ:Differ) {
-    __differ = differ;
-    initializeComponent();
-    renderComponent();
-    __dequeueEffects();
-  }
-
-  public function patchRootComponent() {
-    if (__parent != null) 
-      throw new BlokException('Cannot patch a non-root component', this);
-    
-    renderComponent();
-    __dequeueEffects();
-  }
-
+  /**
+    Remove this component from the component tree.
+  **/
   public function remove() {
     if (__isDisposed) return;
     if (__parent != null) { 
-      __parent.removeComponent(this);
+      __parent.removeChild(this);
     } else {
       dispose();
     } 
   }
 
+  /**
+    Dispose this component.
+
+    Note that this will not remove the component from the
+    tree -- call `remove` for that. This is done as the Engine
+    needs to access disposed components in some cases.
+  **/
   public function dispose() {
     if (__isDisposed) return;
+    
+    var engine = __getEngine();
+    
+    engine.plugins.willBeDisposed(this);
+
     __isDisposed = true;
     for (child in __children) child.dispose();
+    
+    __engine = null;
   }
 
+  /**
+    Check if this component has been invalidated (scheduled for a new render).
+
+    Note that this is different from `shouldComponentRender`.
+  **/
+  public function componentIsInvalid():Bool {
+    return __isInvalid;
+  }
+
+  /**
+    Override `shouldComponentRender` to optimize when the component re-renders.
+
+    The most common optimization is to only re-render when properties
+    have changed. Use the `@lazy` class metadata to have Blok generate
+    this code for you, or compare `__currentRevision` and `__lastRevision`
+    to see if anything has changed.
+  **/
+  public function shouldComponentRender():Bool {
+    return true;
+  }
+  
+  /**
+    Override to catch exceptions encountered during rendering or 
+    `@before` and `@init` hooks. Note that exceptions in `@effect`
+    hooks WILL NOT be caught.
+
+    The `VNodeResult` returned from this method will be displayed in
+    place of whatever was returned from `render`.
+  **/
+  public function componentDidCatch(exception:Exception):VNodeResult {
+    throw exception;
+    return [];
+  }
+
+  /**
+    Get this component's unique key (if any).
+  **/
   public inline function getComponentKey() {
     return __key;
   }
   
-  public function findInheritedComponentOfType<T:Component>(kind:Class<T>):Option<T> {
+  /**
+    Look up the tree to find a parent component of the given type.
+  **/
+  public function findParentOfType<T:Component>(kind:Class<T>):Option<T> {
     if (__parent == null) {
       if (Std.isOfType(this, kind)) return Some(cast this);
       return None;
     }
     
     return switch (Std.downcast(__parent, kind):Null<T>) {
-      case null: __parent.findInheritedComponentOfType(kind);
+      case null: __parent.findParentOfType(kind);
       case found: Some(cast found);
     }
   }
 
-  public inline function getChildComponents() {
+  public inline function getChildren() {
     return __children;
   }
 
-  public function componentIsInvalid():Bool {
-    return __isInvalid;
-  }
-  
-  public function componentDidCatch(exception:Exception):VNodeResult {
-    throw exception;
-    return [];
+  public inline function getPreviousChildren():Null<Array<Component>> {
+    return __previousChildren;
   }
 
-  public function shouldComponentRender():Bool {
-    return true;
-  }
-
-  public function addComponent(component:Component) {
+  public function addChild(component:Component) {
     __children.push(component);
   }
 
-  public function removeComponent(component:Component):Bool {
-    if (component != null && hasComponent(component)) {
+  public function removeChild(component:Component):Bool {
+    if (component != null && hasChild(component)) {
       component.dispose();
       __children.remove(component);
+      component.__parent = null;
       return true;
     }
     return false;
   }
 
-  public function insertComponentAt(pos:Int, component:Component) {
+  public function insertChildAt(pos:Int, component:Component) {
     __children.insert(pos, component);
   }
 
-  public function setComponentAt(pos:Int, component:Component) {
+  public function setChildAt(pos:Int, component:Component) {
     __children[pos] = component;
   }
 
-  public function getComponentAt(pos:Int) {
+  public function getChildAt(pos:Int) {
     return __children[pos];
   }
 
-  public function insertComponentBefore(reference:Null<Component>, component:Component) {
-    if (reference == null || !hasComponent(reference)) {
-      return addComponent(component);
+  public function insertChildBefore(reference:Null<Component>, component:Component) {
+    if (reference == null || !hasChild(reference)) {
+      return addChild(component);
     }
-    var pos = getPositionOfComponent(reference);
+    var pos = getChildPosition(reference);
     if (pos == 0) {
-      insertComponentAt(0, component);
+      insertChildAt(0, component);
     } else {
-      insertComponentAt(pos - 1, component);
+      insertChildAt(pos - 1, component);
     } 
   }
 
-  public function insertComponentAfter(reference:Null<Component>, component:Component) {
-    if (reference == null || !hasComponent(reference)) {
-      return addComponent(component);
+  public function insertChildAfter(reference:Null<Component>, component:Component) {
+    if (reference == null || !hasChild(reference)) {
+      return addChild(component);
     }
-    var pos = getPositionOfComponent(reference);
+    var pos = getChildPosition(reference);
     if (pos >= __children.length) {
-      addComponent(component);
+      addChild(component);
     } else {
-      insertComponentAt(pos + 1, component);
+      insertChildAt(pos + 1, component);
     }
   }
 
-  public function moveComponentTo(pos:Int, component:Component) {
+  public function moveChildTo(pos:Int, component:Component) {
     if (!__children.has(component)) {
-      return insertComponentAt(pos, component);
+      return insertChildAt(pos, component);
     }
 
     if (pos >= __children.length) {
@@ -199,68 +286,77 @@ abstract class Component implements Disposable {
     }
     
     var from = __children.indexOf(component);
-    if (pos == from) return;
 
-    // Note: there may be a better sorting algo than this
+    if (pos == from) return;
+    
     if (from < pos) {
       var i = from;
       while (i < pos) {
-        setComponentAt(i, __children[i + 1]);
+        setChildAt(i, __children[i + 1]);
         i++;
       } 
     } else {
       var i = from;
       while (i > pos) {
-        setComponentAt(i, __children[i - 1]);
+        setChildAt(i, __children[i - 1]);
         i--;
       }
     }
 
-    setComponentAt(pos, component);
+    setChildAt(pos, component);
   }
 
-  public function replaceComponentAt(pos:Int, newComponent:Component) {
-    var oldComponent = getComponentAt(pos);
+  public function replaceChildAt(pos:Int, newComponent:Component) {
+    var oldComponent = getChildAt(pos);
     if (oldComponent == newComponent) return;
     if (oldComponent == null) {
-      insertComponentAt(pos, newComponent);
+      insertChildAt(pos, newComponent);
     } else {
-      insertComponentBefore(oldComponent, newComponent);
-      removeComponent(oldComponent);
+      insertChildBefore(oldComponent, newComponent);
+      removeChild(oldComponent);
     }
   }
 
-  public function replaceComponent(oldComponent:Null<Component>, newComponent:Component) {
+  public function replaceChild(oldComponent:Null<Component>, newComponent:Component) {
     if (oldComponent == newComponent) return;
-    if (oldComponent == null || !hasComponent(oldComponent)) {
-      return addComponent(newComponent);
+    if (oldComponent == null || !hasChild(oldComponent)) {
+      return addChild(newComponent);
     }
-    insertComponentBefore(oldComponent, newComponent);
-    removeComponent(oldComponent);
+    insertChildBefore(oldComponent, newComponent);
+    removeChild(oldComponent);
   }
 
-  public function getPositionOfComponent(component:Component) {
+  public function getChildPosition(component:Component) {
     return __children.indexOf(component);
   }
 
-  public function hasComponent(component:Component):Bool {
-    return getPositionOfComponent(component) > -1;
+  public function hasChild(component:Component):Bool {
+    return getChildPosition(component) > -1;
   }
 
-  public function findComponentByKey(key:Null<Key>):Null<Component> {
+  public function findChildByKey(key:Null<Key>):Null<Component> {
     if (key == null) return null;
     return __children.find(comp -> comp.__key == key);
   }
 
-  public function findComponentOfType<T:Component>(kind:Class<T>):Option<T> {
+  public function findChildOfType<T:Component>(kind:Class<T>):Option<T> {
     var found = __children.find(c -> Std.isOfType(c, kind));
     if (found == null) return None;
     return Some(cast found);
   }
   
+  function __getEngine():Engine {
+    if (__engine != null) {
+      return cast __engine;
+    }
+
+    throw new NoEngineException(this);
+  }
+
   function __doRenderLifecycle():VNodeResult {
     var exception:Null<Exception> = null;
     var vnr:VNodeResult = new VNodeResult(VNone);
+    var engine = __getEngine();
 
     try {
       __runBeforeHooks();
@@ -276,27 +372,7 @@ abstract class Component implements Disposable {
 
     if (exception != null) throw exception;
 
-    return __ensureVNode(vnr);
-  }
-
-  function __ensureVNode(vn:Null<VNodeResult>):VNodeResult {
-    if (vn == null) {
-      return __getDiffer().getPlaceholder();
-    }
-    return switch vn.unwrap() {
-      case VNone | VGroup([]): __getDiffer().getPlaceholder();
-      default: vn;
-    }
-  }
-
-  function __getDiffer():Differ {
-    return if (__differ != null) {
-      cast __differ; // I promise you null safety, I just checked.
-    } else if (__parent != null) {
-      __parent.__getDiffer();
-    } else {
-      Differ.getInstance();
-    }
+    return engine.plugins.prepareVNodes(this, vnr);
   }
   
   function __schedule(cb:()->Void) {

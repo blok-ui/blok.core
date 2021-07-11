@@ -21,7 +21,7 @@ final class Provider<T:ServiceProvider> extends Component {
 
   @before
   public function findOrSyncContext() {
-    context = switch findInheritedComponentOfType(Provider) {
+    context = switch findParentOfType(Provider) {
       case None: new Context();
       case Some(provider): provider.getContext().getChild();
     }

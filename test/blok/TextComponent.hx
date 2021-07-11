@@ -12,8 +12,4 @@ class TextComponent extends Component {
   public function render() {
     return null;
   }
-
-  override function __ensureVNode(vn) {
-    return vn;
-  }
 }

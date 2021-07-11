@@ -139,7 +139,7 @@ class TestComponent implements TestCase {
       testCtx.render(ChildrenComponent.node({
         children: [],
         onupdate: comp -> {
-          var children = comp.getChildComponents();
+          var children = comp.getChildren();
           
           children.length.equals(1); // Should have a placeholder.
 
@@ -152,7 +152,7 @@ class TestComponent implements TestCase {
       testCtx.render(ChildrenComponent.node({
         children: [ three, two, Text.text('interloper'), one ],
         onupdate: comp -> {
-          var children = comp.getChildComponents();
+          var children = comp.getChildren();
           
           children.length.equals(4);
 
@@ -169,7 +169,7 @@ class TestComponent implements TestCase {
       testCtx.render(ChildrenComponent.node({
         children: [ three, two, one ],
         onupdate: comp -> {
-          var children = comp.getChildComponents();
+          var children = comp.getChildren();
           
           children.length.equals(3);
 
@@ -186,7 +186,7 @@ class TestComponent implements TestCase {
       testCtx.render(ChildrenComponent.node({
         children: [ two, three, one ],
         onupdate: comp -> {
-          var children = comp.getChildComponents();
+          var children = comp.getChildren();
           
           children.length.equals(3);
 
@@ -203,7 +203,7 @@ class TestComponent implements TestCase {
       testCtx.render(ChildrenComponent.node({
         children: [ one, three, two ],
         onupdate: comp -> {
-          var children = comp.getChildComponents();
+          var children = comp.getChildren();
           
           children.length.equals(3);
 
@@ -219,7 +219,7 @@ class TestComponent implements TestCase {
     testCtx.render(ChildrenComponent.node({
       children: [ one, two, three ],
       onupdate: comp -> {
-        var children = comp.getChildComponents();
+        var children = comp.getChildren();
         
         oneComp = children[0];
         twoComp = children[1];

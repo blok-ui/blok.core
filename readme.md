@@ -10,12 +10,10 @@ class Foo extends Component {
   @prop var foo:String;
 
   public function render() {
-    return Html.div({
-      attrs: {
-        className: 'fooable'
-      },
-      children: [ Html.text(foo) ]
-    });
+    return Html.div({ className: 'fooable' },
+      Html.text(foo),
+      Html.span({}, Html.text('etc'))
+    );
   }
 }
 ```

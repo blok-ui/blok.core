@@ -5,6 +5,6 @@ interface VNode {
   public final key:Null<Key>;
   public final props:Dynamic;
   public final children:Null<Array<VNode>>;
-  public function createComponent(?parent:Component):Component;
-  public function updateComponent(component:Component):Component;
+  public function createComponent(engine:Engine, ?parent:Component):Component;
+  public function updateComponent(engine:Engine, component:Component):Component;
 }

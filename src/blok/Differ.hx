@@ -2,23 +2,14 @@ package blok;
 
 // Adapted from superfine: https://github.com/jorgebucaran/superfine
 @:nullSafety
-class Differ {
-  static var instance:Null<Differ> = null;
+final class Differ {
+  final engine:Engine;
 
-  public static function getInstance():Differ {
-    if (instance == null) {
-      instance = new Differ();
-    }
-    return instance;
+  public function new(engine) {
+    this.engine = engine;
   }
 
-  public function new() {}
-
-  public function getPlaceholder():VNode {
-    return cast null; // todo: improve this somehow
-  }
-
-  public function patchComponent(component:Component, vnodes:Array<VNode>, isInit:Bool) {
+  public function patchComponent(component:Component, vnodes:Array<VNode>) {
     diffChildren(component, vnodes);
   }
 
@@ -28,9 +19,9 @@ class Differ {
     vNode:VNode
   ) {
     if (component == null || vNode.type != component.getComponentType()) {
-      parent.replaceComponent(component, vNode.createComponent(parent));
+      parent.replaceChild(component, vNode.createComponent(engine, parent));
     } else {
-      vNode.updateComponent(component);
+      vNode.updateComponent(engine, component);
     }
   }
 
@@ -38,9 +29,9 @@ class Differ {
     parent:Component,
     vnodes:Array<VNode>
   ) {
-    vnodes = flatten(vnodes);
+    vnodes = flatten(vnodes, parent);
 
-    var children = parent.getChildComponents().copy();
+    var children = parent.getChildren().copy();
     var oldKey:Null<Key> = null;
     var newKey:Null<Key> = null;
     var oldHead = 0;
@@ -76,14 +67,14 @@ class Differ {
 
     if (oldHead > oldTail) {
       while (newHead <= newTail) {
-        parent.insertComponentBefore(
+        parent.insertChildBefore(
           children[oldHead],
-          vnodes[newHead++].createComponent(parent)
+          vnodes[newHead++].createComponent(engine, parent)
         );
       }
     } else if (newHead > newTail) {
       while (oldHead <= oldTail) {
-        parent.removeComponent(children[oldHead++]);
+        parent.removeChild(children[oldHead++]);
       }
     } else {
       var keyed:KeyMap<Component> = new KeyMap();
@@ -103,7 +94,7 @@ class Differ {
 
         if (hasKey || (newKey != null && newKey == getKey(children[oldHead + 1]))) {
           if (oldKey == null) {
-            parent.removeComponent(existingComponent);
+            parent.removeChild(existingComponent);
           }
           oldHead++;
           continue;
@@ -132,15 +123,15 @@ class Differ {
             var keyedComponent = keyed.get(newKey);
             if (keyedComponent != null) {
               var vn = vnodes[newHead];
-              parent.moveComponentTo(
+              parent.moveChildTo(
                 newHead,
-                vn.updateComponent(keyedComponent)
+                vn.updateComponent(engine, keyedComponent)
               );
               newKeyed.set(newKey, true);
             } else {
-              parent.insertComponentAt(
+              parent.insertChildAt(
                 newHead,
-                vnodes[newHead].createComponent(parent)
+                vnodes[newHead].createComponent(engine, parent)
               );
             }
           }
@@ -151,27 +142,27 @@ class Differ {
 
       while (oldHead <= oldTail) {
         if (getKey((existingComponent = children[oldHead++])) == null) {
-          parent.removeComponent(existingComponent);
+          parent.removeChild(existingComponent);
         }
       }
 
       keyed.each((key, comp) -> {
         if (newKeyed.get(key) == null) {
-          parent.removeComponent(comp);
+          parent.removeChild(comp);
         }
       });
     }
   }
 
-  function getVNodeKey(vNode:VNode) {
+  static function getVNodeKey(vNode:VNode) {
     return if (vNode == null) null else vNode.key;
   }
 
-  function getKey(component:Null<Component>) {
+  static function getKey(component:Null<Component>) {
     return if (component == null) null else component.getComponentKey();
   }
 
-  function flatten(vnodes:Array<VNode>) {
+  static function flatten(vnodes:Array<VNode>, parent:Component) {
     return vnodes.filter(vn -> vn != null);
   }
 }

@@ -205,9 +205,6 @@ class ComponentBuilder {
           var e = func.expr;
           func.ret = macro:Void;
           func.expr = macro {
-            if (__isRendering) {
-              throw new blok.exception.ComponentIsRenderingException(this);
-            }
             inline function closure():blok.UpdateMessage<$updatePropsRet> ${e};
             switch closure() {
               case None | null:
@@ -382,6 +379,12 @@ class ComponentBuilder {
         }
 
         public function updateComponentProperties(props:Dynamic) {
+          switch __status {
+            case ComponentRendering:
+              throw new blok.exception.ComponentIsRenderingException(this);
+            case _:
+          }
+          
           var $INCOMING_PROPS:$updateType = cast props;
           __lastRevision = __currentRevision;
           $b{updates};

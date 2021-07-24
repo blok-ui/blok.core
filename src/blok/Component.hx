@@ -17,13 +17,9 @@ using Lambda;
 @:autoBuild(blok.ComponentBuilder.build())
 abstract class Component implements Disposable {
   var __key:Null<Key> = null;
-  var __isMounted:Bool = false;
-  var __isInvalid:Bool = false;
-  var __isDisposed:Bool = false;
-  var __isFirstRender:Bool = true;
-  var __isRendering:Bool = false;
-  var __isRecoveringFrom:Null<BlokException> = null;
+  var __status:ComponentLifecycle = ComponentPending;
   var __currentRevision:Int = 0;
+  var __renderCount:Int = 0;
   var __lastRevision:Int = 0;
   var __effectQueue:Array<()->Void> = [];
   var __updateQueue:Array<Component> = [];
@@ -43,14 +39,17 @@ abstract class Component implements Disposable {
     Set up a component. Should only be called once, before the first render.
   **/
   public function initializeComponent(parent:Null<Component>, engine:Engine, ?key:Key) {
-    if (__isMounted) throw new ComponentRemountedException(this);
-    
-    __key = key;
-    __isMounted = true;
-    __parent = parent;
-    __engine = engine;
-    __runInitHooks();
-    __getEngine().plugins.wasInitialized(this);
+    switch __status {
+      case ComponentPending:
+        __status = ComponentInvalid;
+        __key = key;
+        __parent = parent;
+        __engine = engine;
+        __runInitHooks();
+        __getEngine().plugins.wasInitialized(this);
+      default:
+        throw new ComponentRemountedException(this);
+    }
   }
 
   /**
@@ -68,33 +67,40 @@ abstract class Component implements Disposable {
     reason -- otherwise, use `invalidateComponent`.
   **/
   public function renderComponent() {
-    __isInvalid = false;
-    
-    if (__isDisposed || !__isMounted) throw new ComponentNotMountedException(this);
-    if (__isRendering) throw new ComponentIsRenderingException(this);
+    switch __status {
+      case ComponentPending | ComponentDisposed:
+        throw new ComponentNotMountedException(this);
+      case ComponentRendering:
+        throw new ComponentIsRenderingException(this);
+      default:
+        var engine = __getEngine();
+        
+        try {
+          __updateQueue = [];
+          __previousChildren = __children.copy();
 
-    var engine = __getEngine();
-    
-    try {
-      __updateQueue = [];
-      __previousChildren = __children.copy();
-      __isRendering = true;
+          switch __status {
+            case ComponentRecovering(_):
+            default: __status = ComponentRendering;
+          }
 
-      engine.differ.patchComponent(this, __doRenderLifecycle());
+          engine.differ.patchComponent(this, __doRenderLifecycle());
 
-      __isRendering = false;
-      engine.plugins.wasRendered(this);
+          __status = ComponentValid;
+          
+          engine.plugins.wasRendered(this);
 
-      __isFirstRender = false;
-      __previousChildren = null;
+          __renderCount++;
+          __previousChildren = null;
 
-      __enqueueEffect(__runEffectHooks);
-    } catch (e:BlokException) {
-      __isRendering = false;
-      if (__isRecoveringFrom != null) throw e;
-      __isRecoveringFrom = e;
-      renderComponent();
-      __isRecoveringFrom = null;
+          __enqueueEffect(__runEffectHooks);
+        } catch (e:BlokException) switch __status {
+          case ComponentRecovering(_): 
+            throw e;
+          default:
+            __status = ComponentRecovering(e);
+            renderComponent();
+        }
     }
   }
 
@@ -118,15 +124,20 @@ abstract class Component implements Disposable {
     unless you know what you're doing.
   **/
   final public function invalidateComponent() {
-    if (!__isMounted) throw new ComponentNotMountedException(this);
-    if (__isInvalid) return;
-    
-    __isInvalid = true;
-    
-    if (__parent == null) {
-      __schedule(renderRootComponent);
-    } else {
-      __parent.__enqueueChildForUpdate(this);
+    switch __status {
+      case ComponentDisposed | ComponentPending:
+        throw new ComponentNotMountedException(this);
+      case ComponentRendering:
+        throw new blok.exception.ComponentIsRenderingException(this);
+      case ComponentInvalid:
+        return;
+      default:
+        __status = ComponentInvalid;
+        if (__parent == null) {
+          __schedule(renderRootComponent);
+        } else {
+          __parent.__enqueueChildForUpdate(this);
+        }
     }
   }
 
@@ -134,12 +145,16 @@ abstract class Component implements Disposable {
     Remove this component from the component tree.
   **/
   public function remove() {
-    if (__isDisposed) return;
-    if (__parent != null) { 
-      __parent.removeChild(this);
-    } else {
-      dispose();
-    } 
+    switch __status {
+      case ComponentDisposed | ComponentPending:
+        return;
+      default:
+        if (__parent != null) { 
+          __parent.removeChild(this);
+        } else {
+          dispose();
+        } 
+    }
   }
 
   /**
@@ -150,16 +165,24 @@ abstract class Component implements Disposable {
     needs to access disposed components in some cases.
   **/
   public function dispose() {
-    if (__isDisposed) return;
-    
-    var engine = __getEngine();
-    
-    engine.plugins.willBeDisposed(this);
+    switch __status {
+      case ComponentDisposed:
+        return;
 
-    __isDisposed = true;
-    for (child in __children) child.dispose();
+      // todo: should there be errors if we're in the wrong
+      //       part of the lifecycle?
+      
+      default:
+        var engine = __getEngine();
+        
+        engine.plugins.willBeDisposed(this);
     
-    __engine = null;
+        __status = ComponentDisposed;
+
+        for (child in __children) child.dispose();
+        
+        __engine = null;
+    }
   }
 
   /**
@@ -168,7 +191,24 @@ abstract class Component implements Disposable {
     Note that this is different from `shouldComponentRender`.
   **/
   public function componentIsInvalid():Bool {
-    return __isInvalid;
+    return switch __status {
+      case ComponentInvalid: true;
+      default: false;
+    }
+  }
+
+  /**
+    Check if this component has been mounted and initialized.
+  **/
+  public function componentIsMounted():Bool {
+    return switch __status {
+      case ComponentPending | ComponentDisposed: false;
+      default: true;
+    }
+  }
+
+  public function componentIsRenderingForTheFirstTime() {
+    return __renderCount == 0;
   }
 
   /**
@@ -360,10 +400,12 @@ abstract class Component implements Disposable {
 
     try {
       __runBeforeHooks();
-      vnr = if (__isRecoveringFrom != null)
-        componentDidCatch(__isRecoveringFrom)
-      else 
-        render();
+      vnr = switch __status {
+        case ComponentRecovering(error):
+          componentDidCatch(error);
+        default:
+          render();
+      }
     } catch (e:BlokException) {
       exception = e;
     } catch (e) {

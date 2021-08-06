@@ -1,4 +1,4 @@
-import blok.TextComponent;
+import blok.Widget;
 import blok.ChildrenComponent;
 import blok.VNode;
 import haxe.Exception;
@@ -47,36 +47,37 @@ class TestComponent implements TestCase {
   @:test.async
   public function testLazy(done) {
     var testCtx = new TestContext();
-    var rendered = 0;
+    var tests:Array<()->Void> = [];
     var expected:Option<String> = None;
 
-    function tester(_) {
+    function check(comp:LazyComponent) {
       switch expected {
-        case Some(v):
-          rendered++;
-          testCtx.root.toString().equals(v);
         case None:
           Assert.fail('Lazy component updated when it should not have');
-      }
-      if (rendered == 3) {
-        done();
+        case Some(v):
+          Text.stringifyWidget(comp).equals(v);
       }
     }
 
-    function comp(foo, bar, e) {
+    function test(foo, bar, e:Option<String>) return () -> {
+      var next = tests.shift();
+      if (next == null) next = done;
       expected = e;
-      return LazyComponent.node({
+      testCtx.render(LazyComponent.node({
         foo: foo,
         bar: bar,
-        test: tester
-      });
-    };
+        test: check
+      }), next);
+    }
 
-    testCtx.render(comp('foo', 'bar', Some('foo | bar')));
-    testCtx.render(comp('foo', 'bar', None));
-    testCtx.render(comp('foo', 'bar', None));
-    testCtx.render(comp('foo', 'bin', Some('foo | bin')));
-    testCtx.render(comp('bif', 'bin', Some('bif | bin')));
+    tests = [
+      test('foo', 'bar', None),
+      test('foo', 'bar', None),
+      test('foo', 'bin', Some('foo | bin')),
+      test('bif', 'bin', Some('bif | bin')),
+    ];
+
+    test('foo', 'bar', Some('foo | bar'))();
   }
 
   @:test('Components catch exceptions')
@@ -84,7 +85,7 @@ class TestComponent implements TestCase {
   function testExceptionBoundaries(done) {
     ExceptionBoundary.node({
       handle: e -> {
-        e.message.equals('Was caught : blok.ChildrenComponent -> ExceptionBoundary -> ThrowsException');
+        e.message.equals('Was caught : blok.PlatformWidget -> blok.FragmentWidget -> ExceptionBoundary -> ThrowsException');
         done();
       },
       fallback: () -> Text.text('Fell back'),
@@ -128,12 +129,12 @@ class TestComponent implements TestCase {
   @:test.async
   function testKeys(done) {
     var testCtx = new TestContext();
-    var one = Text.text('one', null, 'one');
-    var two = Text.text('two', null, 'two');
-    var three = Text.text('three', null, 'three');
-    var oneComp:Component = null;
-    var twoComp:Component = null;
-    var threeComp:Component = null;
+    var one = Text.text('one', 'one');
+    var two = Text.text('two', 'two');
+    var three = Text.text('three', 'three');
+    var oneComp:Widget = null;
+    var twoComp:Widget = null;
+    var threeComp:Widget = null;
 
     function test6() {
       testCtx.render(ChildrenComponent.node({
@@ -141,7 +142,7 @@ class TestComponent implements TestCase {
         onupdate: comp -> {
           var children = comp.getChildren();
           
-          children.length.equals(1); // Should have a placeholder.
+          children.length.equals(0);
 
           done();
         }
@@ -225,9 +226,9 @@ class TestComponent implements TestCase {
         twoComp = children[1];
         threeComp = children[2];
 
-        children[0].getComponentKey().equals(one.key);
-        children[1].getComponentKey().equals(two.key);
-        children[2].getComponentKey().equals(three.key);
+        children[0].getWidgetKey().equals(one.key);
+        children[1].getWidgetKey().equals(two.key);
+        children[2].getWidgetKey().equals(three.key);
 
         test2();
       }
@@ -251,7 +252,7 @@ class SimpleComponent extends Component {
   }
   
   public function render() {
-    return Text.text(content, result -> ref = result);
+    return Text.text(content, null, result -> ref = result);
   }
 }
 

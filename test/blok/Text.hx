@@ -3,19 +3,14 @@ package blok;
 import blok.VNode;
 
 class Text {
-  public static function getTextFromComponent(comp:Component) {
+  public static function stringifyWidget(comp:Widget) {
     var text:Array<String> = [];
-    for (child in comp.__children) switch Std.downcast(child, TextComponent) {
-      case null:
-        text.push(getTextFromComponent(child));
-      case comp: 
-        text.push(comp.content);
-    }
+    for (child in comp.getConcreteChildren()) text = text.concat(cast child.toConcrete());
     return text.filter(t -> t.length > 0).join(' ');
   }
 
-  public static function text(text:String, ?ref, ?key):VNode {
-    return TextComponent.node({ content: text, ref: ref }, key);
+  public static function text(text:String, ?key, ?ref):VNode {
+    return TextWidget.node(text, key, ref);
   }
 
   public static function children(children:Array<VNode>, ?ref) {

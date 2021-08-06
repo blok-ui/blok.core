@@ -15,8 +15,13 @@ class ChildrenComponent extends Component {
     }
   }
 
+  @update
+  public function setChildren(children) {
+    return UpdateState({ children: children });
+  }
+
   public function toString() {
-    return Text.getTextFromComponent(this); 
+    return Text.stringifyWidget(this); 
   }
 
   public function render() {

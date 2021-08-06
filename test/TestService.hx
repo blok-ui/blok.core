@@ -1,4 +1,3 @@
-import blok.Fragment;
 import blok.VNode;
 import blok.Text;
 import blok.Context;
@@ -69,14 +68,14 @@ class TestService implements TestCase {
   @:test('Provider scopes services')
   @:test.async
   public function testComponentIntegrationScope(done) {
-    Fragment.wrap(
+    Text.children([
       UsesSimpleService.node({}), // Should use default
       Provider.node({
         service: new SimpleService('bar'),
         build: _ -> UsesSimpleService.node({}) // should use provided service
       }),
       UsesSimpleService.node({}) // Should use default
-    ).renders('default bar default', done);
+    ]).renders('default bar default', done);
   }
 
   @:test('Services can provide other services')

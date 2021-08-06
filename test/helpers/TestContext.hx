@@ -1,18 +1,24 @@
 package helpers;
 
+import blok.FragmentWidget;
+import blok.PlatformWidget;
 import blok.VNode;
 import blok.TestPlatform;
-import blok.ChildrenComponent;
 
 class TestContext {
-  public final root:ChildrenComponent;
+  public final platform:PlatformWidget;
+  public final root:FragmentWidget;
 
   public function new() {
-    root = TestPlatform.mount(null);
+    platform = TestPlatform.mount();
+    root = cast platform.root;
   }
 
-  public function render(vn:VNode) {
-    root.updateComponentProperties({ children: [ vn ] });
-    root.renderRootComponent();
+  public function render(vn:VNode, ?effect) {
+    platform.getPlatform().schedule(registerEffect -> {
+      root.setChildren([ vn ]);
+      root.performUpdate(registerEffect);
+      if (effect != null) registerEffect(effect);
+    });
   }
 }

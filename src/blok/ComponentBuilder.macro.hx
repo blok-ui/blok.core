@@ -40,17 +40,17 @@ class ComponentBuilder {
       });
     }
 
-    builder.addClassMetaHandler({
-      name: 'component',
-      hook: Init,
-      options: [
-        { name: 'dontGenerateType', optional: true }
-      ],
-      build: function (options:{ ?dontGenerateType:Bool }, builder, fields) {
-        if (options.dontGenerateType == true) dontGenerateType = true;
-        // todo: other config?
-      }
-    });
+    // builder.addClassMetaHandler({
+    //   name: 'component',
+    //   hook: Init,
+    //   options: [
+    //     { name: 'dontGenerateType', optional: true }
+    //   ],
+    //   build: function (options:{ ?dontGenerateType:Bool }, builder, fields) {
+    //     if (options.dontGenerateType == true) dontGenerateType = true;
+    //     // todo: other config?
+    //   }
+    // });
 
     builder.addClassMetaHandler({
       name: 'lazy',
@@ -209,10 +209,10 @@ class ComponentBuilder {
             switch closure() {
               case None | null:
               case Update:
-                invalidateComponent();
+                invalidateWidget();
               case UpdateState(data): 
                 updateComponentProperties(data);
-                if (shouldComponentRender()) invalidateComponent();
+                if (shouldComponentRender()) invalidateWidget();
               case UpdateStateSilent(data):
                 updateComponentProperties(data);
             }
@@ -312,30 +312,23 @@ class ComponentBuilder {
       ensureReturnTypes('render');
       ensureReturnTypes('componentDidCatch');
 
-      if (!dontGenerateType) {
-        builder.addFields([
-          {
-            name: 'node',
-            access: [ AStatic, APublic, AInline ],
-            pos: (macro null).pos,
-            meta: [],
-            kind: FFun({
-              params: createParams,
-              args: [
-                { name: 'props', type: macro:$propType },
-                { name: 'key', type: macro:Null<blok.Key>, opt: true }
-              ],
-              expr: macro return new blok.VComponent(__type, props, props -> new $clsTp(props), key),
-              ret: macro:blok.VNode
-            })
-          }
-        ]);
-
-        builder.add(macro class {
-          @:noCompletion
-          static public final __type = blok.VNodeType.getUniqueTypeId();
-        });
-      }
+      builder.addFields([
+        {
+          name: 'node',
+          access: [ AStatic, APublic, AInline ],
+          pos: (macro null).pos,
+          meta: [],
+          kind: FFun({
+            params: createParams,
+            args: [
+              { name: 'props', type: macro:$propType },
+              { name: 'key', type: macro:Null<blok.Key>, opt: true }
+            ],
+            expr: macro return new blok.VComponent(__type, props, props -> new $clsTp(props), key),
+            ret: macro:blok.VNode
+          })
+        }
+      ]);
 
       if (!builder.fieldExists('new')) {
         builder.add(macro class {
@@ -343,21 +336,20 @@ class ComponentBuilder {
             __initComponentProps($i{INCOMING_PROPS});
           }
         });
-      } else if (!dontGenerateType) {
+      } else {
         Context.error(
-          'Cannot use a custom constructor unless `@component(dontGenerateType)` is set', 
+          'Cannot use a custom constructor', 
           builder.getField('new').pos
         );
       }
 
-      if (!dontGenerateType) {
-        builder.add(macro class {
-          public function getComponentType() return __type;
-        });
-      }
-
       return macro class {
         @:noCompletion var $PROPS:$propType;
+
+        @:noCompletion
+        static public final __type = blok.WidgetType.getUniqueTypeId();
+
+        public function getWidgetType() return __type;
 
         inline function __initComponentProps($INCOMING_PROPS:$propType) {
           this.$PROPS = ${ {
@@ -366,22 +358,22 @@ class ComponentBuilder {
           } };
         }
 
-        function __runInitHooks() {
+        override function __initHooks() {
           $b{initHooks}
         }
 
-        function __runBeforeHooks() {
+        function __beforeHooks() {
           $b{beforeHooks}
         }
 
-        function __runEffectHooks() {
+        function runComponentEffects() {
           $b{effectHooks}
         }
 
         public function updateComponentProperties(props:Dynamic) {
           switch __status {
-            case ComponentRendering:
-              throw new blok.exception.ComponentIsRenderingException(this);
+            case WidgetRendering:
+              // throw new blok.exception.ComponentIsRenderingException(this);
             case _:
           }
           

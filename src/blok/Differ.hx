@@ -3,31 +3,25 @@ package blok;
 // Adapted from superfine: https://github.com/jorgebucaran/superfine
 @:nullSafety
 final class Differ {
-  final engine:Engine;
-
-  public function new(engine) {
-    this.engine = engine;
-  }
-
-  public function patchComponent(component:Component, vnodes:Array<VNode>) {
-    diffChildren(component, vnodes);
-  }
-
-  public function diffComponent(
-    parent:Component,
-    component:Null<Component>,
-    vNode:VNode
+  public static function diffWidget(
+    parent:Widget,
+    widget:Null<Widget>,
+    vNode:VNode,
+    platform:Platform,
+    registerEffect:(effect:()->Void)->Void
   ) {
-    if (component == null || vNode.type != component.getComponentType()) {
-      parent.replaceChild(component, vNode.createComponent(engine, parent));
+    if (widget == null || vNode.type != widget.getWidgetType()) {
+      parent.replaceChild(widget, vNode.createWidget(parent, platform, registerEffect));
     } else {
-      vNode.updateComponent(engine, component);
+      vNode.updateWidget(widget, registerEffect);
     }
   }
 
-  public function diffChildren(
-    parent:Component,
-    vnodes:Array<VNode>
+  public static function diffChildren(
+    parent:Widget,
+    vnodes:Array<VNode>,
+    platform:Platform,
+    registerEffect:(effect:()->Void)->Void
   ) {
     vnodes = flatten(vnodes, parent);
 
@@ -45,10 +39,12 @@ final class Differ {
         || oldKey != vnodes[newHead].key
       ) break;
 
-      diffComponent(
+      diffWidget(
         parent,
         children[oldHead++],
-        vnodes[newHead++]
+        vnodes[newHead++],
+        platform,
+        registerEffect
       );
     }
 
@@ -58,10 +54,12 @@ final class Differ {
         || oldKey != vnodes[newTail].key
       ) break;
 
-      diffComponent(
+      diffWidget(
         parent,
         children[oldTail--],
-        vnodes[newTail--]
+        vnodes[newTail--],
+        platform,
+        registerEffect
       );
     }
 
@@ -69,7 +67,7 @@ final class Differ {
       while (newHead <= newTail) {
         parent.insertChildBefore(
           children[oldHead],
-          vnodes[newHead++].createComponent(engine, parent)
+          vnodes[newHead++].createWidget(parent, platform, registerEffect)
         );
       }
     } else if (newHead > newTail) {
@@ -77,9 +75,9 @@ final class Differ {
         parent.removeChild(children[oldHead++]);
       }
     } else {
-      var keyed:KeyMap<Component> = new KeyMap();
+      var keyed:KeyMap<Widget> = new KeyMap();
       var newKeyed:KeyMap<Bool> = new KeyMap();
-      var existingComponent:Null<Component> = null;
+      var existingWidget:Null<Widget> = null;
 
       for (i in oldHead...(oldTail+1)) {
         oldKey = getKey(children[i]);
@@ -87,14 +85,14 @@ final class Differ {
       }
 
       while (newHead <= newTail) {
-        oldKey = getKey((existingComponent = children[oldHead]));
+        oldKey = getKey((existingWidget = children[oldHead]));
         newKey = getVNodeKey(vnodes[newHead]);
 
         var hasKey = oldKey != null && newKeyed.get(oldKey);
 
         if (hasKey || (newKey != null && newKey == getKey(children[oldHead + 1]))) {
           if (oldKey == null) {
-            parent.removeChild(existingComponent);
+            parent.removeChild(existingWidget);
           }
           oldHead++;
           continue;
@@ -102,36 +100,40 @@ final class Differ {
 
         if (newKey == null) {
           if (oldKey == null) {
-            diffComponent(
+            diffWidget(
               parent,
-              existingComponent,
-              vnodes[newHead]
+              existingWidget,
+              vnodes[newHead],
+              platform,
+              registerEffect
             );
             newHead++;
           }
           oldHead++;
         } else {
           if (oldKey == newKey) {
-            diffComponent(
+            diffWidget(
               parent,
-              existingComponent,
-              vnodes[newHead]
+              existingWidget,
+              vnodes[newHead],
+              platform,
+              registerEffect
             );
             newKeyed.set(newKey, true);
             oldHead++;
           } else {
-            var keyedComponent = keyed.get(newKey);
-            if (keyedComponent != null) {
+            var keyedWidget = keyed.get(newKey);
+            if (keyedWidget != null) {
               var vn = vnodes[newHead];
               parent.moveChildTo(
                 newHead,
-                vn.updateComponent(engine, keyedComponent)
+                vn.updateWidget(keyedWidget, registerEffect)
               );
               newKeyed.set(newKey, true);
             } else {
               parent.insertChildAt(
                 newHead,
-                vnodes[newHead].createComponent(engine, parent)
+                vnodes[newHead].createWidget(parent, platform, registerEffect)
               );
             }
           }
@@ -141,8 +143,8 @@ final class Differ {
       }
 
       while (oldHead <= oldTail) {
-        if (getKey((existingComponent = children[oldHead++])) == null) {
-          parent.removeChild(existingComponent);
+        if (getKey((existingWidget = children[oldHead++])) == null) {
+          parent.removeChild(existingWidget);
         }
       }
 
@@ -158,11 +160,12 @@ final class Differ {
     return if (vNode == null) null else vNode.key;
   }
 
-  static function getKey(component:Null<Component>) {
-    return if (component == null) null else component.getComponentKey();
+  static function getKey(widget:Null<Widget>) {
+    return if (widget == null) null else widget.getWidgetKey();
   }
 
-  static function flatten(vnodes:Array<VNode>, parent:Component) {
+  static function flatten(vnodes:Array<VNode>, parent:Widget) {
+    if (vnodes == null) return [];
     return vnodes.filter(vn -> vn != null);
   }
 }

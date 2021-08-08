@@ -8,8 +8,8 @@
   "contributors": [
     "wartman"
   ],
-  "releasenote": "Major API update",
-  "version": "0.2.0",
+  "releasenote": "Complete overhaul of Blok's internals",
+  "version": "0.3.0",
   "url": "https://github.com/blok-ui/blok.core",
   "dependencies": {}
 }

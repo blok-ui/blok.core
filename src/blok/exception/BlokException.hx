@@ -5,7 +5,7 @@ import haxe.Exception;
 using Type;
 
 // Todo: this needs to actually print a useful tree.
-function getComponentInheritance(component:Component) {
+function getWidgetInheritance(component:Widget) {
   var tree:Array<String> = [];
   var current = component;
   while (current != null) {
@@ -19,8 +19,8 @@ function getComponentInheritance(component:Component) {
 }
 
 class BlokException extends Exception {
-  public function new(message, component:Component, ?previous) {
-    var tree = getComponentInheritance(component);
+  public function new(message, component:Widget, ?previous) {
+    var tree = getWidgetInheritance(component);
     message = message + ' : ' + tree.join(' -> ');
     super(message, previous);
   }

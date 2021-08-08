@@ -41,7 +41,7 @@ class DefaultScheduler implements Scheduler {
   function doUpdate() {
     if (onUpdate == null) return;
 
-    var currentUpdates = onUpdate;
+    var currentUpdates = onUpdate.copy();
     onUpdate = null;    
     
     for (u in currentUpdates) u();

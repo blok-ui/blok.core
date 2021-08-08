@@ -168,11 +168,13 @@ abstract class Widget implements Disposable {
   }
 
   public function addChild(widget:Widget) {
+    getConcreteManager().addConcreteChild(widget);
     __children.add(widget);
   }
 
   public function removeChild(widget:Widget) {
     if (widget != null && __children.has(widget)) {
+      getConcreteManager().removeConcreteChild(widget);
       widget.dispose();
       widget.__parent = null;
       __children.remove(widget);
@@ -182,6 +184,7 @@ abstract class Widget implements Disposable {
   }
 
   public function insertChildAt(pos:Int, widget:Widget) {
+    getConcreteManager().insertConcreteChildAt(pos, widget);
     __children.insert(pos, widget);
   }
 
@@ -214,6 +217,8 @@ abstract class Widget implements Disposable {
   }
 
   public function moveChildTo(pos:Int, widget:Widget) {
+    getConcreteManager().moveConcreteChildTo(pos, widget);
+
     if (!__children.has(widget)) {
       __children.insert(pos, widget);
       return;

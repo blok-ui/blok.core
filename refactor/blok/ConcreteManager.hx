@@ -1,5 +1,7 @@
 package blok;
 
+// @todo: Decide if manager hooks should run before or after widgets
+//        are added to their parent. Right now, they run *before*
 interface ConcreteManager extends Disposable {
   public function toConcrete():Array<Dynamic>;
   public function getFirstConcreteChild():Dynamic;

@@ -5,25 +5,33 @@ abstract class ConcreteWidget
   implements ConcreteManager
 {
   override function addChild(widget:Widget) {
-    super.addChild(widget);
+    // Note: ConcreteManager expects that the new child widget has *not*
+    //       been added yet, and thus MUST run first.
     addConcreteChild(widget);
+    super.addChild(widget);
   }
 
   override function insertChildAt(pos:Int, widget:Widget) {
-    super.insertChildAt(pos, widget);
+    // Note: ConcreteManager expects that the new child widget has *not*
+    //       been added yet, and thus MUST run first.
     insertConcreteChildAt(pos, widget);
+    super.insertChildAt(pos, widget);
   }
 
   override function removeChild(widget:Widget):Bool {
-    return if (super.removeChild(widget)) {
+    // Note: ConcreteManager expects that the new child widget has *not*
+    //       been removed yet, and thus MUST run first.
+    if (widget != null && __children.has(widget)) {
       removeConcreteChild(widget);
-      true;
-    } else false;
+    }
+    return super.removeChild(widget);
   }
 
   override function moveChildTo(pos:Int, widget:Widget) {
-    super.moveChildTo(pos, widget);
+    // Note: ConcreteManager expects that the new child widget has *not*
+    //       been moved yet, and thus MUST run first.
     moveConcreteChildTo(pos, widget);
+    super.moveChildTo(pos, widget);
   }
 
   function getConcreteManager() {

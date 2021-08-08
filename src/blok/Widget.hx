@@ -1,6 +1,5 @@
 package blok;
 
-import blok.exception.ComponentNotMountedException.WidgetNotMountedException;
 import haxe.ds.Option;
 import blok.exception.*;
 

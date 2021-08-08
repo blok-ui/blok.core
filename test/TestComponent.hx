@@ -85,7 +85,7 @@ class TestComponent implements TestCase {
   function testExceptionBoundaries(done) {
     ExceptionBoundary.node({
       handle: e -> {
-        e.message.equals('Was caught : blok.PlatformWidget -> blok.FragmentWidget -> ExceptionBoundary -> ThrowsException');
+        e.message.equals('Was caught : blok.FragmentWidget -> ExceptionBoundary -> ThrowsException');
         done();
       },
       fallback: () -> Text.text('Fell back'),

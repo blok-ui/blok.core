@@ -149,6 +149,10 @@ abstract class Widget implements Disposable {
     }
   }
 
+  public inline function getPlatform() {
+    return __platform;
+  }
+
   public inline function getChildren() {
     return __children;
   }

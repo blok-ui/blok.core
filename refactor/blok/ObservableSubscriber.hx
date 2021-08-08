@@ -2,7 +2,7 @@ package blok;
 
 import blok.Observable;
 
-class ObservableSubscriber<T> extends Component {
+final class ObservableSubscriber<T> extends Component {
   public inline static function observe(target, build, ?teardown) {
     return ObservableSubscriber.node({
       target: target,
@@ -12,10 +12,10 @@ class ObservableSubscriber<T> extends Component {
   }
 
   @prop(onChange = cleanupLink()) var target:ObservableTarget<T>;
-  @prop var build:(value:T)->VNode;
-  @prop var teardown:(value:T)->Void = null;
-  var link:Disposable;
-  var value:T;
+  @prop var build:(value:Null<T>)->VNode;
+  @prop var teardown:Null<(value:T)->Void> = null;
+  var link:Null<Disposable> = null;
+  var value:Null<T> = null;
 
   @before
   function track() {

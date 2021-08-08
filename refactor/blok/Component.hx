@@ -75,6 +75,10 @@ abstract class Component extends Widget {
 
     if (exception != null) throw exception;
 
+    if (vnr == null) {
+      return new VNodeResult(VNone);
+    }
+
     return vnr;
   }
   

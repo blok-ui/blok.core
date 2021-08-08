@@ -165,6 +165,7 @@ final class Differ {
   }
 
   static function flatten(vnodes:Array<VNode>, parent:Widget) {
+    if (vnodes == null) return [];
     return vnodes.filter(vn -> vn != null);
   }
 }

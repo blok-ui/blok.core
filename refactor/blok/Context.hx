@@ -1,9 +1,10 @@
 package blok;
 
 import haxe.ds.Map;
+import blok.exception.NoProviderException;
 
 @:nullSafety
-class Context {
+final class Context {
   public inline static function use(build, ?fallback) {
     return ContextUser.node({ build: build, fallback: fallback });
   }
@@ -32,5 +33,31 @@ class Context {
   
   public function getChild() {
     return new Context(this);
+  }
+}
+
+private final class ContextUser extends Component {
+  @prop var build:(context:Context)->VNode;
+  @prop var fallback:Null<Context> = null;
+  var context:Null<Context> = null;
+
+  @before
+  public function findContext() {
+    context = switch findParentOfType(Provider) {
+      case None if (fallback != null):
+        fallback;
+      case None:
+        throw new NoProviderException(this); 
+      case Some(provider): 
+        provider.getContext(); 
+    }
+  }
+
+  public function getContext() {
+    return context;
+  }
+
+  public function render() {
+    return build(context);
   }
 }

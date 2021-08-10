@@ -38,7 +38,7 @@ class RecordBuilder {
       
       if (Context.unify(type.toType(), Context.getType('Iterable'))) switch type.toType() {
         case TAbstract(_, [ t ]) if (Context.unify(t, recordType)):
-          nameBuilder.push(macro $v{name} + ': [' + [ for (c in this.$name) @:privateAccess c.__stringRepresentation ].join(',') + ']');
+          nameBuilder.push(macro $v{name} + ':[' + [ for (c in this.$name) @:privateAccess c.__stringRepresentation ].join(',') + ']');
           toJson.push({
             field: name,
             expr: macro [ for (c in this.$name) c.toJson() ]
@@ -50,13 +50,13 @@ class RecordBuilder {
             expr: macro this.$name
           });
       } else if (Context.unify(type.toType(), recordType)) {
-        nameBuilder.push(macro $v{name} + ': ' + @:privateAccess this.$name.__stringRepresentation);
+        nameBuilder.push(macro $v{name} + ':' + @:privateAccess this.$name.__stringRepresentation);
         toJson.push({
           field: name,
           expr: macro this.$name.toJson()
         });
       } else {
-        nameBuilder.push(macro $v{name} + ': ' + Std.string(this.$name));
+        nameBuilder.push(macro $v{name} + ':' + Std.string(this.$name));
         toJson.push({
           field: name,
           expr: 
@@ -145,11 +145,10 @@ class RecordBuilder {
       var withPropType = TAnonymous(withProps);
       var clsType = Context.getLocalType().toComplexType();
       return macro class {
-        final __stringRepresentation:String;
+        var __hash:Null<Int> = null;
 
         public function new($INCOMING_PROPS:$propType) {
           $b{initializers};
-          __stringRepresentation = $v{cls.pack.concat([ cls.name ]).join('.')} + ' { ' + [ $a{nameBuilder} ].join(', ') + ' }';
         }
 
         /**
@@ -172,11 +171,7 @@ class RecordBuilder {
           Check if all the fields of this Record match the other Record.
         **/
         public function equals(other:$clsType):Bool {
-          return __stringRepresentation == other.__stringRepresentation;
-        }
-
-        public function toString():String {
-          return __stringRepresentation;
+          return hashCode() == other.hashCode();
         }
 
         public function toJson():Dynamic {
@@ -184,6 +179,13 @@ class RecordBuilder {
             expr: EObjectDecl(toJson),
             pos: (macro null).pos
           } };
+        }
+
+        public function hashCode():Int {
+          if (__hash == null) {
+            __hash = blok.tools.ObjectTools.hash($v{cls.pack.concat([ cls.name ]).join('.')} + [ $a{nameBuilder} ].join(''));
+          }
+          return __hash;
         }
       };
     });

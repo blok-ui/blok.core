@@ -7,6 +7,7 @@ class Run {
     runner.add(new TestObservable());
     runner.add(new TestService());
     runner.add(new TestState());
+    runner.add(new TestRecord());
     runner.run();
   }
 }

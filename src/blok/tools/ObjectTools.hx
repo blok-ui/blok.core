@@ -34,4 +34,13 @@ class ObjectTools {
 
     return changed;
   }
+
+  public static function hash(str:String):Int {
+    var i = 0;
+    var out = 11;
+    while (i < str.length) {
+      out = (101 * out + str.charCodeAt(i++)) >>> 0;
+    }
+    return out;
+  }  
 }

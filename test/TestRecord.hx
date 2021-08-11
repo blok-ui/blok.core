@@ -19,6 +19,12 @@ class TestRecord implements TestCase {
     var b = new Foo({ foo: 'bar' });
     a.equals(b).isFalse();
   }
+
+  @:test('"with" methods are generated for each field')
+  function testWithFields() {
+    var a = new Foo({ foo: 'foo' });
+    a.withFoo('bar').foo.equals('bar');
+  }
 }
 
 class Foo implements Record {

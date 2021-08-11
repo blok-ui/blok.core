@@ -7,19 +7,19 @@ enum VNodeKind {
 }
 
 abstract VNodeResult(VNodeKind) {
-  @:from public static function ofArray(nodes:Array<VNode>) {
+  @:from public inline static function ofArray(nodes:Array<VNode>) {
     return new VNodeResult(VGroup(nodes));
   }
 
-  @:from public static function ofSingle(node:Null<VNode>) {
+  @:from public inline static function ofSingle(node:Null<VNode>) {
     return new VNodeResult(node == null ? VNone : VSingle(node));
   }
   
-  public function new(kind) {
+  public inline function new(kind) {
     this = kind;
   }
 
-  public function unwrap():VNodeKind {
+  public inline function unwrap():VNodeKind {
     return this;
   }
 

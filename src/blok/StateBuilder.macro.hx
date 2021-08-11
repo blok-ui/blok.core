@@ -283,14 +283,18 @@ class StateBuilder {
       return macro class {
         var $PROPS:$propType;
         var __dirty:Bool = false;
+        var __disposables:Array<blok.Disposable> = [];
         final __observable:blok.Observable<$ct>;
         
         public function new($INCOMING_PROPS:$propType) {
           __observable = new blok.Observable(this);
+          addDisposable(__observable);
+
           this.$PROPS = ${ {
             expr: EObjectDecl(initializers),
             pos: (macro null).pos
           } };
+          
           $b{initHooks};
         }
 
@@ -303,8 +307,13 @@ class StateBuilder {
           $b{updates};
         }
 
+        public function addDisposable(disposable:blok.Disposable) {
+          __disposables.push(disposable);
+        }
+
         public function dispose() {
-          __observable.dispose();
+          for (d in __disposables) d.dispose();
+          __disposables = [];
           $b{disposeHooks};
         }
 

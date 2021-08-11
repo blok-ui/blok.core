@@ -1,7 +1,7 @@
 package blok;
 
 class Fragment extends Component {
-  public static function wrap(...children:VNode) {
+  public inline static function wrap(...children:VNode) {
     return node({ children: children.toArray() });
   }
 

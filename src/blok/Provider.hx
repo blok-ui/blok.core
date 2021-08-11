@@ -8,6 +8,10 @@ final class Provider<T:ServiceProvider> extends Component {
     });
   }
 
+  public inline static function factory() {
+    return new ProviderFactory();
+  }
+
   @prop var service:T;
   @prop var build:(context:Context)->VNode;
   @prop var teardown:Null<(service:T)->Void> = null;
@@ -34,5 +38,25 @@ final class Provider<T:ServiceProvider> extends Component {
 
   public function render() {
     return build(context);
+  }
+}
+
+private class ProviderFactory {
+  final services:Array<ServiceProvider> = [];
+  
+  public function new() {}
+
+  public function provide(provider:ServiceProvider) {
+    services.push(provider);
+    return this;
+  }
+
+  public function render(render:(context:Context)->VNode) {
+    var first = services.shift();
+    for (service in services) {
+      var next = render;
+      render = context -> Provider.provide(service, next);
+    }
+    return Provider.provide(first, render);
   }
 }

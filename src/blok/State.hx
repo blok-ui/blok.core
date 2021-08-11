@@ -1,4 +1,4 @@
 package blok;
 
 @:autoBuild(blok.StateBuilder.build())
-interface State {}
+interface State extends Disposable {}

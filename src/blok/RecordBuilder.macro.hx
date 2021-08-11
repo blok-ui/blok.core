@@ -14,6 +14,7 @@ class RecordBuilder {
     var clsTp = builder.getTypePath();
     var props:Array<Field> = [];
     var withProps:Array<Field> = [];
+    var withMethods:Array<{ name:String, type:ComplexType }> = [];
     var initializers:Array<Expr> = [];
     var nameBuilder:Array<Expr> = [];
     var withBuilder:Array<ObjectField> = [];
@@ -27,13 +28,19 @@ class RecordBuilder {
         meta: isOptional ? [ OPTIONAL_META ] : [],
         pos: (macro null).pos
       });
-      if (isUpdateable) withProps.push({
-        name: name,
-        kind: FVar(type, null),
-        access: [ APublic ],
-        meta: [ OPTIONAL_META ],
-        pos: (macro null).pos
-      });
+      if (isUpdateable) {
+        withProps.push({
+          name: name,
+          kind: FVar(type, null),
+          access: [ APublic ],
+          meta: [ OPTIONAL_META ],
+          pos: (macro null).pos
+        });
+        withMethods.push({
+          name: name,
+          type: type
+        });
+      }
       var recordType = Context.getType('blok.Record');
       
       if (Context.unify(type.toType(), Context.getType('Iterable'))) switch type.toType() {
@@ -144,6 +151,23 @@ class RecordBuilder {
       var propType = TAnonymous(props);
       var withPropType = TAnonymous(withProps);
       var clsType = Context.getLocalType().toComplexType();
+
+      for (method in withMethods) {
+        var name = 'with' + ucFirst(method.name);
+        var prop = method.name;
+        var type = method.type;
+        builder.add(macro class {
+          public inline function $name($prop:$type) {
+            return with(${{
+              expr: EObjectDecl([
+                { field: prop, expr: macro $i{prop} }
+              ]),
+              pos: (macro null).pos
+            }});
+          }
+        });
+      }
+
       return macro class {
         var __hash:Null<Int> = null;
 
@@ -191,5 +215,9 @@ class RecordBuilder {
     });
 
     return builder.export();
+  }
+
+  static function ucFirst(str:String) {
+    return str.charAt(0).toUpperCase() + str.substr(1);
   }
 }

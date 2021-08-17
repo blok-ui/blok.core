@@ -1,6 +1,22 @@
 package blok;
 
+/**
+  Provide a Service, making it accessable to all child widgets
+  in the tree via the Context API.
+
+  Note that any Disposable services registered here will be
+  disposed when their Context is, meaning you SHOULD NOT use
+  a Disposable ServiceProvider in more than one place.
+**/
 final class Provider<T:ServiceProvider> extends Component {
+  /**
+    Provide a Service that will become available from Context in the
+    `build` method and in all child Widgets.
+
+    Note: if you need to provide more than one service, use the
+    `Provider.factory` or use `@provide` meta in a `blok.Service` or
+    `blok.State`.
+  **/
   public inline static function provide<T:ServiceProvider>(service:T, build) {
     return node({
       service: service,
@@ -8,27 +24,24 @@ final class Provider<T:ServiceProvider> extends Component {
     });
   }
 
+  /**
+    A fluent API for providing several Services at once.
+  **/
   public inline static function factory() {
     return new ProviderFactory();
   }
 
   @prop var service:T;
   @prop var build:(context:Context)->VNode;
-  @prop var teardown:Null<(service:T)->Void> = null;
   var context:Null<Context> = null;
 
-  @dispose
-  public function maybeTeardown() {
-    if (teardown != null) teardown(service);
-    __props.service = null;
-  }
-
-  @before
-  public function findOrSyncContext() {
+  @init
+  function findOrSyncContext() {
     context = switch findParentOfType(Provider) {
       case None: new Context();
       case Some(provider): provider.getContext().getChild();
     }
+    addDisposable(context);
     service.register(context);
   }
 

@@ -86,10 +86,40 @@ class TestService implements TestCase {
       build: _ -> SimpleService.use(service -> Text.text(service.value))
     }).toResult().renders('provided', done);
   }
+
+  @:test('services work with nested Providers')
+  @:test.async
+  public function testNestedProviderIntegration(done) {
+    Text.children([
+      UsesSimpleService.node({}), // Should use default
+      Provider.node({
+        service: new SimpleService('bar'),
+        build: _ -> Text.children([
+          UsesSimpleService.node({}), // should use provided service
+          Provider.node({
+            service: new OtherService('bin'),
+            build: context -> Text.text(
+              SimpleService.from(context).value + ' ' // Should be from outer scope
+              + OtherService.from(context).value
+            )
+          })
+        ])
+      })
+    ]).renders('default bar bar bin', done);
+  }
 }
 
 @service(fallback = new SimpleService('default'))
 class SimpleService implements Service {
+  public final value:String;
+
+  public function new(value) {
+    this.value = value;
+  }
+}
+
+@service(fallback = new OtherService('default'))
+class OtherService implements Service {
   public final value:String;
 
   public function new(value) {

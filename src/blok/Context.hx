@@ -4,13 +4,14 @@ import haxe.ds.Map;
 import blok.exception.NoProviderException;
 
 @:nullSafety
-final class Context {
+final class Context implements Disposable {
   public inline static function use(build, ?fallback) {
     return ContextUser.node({ build: build, fallback: fallback });
   }
 
   final data:Map<String, Dynamic> = [];
   final parent:Null<Context>;
+  var disposables:Array<Disposable> = [];
 
   public function new(?parent) {
     this.parent = parent;
@@ -29,10 +30,20 @@ final class Context {
 
   public function set<T>(name:String, value:T) {
     data.set(name, value);
+    if (value is Disposable) {
+      disposables.push(cast value);
+    }
   }
-  
+
   public function getChild() {
-    return new Context(this);
+    var child = new Context(this);
+    disposables.push(child);
+    return child;
+  }
+
+  public function dispose() {
+    var ds = disposables.copy();
+    for (d in ds) d.dispose();
   }
 }
 

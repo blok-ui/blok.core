@@ -87,12 +87,24 @@ class StateBuilder {
           });
 
           registerHooks.push(macro this.$name.register(context));
-
-          if (Context.unify(t.toType(), Context.getType('blok.Disposable'))) {
-            disposeHooks.push(macro this.$name.dispose());
-          }
         default:
           Context.error('@provide may only be used on vars', f.pos);
+      }
+    });
+
+    builder.addFieldMetaHandler({
+      name: 'dispose',
+      hook: Normal,
+      options: [],
+      build: function (options:{}, builder, field) switch field.kind {
+        case FFun(func):
+          if (func.args.length > 0) {
+            Context.error('@dispose methods cannot have any arguments', field.pos);
+          }
+          var name = field.name;
+          disposeHooks.push(macro @:pos(field.pos) inline this.$name());
+        default:
+          Context.error('@dispose must be used on a method', field.pos);
       }
     });
 
@@ -234,8 +246,7 @@ class StateBuilder {
               var state = new $clsTp(props);
               return blok.Provider.node({
                 service: state,
-                build: build,
-                teardown: service -> if (service != null) service.dispose()
+                build: build
               });
             }
           })

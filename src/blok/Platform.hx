@@ -9,7 +9,7 @@ abstract class Platform {
   }
 
   public function schedule(action) {
-    var effects = createEffectManager();
+    var effects = EffectManager.createEffectManager();
     scheduler.schedule(() -> {
       action(effects.register);
       effects.dispatch();
@@ -17,7 +17,7 @@ abstract class Platform {
   }
 
   public function mountRootWidget(root:ConcreteWidget, ?effect) {
-    var effects = createEffectManager();
+    var effects = EffectManager.createEffectManager();
     root.initializeWidget(null, this);
     root.performUpdate(effects.register);
     if (effect != null) effects.register(effect);
@@ -25,12 +25,4 @@ abstract class Platform {
   }
 
   abstract public function createManagerForComponent(component:Component):ConcreteManager;
-}
-
-private inline function createEffectManager() {
-  var effects:Array<()->Void> = [];
-  return {
-    register: effect -> effects.push(effect),
-    dispatch: () -> for (effect in effects) effect()
-  };
 }

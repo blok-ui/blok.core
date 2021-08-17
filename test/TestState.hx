@@ -20,6 +20,25 @@ class TestState implements TestCase {
     ).renders('Registered', done);
   }
 
+  @:test('Is disposed when its context is unounted')
+  @:test.async
+  public function testDispose(done) {
+    var state = new SimpleState({
+      foo: 'foo'
+    });
+    var ctx:blok.Context = null;
+
+    Provider.provide(state, context -> {
+      ctx = context;
+      Text.text(SimpleState.from(context).foo);
+    }).renders('foo', () -> {
+      ctx.notEquals(null);
+      ctx.dispose();
+      state.isDisposed.isTrue();
+      done();
+    });
+  }
+
   @:test('Static `use` is a shortcut')
   @:test.async
   public function testUse(done) {
@@ -45,7 +64,6 @@ class TestState implements TestCase {
     ];
     Provider.node({
       service: state,
-      teardown: state -> state.dispose(),
       build: context -> SimpleState.observe(context, state -> ChildrenComponent.node({
         children: [ Text.text(state.foo) ],
         ref: (result) -> {
@@ -72,7 +90,6 @@ class TestState implements TestCase {
     ];
     Provider.node({
       service: state,
-      teardown: state -> state.dispose(),
       // Note: this is not optimal -- if we have access to `context` we
       //       should use it directly (`SimpleState.observe(context, ...)`)
       build: _ -> SimpleState.use(state -> ChildrenComponent.node({
@@ -93,7 +110,6 @@ class TestState implements TestCase {
     });
     Provider.node({
       service: state,
-      teardown: state -> state.dispose(),
       build: context -> Text.text(FooService.from(context).foo)
     }).toResult().renders('Provided', done);
   }
@@ -102,10 +118,16 @@ class TestState implements TestCase {
 @service(fallback = new SimpleState({ foo: 'foo' }))
 class SimpleState implements State {
   @prop var foo:String;
+  public var isDisposed:Bool = false;
 
   @update
   public function setFoo(foo) {
     return UpdateState({ foo: foo });
+  }
+
+  @dispose
+  function markDisposed() {
+    isDisposed = true;
   }
 }
 

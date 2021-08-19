@@ -46,11 +46,14 @@ class StateBuilder {
       name: 'service',
       hook: Init,
       options: [
-        { name: 'fallback', optional: false, handleValue: expr -> expr },
+        { name: 'fallback', optional: true, handleValue: expr -> expr },
+        { name: 'isOptional', optional: true },
         { name: 'id', optional: true }
       ],
-      build: (options:{ fallback:Expr, ?id:String }, builder, fields) -> {
-        fallback = options.fallback;
+      build: function (options:{ fallback:Null<Expr>, isOptional:Null<Bool>, ?id:String }, builder, fields) {
+        fallback = options.fallback == null
+          ? options.isOptional ? macro null : null
+          : options.fallback ;
         if (options.id != null) id = options.id;
       }
     });

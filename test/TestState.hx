@@ -32,7 +32,6 @@ class TestState implements TestCase {
       ctx = context;
       Text.text(SimpleState.from(context).foo);
     }).renders('foo', () -> {
-      ctx.notEquals(null);
       ctx.dispose();
       state.isDisposed.isTrue();
       done();

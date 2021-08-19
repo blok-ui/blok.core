@@ -191,7 +191,7 @@ class ClassBuilder {
     function addOption(name:String, value:Expr, pos:Position) {
       var info = def.find(o -> o.name == name);
       if (info == null) {
-        Context.error('The option [ ${name} ] is not allowed here', pos);
+        Context.error('The option ${name} is not allowed here', pos);
       }
       if (Reflect.hasField(options, name)) {
         Context.error('The option ${name} was defined twice', pos);

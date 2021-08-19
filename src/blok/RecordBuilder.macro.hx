@@ -20,6 +20,12 @@ class RecordBuilder {
     var withBuilder:Array<ObjectField> = [];
     var toJson:Array<ObjectField> = [];
 
+    if (cls.isInterface) return builder.export();
+
+    if (cls.superClass != null) {
+      Context.error('Records cannot extend other classes', cls.pos);
+    }
+
     function addProp(name:String, type:ComplexType, isOptional:Bool, isUpdateable:Bool) {
       props.push({
         name: name,

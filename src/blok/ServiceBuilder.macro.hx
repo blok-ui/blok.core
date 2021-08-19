@@ -29,11 +29,14 @@ class ServiceBuilder {
       name: 'service',
       hook: Init,
       options: [
-        { name: 'fallback', optional: false, handleValue: expr -> expr },
+        { name: 'fallback', optional: true, handleValue: expr -> expr },
+        { name: 'isOptional', optional: true },
         { name: 'id', optional: true }
       ],
-      build: function (options:{ fallback:Expr, ?id:String }, builder, fields) {
-        fallback = options.fallback;
+      build: function (options:{ fallback:Null<Expr>, isOptional:Null<Bool>, ?id:String }, builder, fields) {
+        fallback = options.fallback == null
+          ? options.isOptional ? macro null : null
+          : options.fallback ;
         if (options.id != null) id = options.id;
       }
     });
@@ -120,8 +123,11 @@ class ServiceBuilder {
 
   public static function checkFallback(fallback:Expr, builder:ClassBuilder) {
     if (fallback == null) {
-      // todo: better warning
-      Context.error('Services require a fallback value', builder.cls.pos);
+      Context.error(
+        'Services require a fallback value. If you want this Service to be '
+        + 'optional, use `@service(isOptional)`.', 
+        builder.cls.pos
+      );
     }
   }
 }

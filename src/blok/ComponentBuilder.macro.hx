@@ -21,7 +21,6 @@ class ComponentBuilder {
     var disposeHooks:Array<Expr> = [];
     var beforeHooks:Array<Expr> = [];
     var effectHooks:Array<Expr> = [];
-    var dontGenerateType:Bool = false;
     
     function addProp(name:String, type:ComplexType, isOptional:Bool) {
       props.push({
@@ -39,18 +38,6 @@ class ComponentBuilder {
         pos: (macro null).pos
       });
     }
-
-    // builder.addClassMetaHandler({
-    //   name: 'component',
-    //   hook: Init,
-    //   options: [
-    //     { name: 'dontGenerateType', optional: true }
-    //   ],
-    //   build: function (options:{ ?dontGenerateType:Bool }, builder, fields) {
-    //     if (options.dontGenerateType == true) dontGenerateType = true;
-    //     // todo: other config?
-    //   }
-    // });
 
     builder.addClassMetaHandler({
       name: 'lazy',

@@ -51,7 +51,7 @@ class RecordBuilder {
       
       if (Context.unify(type.toType(), Context.getType('Iterable'))) switch type.toType() {
         case TAbstract(_, [ t ]) if (Context.unify(t, recordType)):
-          nameBuilder.push(macro $v{name} + ':[' + [ for (c in this.$name) @:privateAccess c.__stringRepresentation ].join(',') + ']');
+          nameBuilder.push(macro $v{name} + ':[' + [ for (c in this.$name) @:privateAccess c.hashCode() ].join(',') + ']');
           toJson.push({
             field: name,
             expr: macro [ for (c in this.$name) c.toJson() ]
@@ -63,7 +63,7 @@ class RecordBuilder {
             expr: macro this.$name
           });
       } else if (Context.unify(type.toType(), recordType)) {
-        nameBuilder.push(macro $v{name} + ':' + @:privateAccess this.$name.__stringRepresentation);
+        nameBuilder.push(macro $v{name} + ':' + @:privateAccess this.$name.hashCode());
         toJson.push({
           field: name,
           expr: macro this.$name.toJson()

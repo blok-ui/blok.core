@@ -35,6 +35,14 @@ final class Context implements Disposable {
     }
   }
 
+  public inline function addService<T:ServiceProvider>(service:T) {
+    service.register(this);
+  }
+
+  public inline function getService<T:ServiceProvider>(resolver:ServiceResolver<T>):Null<T> {
+    return resolver.from(this);
+  }
+
   public function getChild() {
     var child = new Context(this);
     disposables.push(child);

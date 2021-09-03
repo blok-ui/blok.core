@@ -254,7 +254,7 @@ abstract class Widget implements Disposable {
     if (oldWidget == null) {
       insertChildAt(pos, newWidget);
     } else {
-      insertChildBefore(oldWidget, newWidget);
+      insertChildAfter(oldWidget, newWidget);
       removeChild(oldWidget);
     }
   }
@@ -264,7 +264,7 @@ abstract class Widget implements Disposable {
     if (oldWidget == null || !__children.has(oldWidget)) {
       return addChild(newWidget);
     }
-    insertChildBefore(oldWidget, newWidget);
+    insertChildAfter(oldWidget, newWidget);
     removeChild(oldWidget);
   }
 

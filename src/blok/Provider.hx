@@ -24,6 +24,13 @@ final class Provider<T:ServiceProvider> extends Component {
     });
   }
 
+  public inline static function forContext(parentContext:Context, build) {
+    return node({
+      parentContext: parentContext,
+      build: build
+    });
+  }
+
   /**
     A fluent API for providing several Services at once.
   **/
@@ -31,18 +38,22 @@ final class Provider<T:ServiceProvider> extends Component {
     return new ProviderFactory();
   }
 
-  @prop var service:T;
+  @prop var service:Null<T> = null;
   @prop var build:(context:Context)->VNode;
+  @prop var parentContext:Null<Context> = null;
   var context:Null<Context> = null;
 
   @init
   function findOrSyncContext() {
-    context = switch findParentOfType(Provider) {
-      case None: new Context();
-      case Some(provider): provider.getContext().getChild();
-    }
+    context = parentContext == null 
+      ? switch findParentOfType(Provider) {
+        case None: new Context();
+        case Some(provider): provider.getContext().getChild();
+      }
+      : parentContext.getChild();
+
     addDisposable(context);
-    service.register(context);
+    if (service != null) service.register(context);
   }
 
   public function getContext() {

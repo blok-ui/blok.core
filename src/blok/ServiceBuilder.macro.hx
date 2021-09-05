@@ -96,7 +96,7 @@ class ServiceBuilder {
           })
         }
       ]);
-      
+
       macro class {
         public function register(context:blok.Context) {
           context.set($v{id}, this);
@@ -172,7 +172,7 @@ class ServiceBuilder {
           var service = context.get($v{id});
           if (service == null) {
             service = ${fallback};
-            service.register(context); 
+            if (service != null) service.register(context); 
           } 
           return service;
         }

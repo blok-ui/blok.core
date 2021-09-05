@@ -123,6 +123,15 @@ class TestService implements TestCase {
       })
     ]).renders('default bar bar bin', done);
   }
+
+  @:test('Services can be optional')
+  @:test.async
+  function testServicesCanBeOptional(done) {
+    Provider.provide(new SimpleService('foo'), context -> {
+      var optional = OptionalService.from(context);
+      Text.text(optional == null ? 'none' : optional.foo);
+    }).renders('none', done);
+  }
 }
 
 @service(fallback = new SimpleService('default'))
@@ -159,6 +168,12 @@ class ServiceUsesService implements Service {
   public function getSimpleService() {
     return service;
   }
+}
+
+@service(isOptional)
+class OptionalService implements Service {
+  @use var service:SimpleService;
+  @prop public var foo:String;
 }
 
 class UsesSimpleService extends Component {

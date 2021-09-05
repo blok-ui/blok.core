@@ -25,6 +25,7 @@ class StateBuilder {
     var useHooks:Array<Expr> = [];
     var id = clsName;
     var fallback:Expr = null;
+    var fallbackOptional:Bool = false;
 
     function addProp(name:String, type:ComplexType, isOptional:Bool, isUpdating:Bool) {
       props.push({
@@ -56,6 +57,7 @@ class StateBuilder {
           ? options.isOptional ? macro null : null
           : options.fallback ;
         if (options.id != null) id = options.id;
+        if (options.isOptional) fallbackOptional = true;
       }
     });
     
@@ -223,7 +225,7 @@ class StateBuilder {
     );
 
     builder.addLater(() -> {
-      ServiceBuilder.checkFallback(fallback, builder);
+      ServiceBuilder.checkFallback(fallback, fallbackOptional, builder);
 
       var propType = TAnonymous(props);
       var updatePropsType = TAnonymous(updateProps);

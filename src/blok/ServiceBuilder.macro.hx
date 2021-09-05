@@ -16,6 +16,7 @@ class ServiceBuilder {
     var cls = builder.cls;
     var id = cls.pack.concat([ cls.name ]).join('.');
     var fallback:Expr = null;
+    var fallbackOptional:Bool = false;
     var createParams = cls.params.length > 0
       ? [ for (p in cls.params) { name: p.name, constraints: BuilderHelpers.extractTypeParams(p) } ]
       : [];
@@ -37,8 +38,9 @@ class ServiceBuilder {
       build: function (options:{ fallback:Null<Expr>, isOptional:Null<Bool>, ?id:String }, builder, fields) {
         fallback = options.fallback == null
           ? options.isOptional ? macro null : null
-          : options.fallback ;
+          : options.fallback;
         if (options.id != null) id = options.id;
+        if (options.isOptional) fallbackOptional = true;
       }
     });
 
@@ -73,7 +75,7 @@ class ServiceBuilder {
     );
 
     builder.addLater(() -> {
-      checkFallback(fallback, builder);
+      checkFallback(fallback, fallbackOptional, builder);
 
       builder.addFields([
         buildFromField(id, fallback, ct, createParams),
@@ -178,7 +180,7 @@ class ServiceBuilder {
     }
   }
 
-  public static function checkFallback(fallback:Expr, builder:ClassBuilder) {
+  public static function checkFallback(fallback:Expr, isOptional:Bool,  builder:ClassBuilder) {
     if (fallback == null) { 
       Context.error(
         'Services require a fallback value, set via `@service(fallback = ...)`.', 
@@ -187,7 +189,7 @@ class ServiceBuilder {
     }
     
     switch fallback {
-      case macro null:
+      case macro null if (!isOptional):
         Context.warning(
           'Services should NOT fallback to null. If you\'re sure you want this '
           + 'service to be optional, use `@service(isOptional)`.',

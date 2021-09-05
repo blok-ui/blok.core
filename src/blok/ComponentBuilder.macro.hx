@@ -7,6 +7,7 @@ import blok.tools.ClassBuilder;
 
 using Lambda;
 using haxe.macro.Tools;
+using blok.tools.BuilderHelpers;
 
 class ComponentBuilder {
   static function build():Array<Field> {
@@ -141,21 +142,18 @@ class ComponentBuilder {
             Context.error('@use vars cannot be initialized', field.pos);
           }
 
-          if (
-            !Context.unify(t.toType(), Context.getType('blok.Service'))
-            && !Context.unify(t.toType(), Context.getType('blok.State'))
-          ) {
-            Context.error('@use must be a blok.Service or a blok.State', field.pos);
-          }
-
-          var clsName = t.toType().toString();
-          if (clsName.indexOf('<') >= 0) clsName = clsName.substring(0, clsName.indexOf('<'));
-          
-          var path = clsName.split('.'); // is there a better way
+          var path = t.toType().getPathExprFromType();
           var name = field.name;
           var getter = 'get_$name';
           var backingName = '__computedValue_$name';
           
+          if (!Context.unify(Context.typeof(path), Context.getType('blok.ServiceResolver'))) {
+            Context.error(
+              '@use fileds must be blok.ServiceResolvers',
+              field.pos
+            );
+          }
+
           field.kind = FProp('get', 'never', t, null);
 
           builder.add(macro class {
@@ -164,10 +162,10 @@ class ComponentBuilder {
             function $getter() {
               if (this.$backingName == null) {
                 var context = switch findParentOfType(blok.Provider) {
-                  case None: null;
+                  case None: new blok.Context();
                   case Some(provider): provider.getContext();
                 }
-                this.$backingName = $p{path}.from(context);
+                this.$backingName = ${path}.from(context);
               }
               return this.$backingName;
             } 

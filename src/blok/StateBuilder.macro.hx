@@ -22,6 +22,7 @@ class StateBuilder {
     var initHooks:Array<Expr> = [];
     var disposeHooks:Array<Expr> = [];
     var registerHooks:Array<Expr> = [];
+    var useHooks:Array<Expr> = [];
     var id = clsName;
     var fallback:Expr = null;
 
@@ -214,6 +215,10 @@ class StateBuilder {
     });
 
     builder.addFieldMetaHandler(
+      ServiceBuilder.createUseFieldHandler(useHooks)
+    );
+
+    builder.addFieldMetaHandler(
       BuilderHelpers.createMemoFieldHandler(e -> updates.push(e))
     );
 
@@ -334,6 +339,7 @@ class StateBuilder {
         public function register(context:blok.Context) {
           context.set($v{id}, this);
           $b{registerHooks};
+          $b{useHooks};
         }
       };
     });

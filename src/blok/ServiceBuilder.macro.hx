@@ -3,9 +3,9 @@ package blok;
 import haxe.macro.Context;
 import haxe.macro.Expr;
 import blok.tools.ClassBuilder;
-import blok.tools.BuilderHelpers;
 
 using haxe.macro.Tools;
+using blok.tools.BuilderHelpers;
 
 class ServiceBuilder {
   public static function build() {
@@ -24,6 +24,7 @@ class ServiceBuilder {
       default: throw 'assert';
     }).toComplexType();
     var registerHooks:Array<Expr> = [];
+    var useHooks:Array<Expr> = [];
 
     builder.addClassMetaHandler({
       name: 'service',
@@ -67,6 +68,10 @@ class ServiceBuilder {
       }
     });
 
+    builder.addFieldMetaHandler(
+      createUseFieldHandler(useHooks)
+    );
+
     builder.addLater(() -> {
       checkFallback(fallback, builder);
 
@@ -94,11 +99,60 @@ class ServiceBuilder {
         public function register(context:blok.Context) {
           context.set($v{id}, this);
           $b{registerHooks};
+          $b{useHooks};
         }
       }
     }, After);
 
     return builder.export();
+  }
+
+  public static function createUseFieldHandler(useHooks:Array<Expr>):FieldMetaHandler<{}> {
+    return {
+      name: 'use',
+      hook: Normal,
+      options: [
+        // { name: 'isOptional', optional: true }
+      ],
+      build: function (options:{}, builder, f) switch f.kind {
+        case FVar(t, e):
+          if (t == null) {
+            Context.error('Types cannot be inferred for @use vars', f.pos);
+          }
+
+          var path = t.toType().getPathExprFromType();
+          var name = f.name;
+          var getter = 'get_$name';
+          var backingName = '__computedValue_$name';
+
+          if (!Context.unify(Context.typeof(path), Context.getType('blok.ServiceResolver'))) {
+            Context.error(
+              '@use fileds must be blok.ServiceResolvers',
+              f.pos
+            );
+          }
+
+          f.kind = FProp('get', 'never', t, null);
+
+          builder.add(macro class {
+            var $backingName:Null<$t> = null;
+
+            function $getter() {
+              if (this.$backingName == null) {
+                // Todo: not sure about how to handle this error.
+                throw 'Tried to access the `@use` field ' + $v{name} + ', but no service '
+                  + 'was available. Generally, this means that you accessed this field '
+                  + 'before it was registered with a Context.';
+              }
+              return this.$backingName;
+            }
+          });
+          
+          useHooks.push(macro this.$backingName = ${path}.from(context));
+        default:
+          Context.error('@use may only be used on vars', f.pos);
+      }
+    };
   }
 
   public static function buildFromField(id:String, fallback:Expr, type:ComplexType, createParams:Array<TypeParamDecl>):Field {
@@ -110,24 +164,36 @@ class ServiceBuilder {
         params: createParams,
         ret: type,
         args: [
-          { name: 'context', type: macro:Null<blok.Context>, opt:true },
+          { name: 'context', type: macro:blok.Context, opt:true },
         ],
         expr: macro {
-          if (context == null) return ${fallback};
           var service = context.get($v{id});
-          return if (service == null) ${fallback} else service;
+          if (service == null) {
+            service = ${fallback};
+            service.register(context); 
+          } 
+          return service;
         }
       })
     }
   }
 
   public static function checkFallback(fallback:Expr, builder:ClassBuilder) {
-    if (fallback == null) {
+    if (fallback == null) { 
       Context.error(
-        'Services require a fallback value. If you want this Service to be '
-        + 'optional, use `@service(isOptional)`.', 
+        'Services require a fallback value, set via `@service(fallback = ...)`.', 
         builder.cls.pos
       );
+    }
+    
+    switch fallback {
+      case macro null:
+        Context.warning(
+          'Services should NOT fallback to null. If you\'re sure you want this '
+          + 'service to be optional, use `@service(isOptional)`.',
+          fallback.pos
+        );
+      default: 
     }
   }
 }

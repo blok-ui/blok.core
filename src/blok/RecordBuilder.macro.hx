@@ -6,6 +6,7 @@ import blok.tools.BuilderHelpers.*;
 import blok.tools.ClassBuilder;
 
 using haxe.macro.Tools;
+using blok.tools.BuilderHelpers;
 
 class RecordBuilder {
   public static function build() {
@@ -18,6 +19,7 @@ class RecordBuilder {
     var initializers:Array<Expr> = [];
     var nameBuilder:Array<Expr> = [];
     var withBuilder:Array<ObjectField> = [];
+    var fromJson:Array<ObjectField> = [];
     var toJson:Array<ObjectField> = [];
 
     if (cls.isInterface) return builder.export();
@@ -56,17 +58,31 @@ class RecordBuilder {
             field: name,
             expr: macro [ for (c in this.$name) c.toJson() ]
           });
+          var path = t.getPathExprFromType(); 
+          fromJson.push({
+            field: name,
+            expr: macro [ for (item in (Reflect.field(data, $v{name}):Array<Dynamic>)) ${path}.fromJson(data) ] 
+          });
         default:
           nameBuilder.push(macro $v{name} + ': ' + Std.string(this.$name));
           toJson.push({
             field: name,
             expr: macro this.$name
           });
+          fromJson.push({
+            field: name,
+            expr:  macro Reflect.field(data, $v{name}) 
+          });
       } else if (Context.unify(type.toType(), recordType)) {
         nameBuilder.push(macro $v{name} + ':' + @:privateAccess this.$name.hashCode());
         toJson.push({
           field: name,
           expr: macro this.$name.toJson()
+        });
+        var path = type.toType().getPathExprFromType(); 
+        fromJson.push({
+          field: name,
+          expr: macro ${path}.fromJson(Reflect.field(data, $v{name})) 
         });
       } else {
         nameBuilder.push(macro $v{name} + ':' + Std.string(this.$name));
@@ -77,6 +93,14 @@ class RecordBuilder {
               macro this.$name.toString()
             else
               macro this.$name
+        });
+        fromJson.push({
+          field: name,
+          expr:
+            if (Context.unify(type.toType(), Context.getType('Date')))
+              macro Date.fromString(Reflect.field(data, $v{name}))
+            else 
+              macro Reflect.field(data, $v{name})
         });
       }
     }
@@ -157,6 +181,7 @@ class RecordBuilder {
       var propType = TAnonymous(props);
       var withPropType = TAnonymous(withProps);
       var clsType = Context.getLocalType().toComplexType();
+      var clsTp = builder.getTypePath();
 
       for (method in withMethods) {
         var name = 'with' + ucFirst(method.name);
@@ -175,6 +200,18 @@ class RecordBuilder {
       }
 
       return macro class {
+        /**
+          Construct a record from a dynamic JSON source. This will
+          automatically instantiate sub-records and convert some types,
+          but will *not* validate the JSON.
+        **/
+        public static function fromJson(data:Dynamic) {
+          return new $clsTp(${ {
+            expr: EObjectDecl(fromJson),
+            pos: (macro null).pos
+          } });
+        }
+
         var __hash:Null<Int> = null;
 
         public function new($INCOMING_PROPS:$propType) {

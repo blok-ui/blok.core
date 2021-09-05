@@ -24,6 +24,13 @@ final class Provider<T:ServiceProvider> extends Component {
     });
   }
 
+  /**
+    Wrap a Context and provide its services.
+
+    Note: be careful with this method! It will *not* inherit parent
+    contexts, meaning that it should only be used at the root of an app
+    *or* if you really know what you're doing.
+  **/
   public inline static function forContext(parentContext:Context, build) {
     return node({
       parentContext: parentContext,

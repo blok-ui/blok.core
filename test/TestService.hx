@@ -87,6 +87,22 @@ class TestService implements TestCase {
     }).toResult().renders('provided', done);
   }
 
+  @:test('Services can use other services')
+  @:test.async
+  public function testServicesCanUseServices(done) {
+    Provider
+      .factory()
+      .provide(new SimpleService('foo'))
+      .provide(new ServiceUsesService())
+      .render(context -> Text.text(ServiceUsesService
+        .from(context)
+        .getSimpleService()
+        .value
+      ))
+      .toResult()
+      .renders('foo', done);
+  }
+
   @:test('services work with nested Providers')
   @:test.async
   public function testNestedProviderIntegration(done) {
@@ -132,6 +148,17 @@ class HasProviders implements Service {
   @provide public final simple:SimpleService = new SimpleService('provided');
 
   public function new() {}
+}
+
+@service(fallback = new ServiceUsesService())
+class ServiceUsesService implements Service {
+  @use var service:SimpleService;
+
+  public function new() {}
+
+  public function getSimpleService() {
+    return service;
+  }
 }
 
 class UsesSimpleService extends Component {

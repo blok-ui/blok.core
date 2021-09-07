@@ -1,7 +1,10 @@
 import blok.Record;
 
+import haxe.Json;
+
 using Medic;
 using Reflect;
+using Type;
 
 class TestRecord implements TestCase {
   public function new() {}
@@ -56,6 +59,22 @@ class TestRecord implements TestCase {
     var fromJson = WithDate.fromJson(record.toJson());
     fromJson.date.getDate().equals(date.getDate());
   }
+
+  @:test('Json serialization works')
+  function testJson() {
+    var data = WithSerializeable.fromJson({
+      json: {
+        __foo__: 'foo'
+      }
+    });
+    data.json.getClass().getClassName().equals(JsonTester.getClassName());
+    data.json.foobar().equals('foo bar');
+    Json.stringify(data.toJson()).equals(Json.stringify({
+      json: {
+        __foo__: 'foo'
+      }
+    }));
+  }
 }
 
 class Foo implements Record {
@@ -69,4 +88,28 @@ class Bar implements Record {
 
 class WithDate implements Record {
   @prop var date:Date;
+}
+
+class WithSerializeable implements Record {
+  @prop var json:JsonTester;
+}
+
+class JsonTester {
+  public static function fromJson(data:Dynamic) {
+    return new JsonTester(Reflect.field(data, '__foo__'));
+  }
+
+  final foo:String;
+
+  public function new(foo) {
+    this.foo = foo;
+  }
+
+  public function foobar() {
+    return foo + ' bar';
+  }
+
+  public function toJson():Dynamic {
+    return { __foo__: 'foo' };
+  }
 }

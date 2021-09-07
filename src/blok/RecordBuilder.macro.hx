@@ -49,16 +49,41 @@ class RecordBuilder {
           type: type
         });
       }
+
+      // @todo: this could use some cleanup and DRYing. Move some of this
+      //        into their own methods?
+
+      var serializeable = Context.getType('blok.JsonSerializable');
+      var unserializeable = Context.getType('blok.JsonUnserializable');
       var recordType = Context.getType('blok.Record');
+
+      function checkIfUnserializeable(type, pos) {
+        if (!Context.unify(type, unserializeable)) {
+          Context.error(
+            'This class can be serialized to json but cannot be unserialized.'
+            + 'Please ensure it has a `fromJson(data)` static method.', 
+            pos
+          );
+        }
+      }
+
+      // This feels a bit hacky :/ 
+      function prepareJsonSerializableForHash(t, e:Expr) {
+        if (Context.unify(t, recordType)) {
+          return macro @:privateAccess $e.hashCode();
+        }
+        return macro haxe.Json.stringify($e.toJson());
+      }
       
       if (Context.unify(type.toType(), Context.getType('Iterable'))) switch type.toType() {
-        case TAbstract(_, [ t ]) if (Context.unify(t, recordType)):
-          nameBuilder.push(macro $v{name} + ':[' + [ for (c in this.$name) @:privateAccess c.hashCode() ].join(',') + ']');
+        case TAbstract(_, [ t ]) if (Context.unify(t, serializeable)):
+          nameBuilder.push(macro $v{name} + ':[' + [ for (c in this.$name) ${prepareJsonSerializableForHash(t, macro c)} ].join(',') + ']');
           toJson.push({
             field: name,
             expr: macro [ for (c in this.$name) c.toJson() ]
           });
-          var path = t.getPathExprFromType(); 
+          var path = t.getPathExprFromType();
+          checkIfUnserializeable(Context.typeof(path), builder.getField(name).pos);
           fromJson.push({
             field: name,
             expr: macro [ for (item in (Reflect.field(data, $v{name}):Array<Dynamic>)) ${path}.fromJson(data) ] 
@@ -73,13 +98,15 @@ class RecordBuilder {
             field: name,
             expr:  macro Reflect.field(data, $v{name}) 
           });
-      } else if (Context.unify(type.toType(), recordType)) {
-        nameBuilder.push(macro $v{name} + ':' + @:privateAccess this.$name.hashCode());
+      } else if (Context.unify(type.toType(), serializeable)) {
+        var t = type.toType();
+        nameBuilder.push(macro $v{name} + ':' + ${prepareJsonSerializableForHash(t, macro this.$name)});
         toJson.push({
           field: name,
           expr: macro this.$name.toJson()
         });
-        var path = type.toType().getPathExprFromType(); 
+        var path = t.getPathExprFromType();
+        checkIfUnserializeable(Context.typeof(path), builder.getField(name).pos);
         fromJson.push({
           field: name,
           expr: macro ${path}.fromJson(Reflect.field(data, $v{name})) 

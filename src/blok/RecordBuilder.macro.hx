@@ -74,9 +74,9 @@ class RecordBuilder {
         }
         return macro haxe.Json.stringify($e.toJson());
       }
-      
+
       if (Context.unify(type.toType(), Context.getType('Iterable'))) switch type.toType() {
-        case TAbstract(_, [ t ]) if (Context.unify(t, serializeable)):
+        case TAbstract(_, [ t ]) | TInst(_, [ t ]) if (Context.unify(t, serializeable)):
           nameBuilder.push(macro $v{name} + ':[' + [ for (c in this.$name) ${prepareJsonSerializableForHash(t, macro c)} ].join(',') + ']');
           toJson.push({
             field: name,
@@ -86,7 +86,7 @@ class RecordBuilder {
           checkIfUnserializeable(Context.typeof(path), builder.getField(name).pos);
           fromJson.push({
             field: name,
-            expr: macro [ for (item in (Reflect.field(data, $v{name}):Array<Dynamic>)) ${path}.fromJson(data) ] 
+            expr: macro [ for (item in (Reflect.field(data, $v{name}):Array<Dynamic>)) ${path}.fromJson(item) ] 
           });
         default:
           nameBuilder.push(macro $v{name} + ': ' + Std.string(this.$name));

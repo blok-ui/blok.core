@@ -63,16 +63,28 @@ class TestRecord implements TestCase {
   @:test('Json serialization works')
   function testJson() {
     var data = WithSerializeable.fromJson({
-      json: {
-        __foo__: 'foo'
-      }
+      json: [ 
+        {
+          __foo__: 'foo'
+        }, 
+        {
+          __foo__: 'bar'
+        }
+      ]
     });
-    data.json.getClass().getClassName().equals(JsonTester.getClassName());
-    data.json.foobar().equals('foo bar');
+    data.json.length.equals(2);
+    var json = data.json[0];
+    json.getClass().getClassName().equals(JsonTester.getClassName());
+    json.foobar().equals('foo bar');
     Json.stringify(data.toJson()).equals(Json.stringify({
-      json: {
-        __foo__: 'foo'
-      }
+      json: [ 
+        {
+          __foo__: 'foo'
+        }, 
+        {
+          __foo__: 'bar'
+        }
+      ]
     }));
   }
 }
@@ -91,7 +103,7 @@ class WithDate implements Record {
 }
 
 class WithSerializeable implements Record {
-  @prop var json:JsonTester;
+  @prop var json:Array<JsonTester>;
 }
 
 class JsonTester {
@@ -110,6 +122,6 @@ class JsonTester {
   }
 
   public function toJson():Dynamic {
-    return { __foo__: 'foo' };
+    return { __foo__: foo };
   }
 }

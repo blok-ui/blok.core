@@ -70,9 +70,15 @@ class RecordBuilder {
       // This feels a bit hacky :/ 
       function prepareJsonSerializableForHash(t, e:Expr) {
         if (Context.unify(t, recordType)) {
-          return macro @:privateAccess $e.hashCode();
+          return macro @:privateAccess {
+            var part = $e;
+            if (part != null) Std.string(part.hashCode()) else ''; 
+          }
         }
-        return macro haxe.Json.stringify($e.toJson());
+        return macro {
+          var part = $e;
+          if (part != null) haxe.Json.stringify(part.toJson()) else '';
+        }
       }
 
       if (Context.unify(type.toType(), Context.getType('Iterable'))) switch type.toType() {
@@ -103,7 +109,7 @@ class RecordBuilder {
         nameBuilder.push(macro $v{name} + ':' + ${prepareJsonSerializableForHash(t, macro this.$name)});
         toJson.push({
           field: name,
-          expr: macro this.$name.toJson()
+          expr: macro this.$name != null ? this.$name.toJson() : null
         });
         var path = t.getPathExprFromType();
         checkIfUnserializeable(Context.typeof(path), builder.getField(name).pos);
@@ -117,7 +123,7 @@ class RecordBuilder {
           field: name,
           expr: 
             if (Context.unify(type.toType(), Context.getType('Date'))) 
-              macro this.$name.toString()
+              macro this.$name != null ? this.$name.toString() : null
             else
               macro this.$name
         });

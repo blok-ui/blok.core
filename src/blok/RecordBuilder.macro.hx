@@ -92,7 +92,7 @@ class RecordBuilder {
           checkIfUnserializeable(Context.typeof(path), builder.getField(name).pos);
           fromJson.push({
             field: name,
-            expr: macro [ for (item in (Reflect.field(data, $v{name}):Array<Dynamic>)) ${path}.fromJson(item) ] 
+            expr: macro if (Reflect.field(data, $v{name}) == null) [] else [ for (item in (Reflect.field(data, $v{name}):Array<Dynamic>)) ${path}.fromJson(item) ] 
           });
         default:
           nameBuilder.push(macro $v{name} + ': ' + Std.string(this.$name));

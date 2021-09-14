@@ -12,7 +12,7 @@ abstract class Platform {
     var effects = EffectManager.createEffectManager();
     scheduler.schedule(() -> {
       action(effects.register);
-      effects.dispatch();
+      scheduler.schedule(() -> effects.dispatch());
     });
   }
 
@@ -21,7 +21,7 @@ abstract class Platform {
     root.initializeWidget(null, this);
     root.performUpdate(effects.register);
     if (effect != null) effects.register(effect);
-    effects.dispatch();
+    scheduler.schedule(() -> effects.dispatch());
   }
 
   abstract public function createManagerForComponent(component:Component):ConcreteManager;

@@ -8,7 +8,7 @@ typedef EffectManager = {
 function createEffectManager():EffectManager {
   var effects:Array<()->Void> = [];
   return {
-    register: effect -> effects.push(effect),
+    register: effect -> effects.unshift(effect),
     dispatch: () -> for (effect in effects) effect()
   };
 }

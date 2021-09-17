@@ -87,6 +87,25 @@ class TestRecord implements TestCase {
       ]
     }));
   }
+
+  @:test('Records can have themseleves as children')
+  function testRecursive() {
+    // Note: this is mostly testing to ensure that the macro builder
+    //       compiles.
+    var data = new IsRecursive({
+      foo: 'bar',
+      children: [
+        new IsRecursive({ foo: 'bin' })
+      ]
+    });
+    data.children.length.equals(1);
+    Json.stringify(data.toJson()).equals(Json.stringify({
+      foo: 'bar',
+      children: [
+        { foo: 'bin', children: [] }
+      ]
+    }));
+  }
 }
 
 class Foo implements Record {
@@ -104,6 +123,11 @@ class WithDate implements Record {
 
 class WithSerializeable implements Record {
   @prop var json:Array<JsonTester>;
+}
+
+class IsRecursive implements Record {
+  @prop var foo:String;
+  @prop var children:Array<IsRecursive> = [];
 }
 
 class JsonTester {

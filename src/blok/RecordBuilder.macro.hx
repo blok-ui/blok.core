@@ -57,6 +57,14 @@ class RecordBuilder {
       var unserializeable = Context.getType('blok.JsonUnserializable');
       var recordType = Context.getType('blok.Record');
 
+      function checkIfSerializeable(type) {
+        // Note: we check for recordType because we might
+        //       be checking the same class that we're building.
+        //       In that case, `JsonSerializable` failes, but
+        //       `Record` still works.
+        return Context.unify(type, recordType) || Context.unify(type, serializeable);
+      }
+      
       function checkIfUnserializeable(type, pos) {
         if (!Context.unify(type, unserializeable)) {
           Context.error(
@@ -82,14 +90,22 @@ class RecordBuilder {
       }
 
       if (Context.unify(type.toType(), Context.getType('Iterable'))) switch type.toType() {
-        case TAbstract(_, [ t ]) | TInst(_, [ t ]) if (Context.unify(t, serializeable)):
+        case TAbstract(_, [ t ]) | TInst(_, [ t ]) if (checkIfSerializeable(t)):
           nameBuilder.push(macro $v{name} + ':[' + [ for (c in this.$name) ${prepareJsonSerializableForHash(t, macro c)} ].join(',') + ']');
           toJson.push({
             field: name,
             expr: macro [ for (c in this.$name) c.toJson() ]
           });
           var path = t.getPathExprFromType();
-          checkIfUnserializeable(Context.typeof(path), builder.getField(name).pos);
+
+          // Note: we're checking if this is a recordType first in case this
+          //       type is the same class as the one we're building. In that
+          //       case, we won't have the needed fields for JsonUnserializeable
+          //       yet and the check will fail. There's probably a better way
+          //       to do this, but for now...
+          if (!Context.unify(t, recordType)) {
+            checkIfUnserializeable(Context.typeof(path), builder.getField(name).pos);
+          }
           fromJson.push({
             field: name,
             expr: macro if (Reflect.field(data, $v{name}) == null) [] else [ for (item in (Reflect.field(data, $v{name}):Array<Dynamic>)) ${path}.fromJson(item) ] 
@@ -104,7 +120,7 @@ class RecordBuilder {
             field: name,
             expr:  macro Reflect.field(data, $v{name}) 
           });
-      } else if (Context.unify(type.toType(), serializeable)) {
+      } else if (checkIfSerializeable(type.toType())) {
         var t = type.toType();
         nameBuilder.push(macro $v{name} + ':' + ${prepareJsonSerializableForHash(t, macro this.$name)});
         toJson.push({
@@ -112,7 +128,15 @@ class RecordBuilder {
           expr: macro this.$name != null ? this.$name.toJson() : null
         });
         var path = t.getPathExprFromType();
-        checkIfUnserializeable(Context.typeof(path), builder.getField(name).pos);
+        
+        // Note: we're checking if this is a recordType first in case this
+        //       type is the same class as the one we're building. In that
+        //       case, we won't have the needed fields for JsonUnserializeable
+        //       yet and the check will fail. There's probably a better way
+        //       to do this, but for now...
+        if (!Context.unify(t, recordType)) {
+          checkIfUnserializeable(Context.typeof(path), builder.getField(name).pos);
+        }
         fromJson.push({
           field: name,
           expr: macro ${path}.fromJson(Reflect.field(data, $v{name})) 

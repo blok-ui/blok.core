@@ -42,7 +42,7 @@ private class Observer<T> implements Disposable {
     this.observable = observable;
   }
 
-  public inline function handle(value:T) {
+  public function handle(value:T) {
     listener(value);
   }
 
@@ -86,7 +86,24 @@ private class LinkedObserver<T, R> extends Observer<T> {
   }
 }
 
+enum abstract ConditionalObserverStatus(Int) {
+  var Handled;
+  var Pending;
+}
+
+private class ConditionalObserver<T> extends Observer<T> {
+  public function new(observable, listener:(value:T)->ConditionalObserverStatus) {
+    super(observable, value -> {
+      switch (listener(value)) {
+        case Handled: dispose();
+        case Pending: // noop
+      }
+    });
+  }
+}
+
 @:allow(blok.Observer)
+@:allow(blok.SuspendableData)
 class Observable<T> implements Disposable {
   static var uid:Int = 0;
 
@@ -114,10 +131,30 @@ class Observable<T> implements Disposable {
     this.comparator = comparator == null ? (a, b) -> a != b : comparator;
   }
 
+  /**
+    Observe this Observer. The provided listener will update every time the Observable
+    is notified unless you call `dispose` on the returned Disposable (or if the 
+    Observable itself is disposed). Use `observeConditionally` if you need a 
+    way to tell the observer to stop observing internally.
+  **/
   public function observe(listener:(value:T)->Void, ?options:ObservableOptions):Disposable {
     if (options == null) options = { defer: false };
 
     var observer = new Observer(this, listener);
+    addObserver(observer, options);
+    
+    return observer;
+  }
+
+  /**
+    Works the same as normal `observe`, but requires you to return either
+    `Handled` or `Pending`. If the observation is `Handled`, the Observer
+    will be removed.
+  **/
+  public function observeConditionally(listener:(value:T)->ConditionalObserverStatus, ?options:ObservableOptions):Disposable {
+    if (options == null) options = { defer: false };
+
+    var observer = new ConditionalObserver(this, listener);
     addObserver(observer, options);
     
     return observer;

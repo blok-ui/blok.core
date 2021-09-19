@@ -59,8 +59,12 @@ class TestObservable implements TestCase {
   @:test('Observable returns an Observer that can be disposed')
   public function testObserverDispose() {
     var obs = new Observable(0);
+    var called = 0;
     var times = 0;
-    var link = obs.observe(value -> value.equals(times));
+    var link = obs.observe(value -> {
+      ++called;
+      value.equals(times);
+    }, { defer: true });
 
     times++;
     obs.update(1);
@@ -68,6 +72,28 @@ class TestObservable implements TestCase {
     obs.update(2);
     link.dispose();
     obs.update(3);
+
+    called.equals(2);
+  }
+
+  @:test('Observable.observeConditionally allows us to stop observing internally')
+  public function testObserverConditional() {
+    var obs = new Observable(0);
+    var called = 0;
+    var times = 0;
+    obs.observeConditionally(value -> {
+      ++called;
+      value.equals(times);
+      return if (value == 2) Handled else Pending;
+    }, { defer: true });
+
+    times++;
+    obs.update(1);
+    times++;
+    obs.update(2);
+    obs.update(3);
+
+    called.equals(2);
   }
 
   @:test('Observables can be mapped')

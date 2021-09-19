@@ -1,3 +1,5 @@
+import blok.Effect;
+import blok.SuspendableData;
 import blok.ChildrenComponent;
 import blok.Suspend;
 import blok.Component;
@@ -61,6 +63,25 @@ class TestSuspend implements TestCase {
         () -> Text.text('nah')
       );
     }).renderWithoutAssert();
+  }
+
+  @:test('Suspensions work with SuspendableData')
+  @:test.async
+  public function testSuspendableData(done) {
+    var data:SuspendableData<String> = SuspendableData.suspended();
+    Suspend.await(
+      () -> Effect.withEffect(
+        Text.text(data.get()), 
+        () -> {
+          data.get().equals('foo');
+          done();
+        }
+      ),
+      () -> Effect.withEffect(
+        Text.text('waiting'),
+        () -> data.set('foo')
+      )
+    ).renderWithoutAssert();
   }
 }
 

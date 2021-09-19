@@ -1,5 +1,9 @@
 package blok;
 
+/**
+  A simple way to create effects if you, for whatever reason, aren't 
+  creating vNodes inside of a Component.
+**/
 class Effect extends Component {
   public static function withEffect(child:VNode, effect:()->Void):VNode {
     return Effect.node({ child: child, effect: effect });

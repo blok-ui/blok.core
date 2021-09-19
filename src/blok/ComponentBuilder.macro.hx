@@ -146,13 +146,6 @@ class ComponentBuilder {
           var name = field.name;
           var getter = 'get_$name';
           var backingName = '__computedValue_$name';
-          
-          // if (!Context.unify(Context.typeof(path), Context.getType('blok.ServiceResolver'))) {
-          //   Context.error(
-          //     '@use fileds must be blok.ServiceResolvers',
-          //     field.pos
-          //   );
-          // }
 
           field.kind = FProp('get', 'never', t, null);
 

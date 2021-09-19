@@ -65,6 +65,27 @@ class Suspend implements Service implements Disposable {
   }
 }
 
+class SuspensionRequest extends Exception implements Disposable {
+  public final handler:(resume:Resume)->Void;
+  public var resume:Null<Resume>;
+
+  public function new(handler) {
+    super('A suspension was unhandled');
+    this.handler = handler;
+  }
+
+  public function whenResumed(resume:Resume) {
+    this.resume = resume;
+    handler(() -> {
+      if (resume != null) resume();
+    });
+  }
+
+  public function dispose() {
+    resume = null;
+  }
+}
+
 private class SuspendablePoint extends Component {
   @prop var build:()->VNodeResult;
   @prop var fallback:()->VNodeResult;
@@ -99,26 +120,5 @@ private class SuspendablePoint extends Component {
 
   function render() {
     return build();
-  }
-}
-
-private class SuspensionRequest extends Exception implements Disposable {
-  public final handler:(resume:Resume)->Void;
-  public var resume:Null<Resume>;
-
-  public function new(handler) {
-    super('A suspension was unhandled');
-    this.handler = handler;
-  }
-
-  public function whenResumed(resume:Resume) {
-    this.resume = resume;
-    handler(() -> {
-      if (resume != null) resume();
-    });
-  }
-
-  public function dispose() {
-    resume = null;
   }
 }

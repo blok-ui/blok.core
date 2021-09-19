@@ -38,10 +38,12 @@ class TestSuspend implements TestCase {
     Suspend.isolate(context -> {
       Suspend
         .from(context)
-        .onReady.observe(_ -> {
-          ref.toString().equals('foo bar');
-          done();
-        }, { defer: true });
+        .status.observeNext(status -> switch status {
+          case Complete:
+            ref.toString().equals('foo bar');
+            done();
+          case Suspended:
+        });
 
       Suspend.await(
         () -> ChildrenComponent.node({ 

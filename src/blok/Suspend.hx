@@ -5,6 +5,11 @@ import blok.exception.WrappedException;
 
 typedef Resume = ()->Void;
 
+enum abstract SuspendStatus(Bool) {
+  var Suspended = true;
+  var Complete = false;
+}
+
 @:allow(blok)
 @service(fallback = new Suspend())
 class Suspend implements Service implements Disposable {
@@ -20,11 +25,11 @@ class Suspend implements Service implements Disposable {
     return Provider.provide(new Suspend(), build);
   }
 
-  public final onReady:Observable<Suspend>;
+  public final status:Observable<SuspendStatus>;
   final suspendedPoints:Map<SuspendablePoint, SuspensionRequest> = [];
 
   public function new() {
-    onReady = new Observable(this);
+    status = new Observable(Complete);
   }
 
   function addPoint(
@@ -34,6 +39,7 @@ class Suspend implements Service implements Disposable {
   ) {
     removePoint(point);
     suspendedPoints.set(point, request);
+    status.update(Suspended);
     platform.scheduler.schedule(() -> {
       request.whenResumed(() -> point.invalidateWidget());
     });
@@ -54,12 +60,12 @@ class Suspend implements Service implements Disposable {
     if (suspendedPoints.exists(point)) {
       suspendedPoints.remove(point);
       var remaining = [ for (key in suspendedPoints.keys()) key ].length;
-      if (remaining == 0) onReady.notify();
+      if (remaining == 0) status.update(Complete);
     }
   }
 
   public function dispose() {
-    onReady.dispose();
+    status.dispose();
     for (_ => request in suspendedPoints) request.dispose();
     suspendedPoints.clear();
   }

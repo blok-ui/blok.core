@@ -38,11 +38,11 @@ abstract SuspendableData<T>(Observable<SuspendableDataStatus<T>>) to Disposable 
     return switch this.value {
       case Suspended:
         throw new SuspensionRequest(resume -> {
-          this.observeConditionally(status -> switch status {
+          this.handle(status -> switch status {
             case Ready(_): 
               resume();
               Handled;
-            default:
+            case Suspended:
               Pending;
           });
         });

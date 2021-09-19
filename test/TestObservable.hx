@@ -61,10 +61,10 @@ class TestObservable implements TestCase {
     var obs = new Observable(0);
     var called = 0;
     var times = 0;
-    var link = obs.observe(value -> {
+    var link = obs.observeNext(value -> {
       ++called;
       value.equals(times);
-    }, { defer: true });
+    });
 
     times++;
     obs.update(1);
@@ -76,12 +76,12 @@ class TestObservable implements TestCase {
     called.equals(2);
   }
 
-  @:test('Observable.observeConditionally allows us to stop observing internally')
-  public function testObserverConditional() {
+  @:test('Observable.handle allows us to stop observing internally')
+  public function testObserverHandleable() {
     var obs = new Observable(0);
     var called = 0;
     var times = 0;
-    obs.observeConditionally(value -> {
+    obs.handle(value -> {
       ++called;
       value.equals(times);
       return if (value == 2) Handled else Pending;
@@ -101,17 +101,23 @@ class TestObservable implements TestCase {
     var obs = new Observable('foo');
     var expected = 'foo:bar';
     var mapped = obs.map(value -> value + ':bar');
+    var called = 0;
     
     // Should have one mapped observer:
     obs.length.equals(1);
     
-    mapped.observe(value -> value.equals(expected));
+    mapped.observe(value -> {
+      called++;
+      value.equals(expected);
+    }, { defer: true });
 
     expected = 'bar:bar';
     obs.update('bar'); // Should notify mapped observer
+    called.equals(1);
     
     mapped.dispose();
     obs.update('some value'); // Should not notify anything
+    called.equals(1);
 
     // Removing a mapped observable should remove its linked observer
     // as well:

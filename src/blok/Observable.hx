@@ -86,13 +86,13 @@ private class LinkedObserver<T, R> extends Observer<T> {
   }
 }
 
-enum abstract ConditionalObserverStatus(Int) {
-  var Handled;
-  var Pending;
+enum abstract HandleableObserverStatus(Bool) {
+  var Handled = true;
+  var Pending = false;
 }
 
 private class ConditionalObserver<T> extends Observer<T> {
-  public function new(observable, listener:(value:T)->ConditionalObserverStatus) {
+  public function new(observable, listener:(value:T)->HandleableObserverStatus) {
     super(observable, value -> {
       switch (listener(value)) {
         case Handled: dispose();
@@ -147,17 +147,29 @@ class Observable<T> implements Disposable {
   }
 
   /**
+    Observe the next result and don't fire immediately. Useful in situations
+    where you want the Observable to act more like a signal.
+  **/
+  public inline function observeNext(listener) {
+    return observe(listener, { defer: true });
+  }
+
+  /**
     Works the same as normal `observe`, but requires you to return either
     `Handled` or `Pending`. If the observation is `Handled`, the Observer
     will be removed.
   **/
-  public function observeConditionally(listener:(value:T)->ConditionalObserverStatus, ?options:ObservableOptions):Disposable {
+  public function handle(listener:(value:T)->HandleableObserverStatus, ?options:ObservableOptions):Disposable {
     if (options == null) options = { defer: false };
 
     var observer = new ConditionalObserver(this, listener);
     addObserver(observer, options);
     
     return observer;
+  }
+
+  public function handleNext(listener) {
+    return handle(listener, { defer: true });
   }
   
   function addObserver(observer:Observer<T>, options:ObservableOptions) {

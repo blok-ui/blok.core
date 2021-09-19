@@ -1,0 +1,124 @@
+package blok;
+
+import haxe.Exception;
+import blok.exception.WrappedException;
+
+typedef Resume = ()->Void;
+
+@:allow(blok)
+@service(fallback = new Suspend())
+class Suspend implements Service implements Disposable {
+  public inline static function await(build, fallback) {
+    return SuspendablePoint.node({ build: build, fallback: fallback });
+  }
+
+  public inline static function suspend(handler):VNode {
+    throw new SuspensionRequest(handler);
+  }
+
+  public inline static function isolate(build) {
+    return Provider.provide(new Suspend(), build);
+  }
+
+  public final onReady:Observable<Suspend>;
+  final suspendedPoints:Map<SuspendablePoint, SuspensionRequest> = [];
+
+  public function new() {
+    onReady = new Observable(this);
+  }
+
+  function addPoint(
+    point:SuspendablePoint,
+    request:SuspensionRequest,
+    platform:Platform
+  ) {
+    removePoint(point);
+    suspendedPoints.set(point, request);
+    platform.scheduler.schedule(() -> {
+      request.whenResumed(() -> point.invalidateWidget());
+    });
+  }
+
+  function hasPoint(point:SuspendablePoint) {
+    return suspendedPoints.exists(point);
+  }
+
+  function removePoint(point:SuspendablePoint) {
+    if (suspendedPoints.exists(point)) {
+      suspendedPoints.get(point).dispose();
+      suspendedPoints.remove(point);
+    }
+  }
+
+  function markComplete(point:SuspendablePoint) {
+    if (suspendedPoints.exists(point)) {
+      suspendedPoints.remove(point);
+      var remaining = [ for (key in suspendedPoints.keys()) key ].length;
+      if (remaining == 0) onReady.notify();
+    }
+  }
+
+  public function dispose() {
+    onReady.dispose();
+    for (_ => request in suspendedPoints) request.dispose();
+    suspendedPoints.clear();
+  }
+}
+
+private class SuspendablePoint extends Component {
+  @prop var build:()->VNodeResult;
+  @prop var fallback:()->VNodeResult;
+  @use var suspend:Suspend;
+  var isReady:Bool = true;
+
+  @effect
+  function maybeNotify() {
+    if (isReady && suspend.hasPoint(this)) suspend.markComplete(this);
+    isReady = true;
+  }
+
+  @dispose
+  function removeHandlers() {
+    if (suspend.hasPoint(this)) suspend.removePoint(this);
+  }
+
+  override function componentDidCatch(exception:Exception):VNodeResult {
+    return switch Std.downcast(exception, WrappedException) {
+      case null: 
+        super.componentDidCatch(exception);
+      case wrapped: switch Std.downcast(wrapped.target, SuspensionRequest) {
+        case null: 
+          super.componentDidCatch(exception);
+        case request:
+          isReady = false;
+          suspend.addPoint(this, request, getPlatform());
+          fallback();
+      }
+    }
+  }
+
+  function render() {
+    return build();
+  }
+}
+
+private class SuspensionRequest extends Exception implements Disposable {
+  public final handler:(resume:Resume)->Void;
+  public var resume:Null<Resume>;
+
+  public function new(handler) {
+    super('A suspension was unhandled');
+    this.handler = handler;
+  }
+
+  public function whenResumed(resume:Resume) {
+    this.resume = resume;
+    handler(() -> {
+      if (resume != null) resume();
+    });
+  }
+
+  public function dispose() {
+    resume = null;
+  }
+}

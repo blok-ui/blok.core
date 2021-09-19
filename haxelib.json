@@ -8,8 +8,8 @@
   "contributors": [
     "wartman"
   ],
-  "releasenote": "Updates to Services and Records.",
-  "version": "0.3.2",
+  "releasenote": "First pass on integrating Suspend.",
+  "version": "0.4.0-alpha.1",
   "url": "https://github.com/blok-ui/blok.core",
   "dependencies": {}
 }

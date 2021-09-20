@@ -165,22 +165,6 @@ class StateBuilder {
     });
 
     builder.addFieldMetaHandler({
-      name: 'init',
-      hook: After,
-      options: [],
-      build: function(_, builder, field) switch field.kind {
-        case FFun(func):
-          if (func.args.length > 0) {
-            Context.error('@init methods cannot have any arguments', field.pos);
-          }
-          var name = field.name;
-          initHooks.push(macro @:pos(field.pos) inline this.$name());
-        default:
-          Context.error('@init must be used on a method', field.pos);
-      }
-    });
-
-    builder.addFieldMetaHandler({
       name: 'update',
       hook: After,
       options: [],
@@ -218,6 +202,10 @@ class StateBuilder {
 
     builder.addFieldMetaHandler(
       ServiceBuilder.createUseFieldHandler(useHooks)
+    );
+
+    builder.addFieldMetaHandler(
+      ServiceBuilder.createInitFieldHandler(initHooks)
     );
 
     builder.addFieldMetaHandler(
@@ -315,8 +303,6 @@ class StateBuilder {
             expr: EObjectDecl(initializers),
             pos: (macro null).pos
           } };
-          
-          $b{initHooks};
         }
 
         public function getObservable():blok.Observable<$ct> {
@@ -342,6 +328,7 @@ class StateBuilder {
           context.set($v{id}, this);
           $b{registerHooks};
           $b{useHooks};
+          $b{initHooks};
         }
       };
     });

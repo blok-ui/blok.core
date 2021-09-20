@@ -26,6 +26,7 @@ class ServiceBuilder {
     }).toComplexType();
     var registerHooks:Array<Expr> = [];
     var useHooks:Array<Expr> = [];
+    var initHooks:Array<Expr> = [];
 
     builder.addClassMetaHandler({
       name: 'service',
@@ -70,9 +71,8 @@ class ServiceBuilder {
       }
     });
 
-    builder.addFieldMetaHandler(
-      createUseFieldHandler(useHooks)
-    );
+    builder.addFieldMetaHandler(createUseFieldHandler(useHooks));
+    builder.addFieldMetaHandler(createInitFieldHandler(initHooks));
 
     builder.addLater(() -> {
       checkFallback(fallback, fallbackOptional, builder);
@@ -102,6 +102,7 @@ class ServiceBuilder {
           context.set($v{id}, this);
           $b{registerHooks};
           $b{useHooks};
+          $b{initHooks};
         }
       }
     }, After);
@@ -151,6 +152,24 @@ class ServiceBuilder {
           useHooks.push(macro @:pos(f.pos) this.$backingName = (${path}:blok.ServiceResolver<$t>).from(context));
         default:
           Context.error('@use may only be used on vars', f.pos);
+      }
+    };
+  }
+
+  public static function createInitFieldHandler(initHooks:Array<Expr>):FieldMetaHandler<{}> {
+    return {
+      name: 'init',
+      hook: After,
+      options: [],
+      build: function(_, builder, field) switch field.kind {
+        case FFun(func):
+          if (func.args.length > 0) {
+            Context.error('@init methods cannot have any arguments', field.pos);
+          }
+          var name = field.name;
+          initHooks.push(macro @:pos(field.pos) inline this.$name());
+        default:
+          Context.error('@init must be used on a method', field.pos);
       }
     };
   }

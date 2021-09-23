@@ -14,6 +14,7 @@ final class ObservableSubscriber<T> extends Component {
   @prop(onChange = cleanupLink()) var target:ObservableTarget<T>;
   @prop var build:(value:Null<T>)->VNode;
   @prop var teardown:Null<(value:T)->Void> = null;
+  @prop var onDispose:Null<()->Void> = null;
   var link:Null<Disposable> = null;
   var value:Null<T> = null;
 
@@ -43,7 +44,12 @@ final class ObservableSubscriber<T> extends Component {
     value = null;
   }
 
-  public function render() {
+  @dispose
+  function maybeRunDisposeHook() {
+    if (onDispose != null) onDispose();
+  }
+
+  function render() {
     return build(value);
   }
 }

@@ -107,6 +107,42 @@ private class ConditionalObserver<T> extends Observer<T> {
 class Observable<T> implements Disposable {
   static var uid:Int = 0;
 
+  /**
+    Use an observable directly in a VNode tree. As opposed to
+    `observable.mapToVNode(...)`, the Observable will be disposed
+    along with the VNode, making this great for situations where 
+    you just want to toggle between simple states.
+
+    A good example of where this is useful might be something like
+    the following:
+
+    ```haxe
+    Observable.use(false, (status, update) -> Html.fragment(
+      Button.node({
+        action: () -> update(true),
+        label: 'Show'
+      }),
+      switch status {
+        case false: null;
+        case true: Modal.node({
+          requestClose: () -> update(false),
+          content: Html.text('Showing!')
+        })
+      }
+    ));
+    ```
+
+    For more complex state, use `blok.State`.
+  **/
+  public static function use<T>(value:T, build:(value:T, update:(value:T)->Void)->VNode) {
+    var state = new Observable(value);
+    return ObservableSubscriber.node({
+      target: state,
+      onDispose: () -> state.dispose(),
+      build: value -> build(value, state.update)
+    });
+  }
+
   final comparator:ObservableComparitor<T>;
 
   var notifying:Bool = false;

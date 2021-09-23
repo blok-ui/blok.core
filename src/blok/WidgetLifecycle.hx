@@ -6,7 +6,7 @@ enum WidgetLifecycle {
   WidgetPending;
   WidgetValid;
   WidgetInvalid;
-  WidgetRendering;
+  WidgetUpdating;
   WidgetRecovering(e:Exception);
   WidgetDisposed;
 }

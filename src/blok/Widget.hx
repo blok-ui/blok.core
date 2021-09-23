@@ -63,8 +63,8 @@ abstract class Widget implements Disposable {
         // noop
       case WidgetPending | WidgetDisposed:
         throw new WidgetNotMountedException(this);
-      case WidgetRendering | WidgetRecovering(_):
-        throw new WidgetIsRenderingException(this);
+      case WidgetUpdating | WidgetRecovering(_):
+        throw new WidgetIsUpdatingException(this);
       default:
         __status = WidgetInvalid;
         if (__parent == null) {
@@ -97,16 +97,12 @@ abstract class Widget implements Disposable {
     switch __status {
       case WidgetPending | WidgetDisposed:
         throw new WidgetNotMountedException(this);
-      case WidgetRendering:
-        throw new WidgetIsRenderingException(this);
+      case WidgetUpdating:
+        throw new WidgetIsUpdatingException(this);
       case WidgetRecovering(e):
         throw e;
-      // // @Todo: ideally we'll only update if the Widget is invalid,
-      // //       but right now this doesn't work quite right.
-      // case WidgetValid:
-      //   // noop
       default: 
-        __status = WidgetRendering;
+        __status = WidgetUpdating;
         __performUpdate(registerEffect);
         __status = WidgetValid;
     }

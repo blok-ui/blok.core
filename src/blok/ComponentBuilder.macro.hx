@@ -350,7 +350,7 @@ class ComponentBuilder {
 
         public function updateComponentProperties(props:Dynamic) {
           switch __status {
-            case WidgetRendering:
+            case WidgetUpdating:
               // throw new blok.exception.ComponentIsRenderingException(this);
             case _:
           }

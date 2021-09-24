@@ -56,11 +56,13 @@ class Suspend implements Service implements Disposable {
     }
   }
 
-  function markComplete(point:SuspendablePoint) {
+  function markComplete(point:SuspendablePoint, platform:Platform) {
     if (suspendedPoints.exists(point)) {
       suspendedPoints.remove(point);
-      var remaining = [ for (key in suspendedPoints.keys()) key ].length;
-      if (remaining == 0) status.update(Complete);
+      platform.scheduler.schedule(() -> {
+        var remaining = [ for (key in suspendedPoints.keys()) key ].length;
+        if (remaining == 0) status.update(Complete);
+      });
     }
   }
 
@@ -100,7 +102,9 @@ private class SuspendablePoint extends Component {
 
   @effect
   function maybeNotify() {
-    if (isReady && suspend.hasPoint(this)) suspend.markComplete(this);
+    if (isReady && suspend.hasPoint(this)) {
+      suspend.markComplete(this, getPlatform());
+    }
     isReady = true;
   }
 

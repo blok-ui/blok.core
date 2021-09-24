@@ -1,5 +1,7 @@
 package blok;
 
+import blok.ServiceBundle;
+
 /**
   Provide a Service, making it accessable to all child widgets
   in the tree via the Context API.
@@ -14,8 +16,9 @@ final class Provider<T:ServiceProvider> extends Component {
     `build` method and in all child Widgets.
 
     Note: if you need to provide more than one service, use the
-    `Provider.factory` or use `@provide` meta in a `blok.Service` or
-    `blok.State`.
+    `Provider.factory`, `@provide` meta in a `blok.Service` or
+    `blok.State`, or a `blok.ServiceBundle(...)` (which `Provider.factory()`
+    uses internally).
   **/
   public inline static function provide<T:ServiceProvider>(service:T, build) {
     return node({
@@ -51,7 +54,7 @@ final class Provider<T:ServiceProvider> extends Component {
   var context:Null<Context> = null;
 
   @init
-  function findOrSyncContext() {
+  function findOrCreateContext() {
     context = parentContext == null 
       ? switch findParentOfType(Provider) {
         case None: new Context();
@@ -72,22 +75,17 @@ final class Provider<T:ServiceProvider> extends Component {
   }
 }
 
-private class ProviderFactory {
-  final services:Array<ServiceProvider> = [];
-  
-  public function new() {}
+private abstract ProviderFactory(ServiceBundle) from ServiceBundle {
+  public inline function new() {
+    this = new ServiceBundle([]);
+  }
 
-  public function provide(provider:ServiceProvider) {
-    services.push(provider);
+  public inline function provide(provider:ServiceProvider):ProviderFactory {
+    this.addService(provider);
     return this;
   }
 
-  public function render(render:(context:Context)->VNode) {
-    var first = services.shift();
-    for (service in services) {
-      var next = render;
-      render = context -> Provider.provide(service, next);
-    }
-    return Provider.provide(first, render);
+  public inline function render(build:(context:Context)->VNode) {
+    return Provider.provide(this, build);
   }
 }

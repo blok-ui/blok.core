@@ -183,7 +183,7 @@ class ServiceBuilder {
         params: createParams,
         ret: type,
         args: [
-          { name: 'context', type: macro:blok.Context, opt:true },
+          { name: 'context', type: macro:blok.Context },
         ],
         expr: macro {
           var service = context.get($v{id});

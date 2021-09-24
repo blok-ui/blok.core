@@ -55,7 +55,7 @@ final class Context implements Disposable {
   }
 }
 
-private final class ContextUser extends Component {
+private class ContextUser extends Component {
   @prop var build:(context:Context)->VNode;
   @prop var fallback:Null<Context> = null;
   var context:Null<Context> = null;

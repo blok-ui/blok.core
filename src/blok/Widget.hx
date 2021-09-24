@@ -3,6 +3,14 @@ package blok;
 import haxe.ds.Option;
 import blok.exception.*;
 
+/**
+  The basic building-block of everything in Blok is the Widget. You
+  generally won't use Widgets directly -- instead, you should use
+  Components, which provide a number of macro-based features
+  to make things easier. Widgets are a lower-level class
+  that can be used where the Component API is overkill (such as
+  the `ElementWidget` or `TextWidget` in `blok.platform.dom`).
+**/
 @:nullSafety
 @:allow(blok)
 abstract class Widget implements Disposable {

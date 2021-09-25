@@ -248,7 +248,7 @@ class SimpleComponent extends Component {
 
   @update
   public function setContent(content) {
-    return UpdateState({ content: content });
+    return { content: content };
   }
   
   public function render() {

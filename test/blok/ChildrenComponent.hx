@@ -21,7 +21,7 @@ class ChildrenComponent extends Component {
 
   @update
   public function setChildren(children) {
-    return UpdateState({ children: children });
+    return { children: children };
   }
 
   public function toString() {

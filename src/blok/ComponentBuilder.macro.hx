@@ -3,6 +3,8 @@ package blok;
 import haxe.macro.Context;
 import haxe.macro.Expr;
 import blok.tools.BuilderHelpers.*;
+import blok.tools.BuilderHandlers.createMemoFieldHandler;
+import blok.tools.BuilderHandlers.createPropFieldHandler;
 import blok.tools.ClassBuilder;
 
 using Lambda;
@@ -58,75 +60,15 @@ class ComponentBuilder {
         });
       } 
     });
-    
-    builder.addFieldMetaHandler({
-      name: 'prop',
-      hook: Normal,
-      options: [
-        { name: 'comparator', optional: true, handleValue: e -> e },
-        { name: 'onChange', optional: true, handleValue: e -> e }
-      ],
-      build: function (options:{ 
-        ?onChange:Expr,
-        ?comparator:Expr 
-      }, builder, f) switch f.kind {
-        case FVar(t, e):
-          if (t == null) {
-            Context.error('Types cannot be inferred for @prop vars', f.pos);
-          }
 
-          var name = f.name;
-          var getName = 'get_${name}';
-          var comparator = options.comparator != null
-            ? macro (@:pos(options.comparator.pos) ${options.comparator})
-            : macro (a != b);
-          var onChange:Array<Expr> = options.onChange != null
-            ? [ macro @:pos(options.onChange.pos) ${options.onChange} ]
-            : [];
-          var init = e == null
-            ? macro $i{INCOMING_PROPS}.$name
-            : macro $i{INCOMING_PROPS}.$name == null ? @:pos(e.pos) ${e} : $i{INCOMING_PROPS}.$name;
-          
-          f.kind = FProp('get', 'never', t, null);
-
-          builder.add(macro class {
-            inline function $getName() return $i{PROPS}.$name;
-          });
-
-          addProp(name, t, e != null);
-          initializers.push({
-            field: name,
-            expr: init
-          });
-          
-          if (onChange.length > 0 ) {
-            initHooks.push(macro {
-              var prev = null;
-              var value = __props.$name;
-              $b{onChange};
-            });
-          }
-
-          updates.push(macro {
-            if (Reflect.hasField($i{INCOMING_PROPS}, $v{name})) {
-              switch [
-                $i{PROPS}.$name, 
-                $i{INCOMING_PROPS}.$name 
-              ] {
-                case [ a, b ] if (!${comparator}):
-                  // noop
-                case [ prev, value ]:
-                  __currentRevision++;
-                  $i{PROPS}.$name = value;
-                  $b{onChange}
-              }
-            }
-          });
-          
-        default:
-          Context.error('@prop can only be used on vars', f.pos);
-      }
-    });
+    builder.addFieldMetaHandler(
+      createPropFieldHandler(
+        addProp,
+        (name, expr) -> initializers.push({ field: name, expr: expr }),
+        initHooks.push,
+        updates.push
+      )
+    );
 
     builder.addFieldMetaHandler({
       name: 'use',
@@ -183,16 +125,12 @@ class ComponentBuilder {
           var e = func.expr;
           func.ret = macro:Void;
           func.expr = macro {
-            inline function closure():blok.UpdateMessage<$updatePropsRet> ${e};
+            inline function closure():Null<$updatePropsRet> ${e};
             switch closure() {
-              case None | null:
-              case Update:
-                invalidateWidget();
-              case UpdateState(data): 
+              case null:
+              case data: 
                 updateComponentProperties(data);
                 if (shouldComponentRender()) invalidateWidget();
-              case UpdateStateSilent(data):
-                updateComponentProperties(data);
             }
           }
         default:
@@ -200,7 +138,9 @@ class ComponentBuilder {
       }
     });
 
-    builder.addFieldMetaHandler(createMemoFieldHandler(e -> updates.push(e)));
+    builder.addFieldMetaHandler(
+      createMemoFieldHandler(e -> updates.push(e))
+    );
 
     builder.addFieldMetaHandler({
       name: 'init',

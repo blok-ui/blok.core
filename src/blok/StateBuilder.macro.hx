@@ -3,6 +3,8 @@ package blok;
 import haxe.macro.Expr;
 import haxe.macro.Context;
 import blok.tools.BuilderHelpers.*;
+import blok.tools.BuilderHandlers.createMemoFieldHandler;
+import blok.tools.BuilderHandlers.createPropFieldHandler;
 import blok.tools.ClassBuilder;
 
 using haxe.macro.Tools;
@@ -114,55 +116,17 @@ class StateBuilder {
       }
     });
 
-    builder.addFieldMetaHandler({
-      name: 'prop',
-      hook: Normal,
-      options: [],
-      build: function (options:{}, builder, f) switch f.kind {
-        case FVar(t, e):
-          if (t == null) {
-            Context.error('Types cannot be inferred for @prop vars', f.pos);
-          }
-
-          if (!f.access.contains(APublic)) {
-            f.access.remove(APrivate);
-            f.access.push(APublic);
-          }
-
-          var name = f.name;
-          var getName = 'get_${name}';
-          var init = e == null
-            ? macro $i{INCOMING_PROPS}.$name
-            : macro $i{INCOMING_PROPS}.$name == null ? ${e} : $i{INCOMING_PROPS}.$name;
-          
-          f.kind = FProp('get', 'never', t, null);
-          addProp(name, t, e != null, true);
-          builder.add(macro class {
-            inline function $getName() return $i{PROPS}.$name;
-          });
-
-          initializers.push({
-            field: name,
-            expr: init
-          });
-          updates.push(macro {
-            if ($i{INCOMING_PROPS}.$name != null) {
-              switch [
-                $i{PROPS}.$name, 
-                $i{INCOMING_PROPS}.$name 
-              ] {
-                case [ a, b ] if (a == b):
-                  // noop
-                case [ current, value ]:
-                  this.__dirty = true;
-                  this.$PROPS.$name = value;
-              }
-            }
-          });
-        default:
-          Context.error('@prop can only be used on vars', f.pos);
-      }
-    });
+    builder.addFieldMetaHandler(
+      createPropFieldHandler(
+        (name, type, isOptional) -> addProp(name, type, isOptional, true),
+        (name, expr) -> initializers.push({ field: name, expr:expr }),
+        initHooks.push,
+        updates.push,
+        f -> if (!f.access.contains(APublic)) {
+          f.access.push(APublic);
+        }
+      )
+    );
 
     builder.addFieldMetaHandler({
       name: 'update',
@@ -179,20 +143,14 @@ class StateBuilder {
           func.ret = macro:Void;
           
           func.expr = macro {
-            inline function closure():blok.UpdateMessage<$updatePropsRet> ${e};
+            inline function closure():Null<$updatePropsRet> ${e};
             switch closure() {
-              case None | null:
-              case Update:
-                __observable.notify();
-              case UpdateState(data):
+              case null:
+              case data:
                 __updateProps(data);
-                if (__dirty) {
-                  __dirty = false;
+                if (__currentRevision > __lastRevision) {
                   __observable.notify();
                 }
-              case UpdateStateSilent(data):
-                __updateProps(data);
-                __dirty = false;
             }
           }
         default:
@@ -209,7 +167,7 @@ class StateBuilder {
     );
 
     builder.addFieldMetaHandler(
-      BuilderHelpers.createMemoFieldHandler(e -> updates.push(e))
+      createMemoFieldHandler(e -> updates.push(e))
     );
 
     builder.addLater(() -> {
@@ -286,7 +244,8 @@ class StateBuilder {
 
       return macro class {
         var $PROPS:$propType;
-        var __dirty:Bool = false;
+        var __currentRevision:Int = 0;
+        var __lastRevision:Int = 0;
         var __disposables:Array<blok.Disposable> = [];
         final __observable:blok.Observable<$ct>;
         
@@ -306,6 +265,7 @@ class StateBuilder {
 
         @:noCompletion
         function __updateProps($INCOMING_PROPS:$updatePropsType) {
+          __lastRevision = __currentRevision;
           $b{updates};
         }
 

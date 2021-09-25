@@ -138,7 +138,7 @@ class ServiceBuilder {
                 // Todo: not sure about how to handle this error.
                 throw 'Tried to access the `@use` field ' + $v{name} + ', but no service '
                   + 'was available. Generally, this means that you accessed this field '
-                  + 'before it was registered with a Context.';
+                  + 'before this service was registered with a Context.';
               }
               return this.$backingName;
             }

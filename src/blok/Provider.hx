@@ -57,8 +57,10 @@ final class Provider<T:ServiceProvider> extends Component {
   function findOrCreateContext() {
     context = parentContext == null 
       ? switch findParentOfType(Provider) {
-        case None: new Context();
-        case Some(provider): provider.getContext().getChild();
+        case None: 
+          new Context();
+        case Some(provider): 
+          provider.getContext().getChild();
       }
       : parentContext.getChild();
 

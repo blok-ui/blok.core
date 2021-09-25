@@ -1,30 +1,11 @@
 package blok;
 
-typedef ObservableType<T> = {
-  public function getObservable():Observable<T>;
-}
-
 typedef ObservableOptions = {
   /**
     If `true`, the Observer will NOT be run immediately,
     and will only be called when the observer is next notified.
   **/
   public var defer:Bool;
-}
-
-/**
-  Allows either `Observable<T>` or `ObservableType<T>` to be
-  used interchangeably.
-**/
-@:forward(observe)
-abstract ObservableTarget<T>(Observable<T>) from Observable<T> to Observable<T> {
-  @:from public static inline function ofObservableType<T>(obs:ObservableType<T>) {
-    return new ObservableTarget(obs.getObservable());
-  }
-
-  public inline function new(obs) {
-    this = obs;
-  }
 }
 
 typedef ObservableComparitor<T> = (a:T, b:T)->Bool; 
@@ -91,7 +72,7 @@ enum abstract HandleableObserverStatus(Bool) {
   var Pending = false;
 }
 
-private class ConditionalObserver<T> extends Observer<T> {
+private class HandleableObserver<T> extends Observer<T> {
   public function new(observable, listener:(value:T)->HandleableObserverStatus) {
     super(observable, value -> {
       switch (listener(value)) {
@@ -108,12 +89,9 @@ class Observable<T> implements Disposable {
   static var uid:Int = 0;
 
   /**
-    Use an observable directly in a VNode tree. As opposed to
-    `observable.mapToVNode(...)`, the Observable will be disposed
-    along with the VNode, making this great for situations where 
-    you just want to toggle between simple states.
+    Use an observable directly in a VNode tree.
 
-    A good example of where this is useful might be something like
+    A good example of where this is useful is something like
     the following:
 
     ```haxe
@@ -132,13 +110,12 @@ class Observable<T> implements Disposable {
     ));
     ```
 
-    For more complex state, use `blok.State`.
+    For more complex states, use `blok.State`.
   **/
   public static function use<T>(value:T, build:(value:T, update:(value:T)->Void)->VNode) {
     var state = new Observable(value);
-    return ObservableSubscriber.node({
-      target: state,
-      onDispose: () -> state.dispose(),
+    return ObservableUser.node({
+      observable: state,
       build: value -> build(value, state.update)
     });
   }
@@ -198,7 +175,7 @@ class Observable<T> implements Disposable {
   public function handle(listener:(value:T)->HandleableObserverStatus, ?options:ObservableOptions):Disposable {
     if (options == null) options = { defer: false };
 
-    var observer = new ConditionalObserver(this, listener);
+    var observer = new HandleableObserver(this, listener);
     addObserver(observer, options);
     
     return observer;
@@ -322,10 +299,40 @@ class Observable<T> implements Disposable {
   /**
     Map this Observable into a VNode.
   **/
-  public inline function mapToVNode<Node>(build) {
-    return ObservableSubscriber.node({
-      target: this,
+  public inline function mapToVNode(build) {
+    return ObservableUser.node({
+      observable: this,
       build: build
     });
+  }
+}
+
+private class ObservableUser<T> extends Component {
+  @prop(onChange = cleanupLink()) var observable:Observable<T>;
+  @prop var build:(value:Null<T>)->VNode;
+  var link:Null<Disposable> = null;
+  var value:Null<T> = null;
+
+  @before
+  function track() {
+    if (link != null) return;
+    var first = true;
+    link = observable.observe(value -> {
+      if (this.value != value) {
+        this.value = value;
+      }
+      if (!first) invalidateWidget();
+      first = false;
+    });
+  }
+
+  @dispose
+  function cleanupLink() {
+    if (link != null) link.dispose();
+    link = null;
+  }
+
+  function render() {
+    return build(value);
   }
 }

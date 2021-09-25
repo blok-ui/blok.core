@@ -261,12 +261,7 @@ class StateBuilder {
               { name: 'context', type: macro:blok.Context },
               { name: 'build', type: macro:$observerFactory }
             ],
-            expr: macro {
-              return blok.ObservableSubscriber.node({
-                target: from(context),
-                build: build
-              });
-            }
+            expr: macro return from(context).getObservable().mapToVNode(build)
           })
         },
 

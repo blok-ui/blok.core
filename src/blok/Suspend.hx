@@ -14,7 +14,7 @@ enum abstract SuspendStatus(Bool) {
 @service(fallback = new Suspend())
 class Suspend implements Service implements Disposable {
   public inline static function await(build, fallback) {
-    return SuspendablePoint.node({ build: build, fallback: fallback });
+    return SuspensionPoint.node({ build: build, fallback: fallback });
   }
 
   public inline static function suspend(handler):VNode {
@@ -26,14 +26,14 @@ class Suspend implements Service implements Disposable {
   }
 
   public final status:Observable<SuspendStatus>;
-  final suspendedPoints:Map<SuspendablePoint, SuspensionRequest> = [];
+  final suspendedPoints:Map<SuspensionPoint, SuspensionRequest> = [];
 
   public function new() {
     status = new Observable(Complete);
   }
 
   function addPoint(
-    point:SuspendablePoint,
+    point:SuspensionPoint,
     request:SuspensionRequest,
     platform:Platform
   ) {
@@ -45,18 +45,18 @@ class Suspend implements Service implements Disposable {
     });
   }
 
-  function hasPoint(point:SuspendablePoint) {
+  function hasPoint(point:SuspensionPoint) {
     return suspendedPoints.exists(point);
   }
 
-  function removePoint(point:SuspendablePoint) {
+  function removePoint(point:SuspensionPoint) {
     if (suspendedPoints.exists(point)) {
       suspendedPoints.get(point).dispose();
       suspendedPoints.remove(point);
     }
   }
 
-  function markComplete(point:SuspendablePoint, platform:Platform) {
+  function markComplete(point:SuspensionPoint, platform:Platform) {
     if (suspendedPoints.exists(point)) {
       suspendedPoints.remove(point);
       platform.scheduler.schedule(() -> {
@@ -94,7 +94,7 @@ class SuspensionRequest extends Exception implements Disposable {
   }
 }
 
-private class SuspendablePoint extends Component {
+private class SuspensionPoint extends Component {
   @prop var build:()->VNodeResult;
   @prop var fallback:()->VNodeResult;
   @use var suspend:Suspend;

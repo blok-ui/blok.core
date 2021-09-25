@@ -1,6 +1,5 @@
 package blok;
 
-@:allow(blok.Component)
 class VComponent<Props:{}> implements VNode {
   public final type:WidgetType;
   public final key:Null<Key>;

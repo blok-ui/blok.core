@@ -1,12 +1,9 @@
 package blok;
 
-import haxe.Exception;
-
-enum WidgetLifecycle {
-  WidgetPending;
-  WidgetValid;
-  WidgetInvalid;
-  WidgetUpdating;
-  WidgetRecovering(e:Exception);
-  WidgetDisposed;
+enum abstract WidgetLifecycle(Int) {
+  var WidgetPending;
+  var WidgetValid;
+  var WidgetInvalid;
+  var WidgetUpdating;
+  var WidgetDisposed;
 }

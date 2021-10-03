@@ -5,10 +5,10 @@ class Run {
     var runner = new Runner();
     runner.add(new TestComponent());
     runner.add(new TestObservable());
+    runner.add(new TestObservableResult());
     runner.add(new TestService());
     runner.add(new TestState());
     runner.add(new TestRecord());
-    runner.add(new TestSuspend());
     runner.run();
   }
 }

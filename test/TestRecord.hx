@@ -1,6 +1,5 @@
-import blok.Record;
-
 import haxe.Json;
+import blok.Record;
 
 using Medic;
 using Reflect;

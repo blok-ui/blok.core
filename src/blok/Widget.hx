@@ -71,7 +71,7 @@ abstract class Widget implements Disposable {
         // noop
       case WidgetPending | WidgetDisposed:
         throw new WidgetNotMountedException(this);
-      case WidgetUpdating | WidgetRecovering(_):
+      case WidgetUpdating:
         throw new WidgetIsUpdatingException(this);
       default:
         __status = WidgetInvalid;
@@ -107,8 +107,6 @@ abstract class Widget implements Disposable {
         throw new WidgetNotMountedException(this);
       case WidgetUpdating:
         throw new WidgetIsUpdatingException(this);
-      case WidgetRecovering(e):
-        throw e;
       default: 
         __status = WidgetUpdating;
         __performUpdate(registerEffect);

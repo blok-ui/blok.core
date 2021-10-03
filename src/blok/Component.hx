@@ -1,9 +1,5 @@
 package blok;
 
-import haxe.Exception;
-import blok.exception.BlokException;
-import blok.exception.WrappedException;
-
 @:autoBuild(blok.ComponentBuilder.build())
 abstract class Component extends Widget {
   var __currentRevision:Int = 0;
@@ -13,11 +9,6 @@ abstract class Component extends Widget {
   abstract public function updateComponentProperties(props:Dynamic):Void;
   
   abstract function render():VNodeResult;
-
-  public function componentDidCatch(exception:Exception):VNodeResult {
-    throw exception;
-    return [];
-  }
 
   abstract public function runComponentEffects():Void;
 
@@ -43,42 +34,15 @@ abstract class Component extends Widget {
   abstract function __beforeHooks():Void;
 
   public function __performUpdate(registerEffect:(task:()->Void)->Void) {
-    try {
-      Differ.diffChildren(this, __performRender(), __platform, registerEffect);
-      registerEffect(runComponentEffects);
-    } catch (e) switch __status {
-      case WidgetRecovering(e):
-        throw e;
-      default:
-        __status = WidgetRecovering(e);
-        __performUpdate(registerEffect);
-    }
+    Differ.diffChildren(this, __performRender(), __platform, registerEffect);
+    registerEffect(runComponentEffects);
   }
   
   function __performRender():VNodeResult {
-    var exception:Null<Exception> = null;
-    var vnr:VNodeResult = new VNodeResult(VNone);
-
-    try {
-      __beforeHooks();
-      vnr = switch __status {
-        case WidgetRecovering(error):
-          componentDidCatch(error);
-        default:
-          render();
-      }
-    } catch (e:BlokException) {
-      exception = e;
-    } catch (e) {
-      exception = new WrappedException(e, this);
+    __beforeHooks();
+    return switch render() {
+      case null: new VNodeResult(VNone);
+      case vnode: vnode; 
     }
-
-    if (exception != null) throw exception;
-
-    if (vnr == null) {
-      return new VNodeResult(VNone);
-    }
-
-    return vnr;
   }
 }

@@ -228,7 +228,6 @@ class ComponentBuilder {
         : [];
 
       ensureReturnTypes('render');
-      ensureReturnTypes('componentDidCatch');
 
       builder.addFields([
         {

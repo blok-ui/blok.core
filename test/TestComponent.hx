@@ -1,7 +1,6 @@
 import blok.Widget;
 import blok.ChildrenComponent;
 import blok.VNode;
-import haxe.Exception;
 import haxe.ds.Option;
 import blok.Text;
 import blok.Component;
@@ -78,51 +77,6 @@ class TestComponent implements TestCase {
     ];
 
     test('foo', 'bar', Some('foo | bar'))();
-  }
-
-  @:test('Components catch exceptions')
-  @:test.async
-  function testExceptionBoundaries(done) {
-    ExceptionBoundary.node({
-      handle: e -> {
-        e.message.equals('Was caught : blok.FragmentWidget -> ExceptionBoundary -> ThrowsException');
-        done();
-      },
-      fallback: () -> Text.text('Fell back'),
-      build: () -> ThrowsException.node({})
-    }).toResult().renderWithoutAssert();
-  }
-
-  @:test('Components catch exceptions and have fallbacks')
-  @:test.async
-  function testExceptionBoundariesWithFallback(done) {
-    ExceptionBoundary.node({
-      handle: e -> {
-        // noop
-      },
-      fallback: () ->  Text.text('Fell back'),
-      build: () -> ThrowsException.node({})
-    }).toResult().renders('Fell back', done);
-  }
-
-  @:test('If the fallback throws an exception things do not die')
-  @:test.async
-  function testExceptionBoundariesWithFallbackFailing(done) {
-    try {
-      ExceptionBoundary.node({
-        handle: e -> {
-          // noop
-        },
-        fallback: () -> ThrowsException.node({}),
-        build: () -> ThrowsException.node({})
-      }).toResult().renders('Fell back', () -> {
-        Assert.fail('Should not have rendered');
-        done();
-      });
-    } catch (e) {
-      Assert.pass();
-      done();
-    }
   }
 
   @:test('Keys work')
@@ -269,26 +223,5 @@ class LazyComponent extends Component {
 
   public function render() {
     return Text.text(foo + ' | ' + bar);
-  }
-}
-
-class ExceptionBoundary extends Component {
-  @prop var build:()->VNode;
-  @prop var fallback:()->VNode;
-  @prop var handle:(e:Exception)->Void;
-  
-  override function componentDidCatch(exception:Exception) {
-    handle(exception);
-    return fallback();
-  }
-
-  public function render() {
-    return build();
-  }
-}
-
-class ThrowsException extends Component {
-  public function render() {
-    throw new Exception('Was caught');
   }
 }

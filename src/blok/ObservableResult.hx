@@ -1,5 +1,6 @@
 package blok;
 
+@:forward(observe, handle, observeNext, handleNext)
 abstract ObservableResult<Data, Error>(Observable<Result<Data, Error>>) 
   from Observable<Result<Data, Error>> 
 {

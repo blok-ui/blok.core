@@ -8,8 +8,8 @@
   "contributors": [
     "wartman"
   ],
-  "releasenote": "Cleanup of the update syntax",
-  "version": "0.4.0-alpha.2",
+  "releasenote": "Adding result, removing error handling",
+  "version": "0.5.0-alpha.1",
   "url": "https://github.com/blok-ui/blok.core",
   "dependencies": {}
 }

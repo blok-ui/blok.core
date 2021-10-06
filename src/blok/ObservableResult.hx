@@ -4,6 +4,21 @@ package blok;
 abstract ObservableResult<Data, Error>(Observable<Result<Data, Error>>) 
   from Observable<Result<Data, Error>> 
 {
+  #if js
+    @:from public static function ofPromise<Data, Error>(promise:js.lib.Promise<Data>):ObservableResult<Data, Error> {
+      var obs = new ObservableResult(Suspended);
+      promise.then(
+        data -> obs.resume(data),
+        err -> obs.fail(err) 
+      );
+      return obs;
+    }
+  #end
+
+  @:from public static inline function ofResult<Data, Error>(result:Result<Data, Error>) {
+    return new ObservableResult(result);
+  }
+  
   public static inline function await<Data, Error>(handler:(
     resume:(data:Data)->Void,
     fail:(error:Error)->Void
@@ -11,10 +26,6 @@ abstract ObservableResult<Data, Error>(Observable<Result<Data, Error>>)
     var obs = new ObservableResult(Suspended);
     handler(obs.resume, obs.fail);
     return obs;
-  }
-
-  @:from public static inline function ofResult<Data, Error>(result:Result<Data, Error>) {
-    return new ObservableResult(result);
   }
 
   public inline function new(result:Result<Data, Error>) {
@@ -34,6 +45,10 @@ abstract ObservableResult<Data, Error>(Observable<Result<Data, Error>>)
   public inline function fail(err:Error):ObservableResult<Data, Error> {
     this.update(Failure(err));
     return this;
+  }
+
+  public inline function map<R>(transform:(res:Result<Data, Error>)->Result<R, Error>):ObservableResult<R, Error> {
+    return this.map(transform);
   }
 
   public inline function render(build:(result:Result<Data, Error>)->VNode) {

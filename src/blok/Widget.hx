@@ -158,11 +158,11 @@ abstract class Widget implements Disposable {
     return __children;
   }
   
-  public inline function getConcreteChildren():Array<ConcreteManager> {
+  abstract public function getConcreteManager():ConcreteManager;
+
+  public inline function getChildConcreteManagers():Array<ConcreteManager> {
     return [ for (child in __children) child.getConcreteManager() ];
   }
-  
-  abstract public function getConcreteManager():ConcreteManager;
 
   public inline function hasChild(widget:Widget) {
     return __children.has(widget);

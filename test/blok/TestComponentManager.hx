@@ -9,7 +9,7 @@ class TestComponentManager implements ConcreteManager {
 
   public function toConcrete():Array<Dynamic> {
     var text:Array<String> = [];
-    for (child in component.getConcreteChildren()) text = text.concat(cast child.toConcrete());
+    for (child in component.getChildConcreteManagers()) text = text.concat(cast child.toConcrete());
     return text;
   }
 

@@ -22,7 +22,7 @@ class FragmentWidget extends ConcreteWidget {
 
   public function toConcrete() {
     var text:Array<String> = [];
-    for (child in getConcreteChildren()) text = text.concat(cast child.toConcrete());
+    for (child in getChildConcreteManagers()) text = text.concat(cast child.toConcrete());
     return text;
   }
 

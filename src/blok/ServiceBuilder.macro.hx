@@ -88,10 +88,11 @@ class ServiceBuilder {
             params: createParams,
             ret: macro:blok.VNode,
             args: [
-              { name: 'build', type: macro:(service:$ct)->blok.VNode }
+              { name: 'build', type: macro:(service:$ct)->blok.VNode },
+              { name: 'key', opt: true, type: macro:blok.Key }
             ],
             expr: macro {
-              return blok.Context.use(context -> build(from(context)));
+              return blok.Context.use(context -> build(from(context)), null, key);
             }
           })
         }

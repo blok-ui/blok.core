@@ -5,8 +5,8 @@ import blok.exception.NoProviderException;
 
 @:nullSafety
 final class Context implements Disposable {
-  public inline static function use(build, ?fallback) {
-    return ContextUser.node({ build: build, fallback: fallback });
+  public inline static function use(build, ?fallback, ?key) {
+    return ContextUser.node({ build: build, fallback: fallback }, key);
   }
 
   final data:Map<String, Dynamic> = [];

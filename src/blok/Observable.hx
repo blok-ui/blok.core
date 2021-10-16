@@ -292,7 +292,7 @@ class Observable<T> implements Disposable {
       new Observable(transform(value), comparator),
       transform
     );
-    addObserver(observer, { defer: false });
+    addObserver(observer, { defer: true });
     return observer.getObservable();
   }
 
@@ -318,9 +318,7 @@ private class ObservableUser<T> extends Component {
     if (link != null) return;
     var first = true;
     link = observable.observe(value -> {
-      if (this.value != value) {
-        this.value = value;
-      }
+      this.value = value;
       if (!first) invalidateWidget();
       first = false;
     });

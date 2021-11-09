@@ -239,6 +239,9 @@ class RecordBuilder {
       var withPropType = TAnonymous(withProps);
       var clsType = Context.getLocalType().toComplexType();
       var clsTp = builder.getTypePath();
+      var params = builder.cls.params.length > 0
+        ? [ for (p in builder.cls.params) { name: p.name, constraints: extractTypeParams(p) } ]
+        : [];
 
       for (method in withMethods) {
         var name = 'with' + ucFirst(method.name);
@@ -256,18 +259,32 @@ class RecordBuilder {
         });
       }
 
-      return macro class {
-        /**
-          Construct a record from a dynamic JSON source. This will
-          automatically instantiate sub-records and convert some types,
-          but will *not* validate the JSON.
-        **/
-        public static function fromJson(data:Dynamic) {
-          return new $clsTp(${ {
-            expr: EObjectDecl(fromJson),
-            pos: (macro null).pos
-          } });
+      builder.addFields([
+        {
+          name: 'fromJson',
+          access: [ AStatic, APublic ],
+          pos: (macro null).pos,
+          meta: [],
+          doc: "
+  Construct a record from a dynamic JSON source. This will
+  automatically instantiate sub-records and convert some types,
+  but will *not* validate the JSON.
+  ",
+          kind: FFun({
+            params: params,
+            args: [
+              { name: 'data', type: macro:Dynamic }
+            ],
+            expr: macro return new $clsTp(${ {
+              expr: EObjectDecl(fromJson),
+              pos: (macro null).pos
+            } }),
+            ret: macro:$clsType
+          })
         }
+      ]);
+
+      return macro class {
 
         var __hash:Null<Int> = null;
 

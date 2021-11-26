@@ -1,7 +1,7 @@
 package blok;
 
 /**
-  ConcreteManagers are used by Blok platforms to take Blok's widget tree
+  ConcreteManagers are used by Blok platforms to take Blok's Widget tree
   and apply them to whatever the platform needs (such as, for example, the
   DOM). You should never have to use this class unless you're building
   a platform.

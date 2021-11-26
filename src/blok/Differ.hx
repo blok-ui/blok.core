@@ -1,6 +1,15 @@
 package blok;
 
-// Adapted from superfine: https://github.com/jorgebucaran/superfine
+/**
+  The heart of Blok -- the differ is responsible for comparing a
+  Widget tree to a VNode tree and rebuilding and reordering it 
+  as needed.
+
+  This should never be something you need to use directly -- it's used
+  internally by Widgets when updating.
+  
+  Adapted from superfine: https://github.com/jorgebucaran/superfine
+**/
 @:nullSafety
 final class Differ {
   public static function diffWidget(

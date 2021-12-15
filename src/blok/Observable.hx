@@ -147,8 +147,7 @@ class Observable<T> implements Disposable {
   /**
     Observe this Observer. The provided listener will update every time the Observable
     is notified unless you call `dispose` on the returned Disposable (or if the 
-    Observable itself is disposed). Use `observeConditionally` if you need a 
-    way to tell the observer to stop observing internally.
+    Observable itself is disposed).
   **/
   public function observe(listener:(value:T)->Void, ?options:ObservableOptions):Disposable {
     if (options == null) options = { defer: false };

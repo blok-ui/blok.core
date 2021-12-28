@@ -39,7 +39,7 @@ final class Context implements Disposable {
     service.register(this);
   }
 
-  public inline function getService<T:ServiceProvider>(resolver:ServiceResolver<T>):Null<T> {
+  public inline function getService<T>(resolver:ServiceResolver<T>):Null<T> {
     return resolver.from(this);
   }
 

@@ -1,5 +1,5 @@
 package blok;
 
-typedef ServiceResolver<T:ServiceProvider> = {
+typedef ServiceResolver<T> = {
   public function from(context:Context):T;
 }

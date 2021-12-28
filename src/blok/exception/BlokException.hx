@@ -1,6 +1,7 @@
 package blok.exception;
 
 import haxe.Exception;
+import blok.ui.Widget;
 
 using Type;
 

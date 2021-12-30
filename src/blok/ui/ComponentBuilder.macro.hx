@@ -24,6 +24,10 @@ class ComponentBuilder {
     var disposeHooks:Array<Expr> = [];
     var beforeHooks:Array<Expr> = [];
     var effectHooks:Array<Expr> = [];
+
+    if (builder.cls.superClass.t.get().module != 'blok.ui.Component') {
+      Context.error('Subclassing components is not supported', builder.cls.pos);
+    }
     
     function addProp(name:String, type:ComplexType, isOptional:Bool) {
       props.push({
@@ -255,7 +259,9 @@ class ComponentBuilder {
         });
       } else {
         Context.error(
-          'Cannot use a custom constructor', 
+          'You cannot define a constructor for components -- blok will '
+          + 'generate one for you. If you need initialization logic, use '
+          + '@init meta on a method.', 
           builder.getField('new').pos
         );
       }

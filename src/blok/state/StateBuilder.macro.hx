@@ -74,9 +74,13 @@ class StateBuilder {
             Context.error('Types cannot be inferred for @provide vars', f.pos);
           }
 
-          if (!Context.unify(t.toType(), Context.getType('blok.context.ServiceProvider'))) {
-            Context.error('@provide fields must be blok.context.ServiceProviders', f.pos);
-          }
+          // // This check is causing issues with compiling, so I've turned it off.
+          // // Actually it might be a good idea NOT to do unification checks in our builders,
+          // // as we can end up checking types that are still getting processed
+          // // by macros.
+          // if (!Context.unify(t.toType(), Context.getType('blok.context.ServiceProvider'))) {
+          //   Context.error('@provide fields must be blok.context.ServiceProviders', f.pos);
+          // }
 
           var name = f.name;
           var getName = 'get_${name}';
@@ -95,7 +99,7 @@ class StateBuilder {
             expr: init
           });
 
-          registerHooks.push(macro this.$name.register(context));
+          registerHooks.push(macro @:pos(f.pos) (this.$name:blok.context.ServiceProvider).register(context));
         default:
           Context.error('@provide may only be used on vars', f.pos);
       }

@@ -8,8 +8,8 @@
   "contributors": [
     "wartman"
   ],
-  "releasenote": "Adding result, removing error handling, update Concrete API",
-  "version": "0.5.0-alpha.3",
+  "releasenote": "Refactoring and a different package structure",
+  "version": "0.6.0-alpha.1",
   "url": "https://github.com/blok-ui/blok.core",
   "dependencies": {}
 }

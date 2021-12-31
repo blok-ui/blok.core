@@ -31,7 +31,7 @@ abstract class Platform {
     next frame (the API used by `@effect` mehods in Components).
   **/
   public function schedule(action) {
-    var effects = new EffectManager();
+    var effects = createEffectManager();
     scheduler.schedule(() -> {
       action(effects.register);
       scheduler.schedule(() -> effects.dispatch());
@@ -42,7 +42,7 @@ abstract class Platform {
     Bootstraps the app with the given ConcreteWidget. 
   **/
   public function mountRootWidget(root:ConcreteWidget, ?effect) {
-    var effects = new EffectManager();
+    var effects = createEffectManager();
     root.initializeWidget(null, this);
     root.performUpdate(effects.register);
     if (effect != null) effects.register(effect);
@@ -56,6 +56,10 @@ abstract class Platform {
     your own Platform. 
   **/
   abstract public function createManagerForComponent(component:Component):ConcreteManager;
+
+  function createEffectManager():EffectManager {
+    return new DefaultEffectManager();
+  }
 }
 
 private class PlatformUser extends Component {

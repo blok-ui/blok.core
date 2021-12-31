@@ -1,15 +1,6 @@
 package blok.ui;
 
-class EffectManager {
-  final effects:Array<()->Void> = [];
-
-  public function new() {}
-
-  public function register(effect) {
-    effects.push(effect);
-  }
-
-  public function dispatch() {
-    for (effect in effects) effect();
-  }
+interface EffectManager {
+  public function register(effect:()->Void):Void;
+  public function dispatch():Void;
 }

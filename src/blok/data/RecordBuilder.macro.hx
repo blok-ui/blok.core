@@ -60,7 +60,7 @@ class RecordBuilder {
       function checkIfSerializeable(type) {
         // Note: we check for recordType because we might
         //       be checking the same class that we're building.
-        //       In that case, `JsonSerializable` failes, but
+        //       In that case, `JsonSerializable` fails, but
         //       `Record` still works.
         return Context.unify(type, recordType) || Context.unify(type, serializeable);
       }

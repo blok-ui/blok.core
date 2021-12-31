@@ -1,7 +1,5 @@
 package blok.ui;
 
-import blok.diff.Differ;
-
 @:autoBuild(blok.ui.ComponentBuilder.build())
 abstract class Component extends Widget {
   var __currentRevision:Int = 0;

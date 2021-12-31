@@ -1,3 +1,5 @@
 package blok.ui;
 
-typedef WidgetType = Int;
+import blok.core.UniqueId;
+
+typedef WidgetType = UniqueId;

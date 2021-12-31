@@ -1,11 +1,9 @@
 package impl;
 
 import blok.ui.*;
-import blok.diff.Differ;
-import blok.core.UniqueId;
 
 class RootWidget extends ConcreteWidget {
-  static public final type:WidgetType = new UniqueId();
+  static public final type:WidgetType = new WidgetType();
 
   var children:Array<VNode>;
 

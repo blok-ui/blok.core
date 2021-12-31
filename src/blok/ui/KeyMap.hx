@@ -1,6 +1,4 @@
-package blok.diff;
-
-import blok.ui.Key;
+package blok.ui;
 
 class KeyMap<T> {
   var strings:Map<String, T>;

@@ -270,7 +270,7 @@ class ComponentBuilder {
         @:noCompletion var $PROPS:$propType;
 
         @:noCompletion
-        static public final __type = new blok.core.UniqueId();
+        static public final __type = new blok.ui.WidgetType();
 
         public function getWidgetType() return __type;
 

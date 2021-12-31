@@ -1,10 +1,9 @@
 package impl;
 
-import blok.core.UniqueId;
 import blok.ui.*;
 
 class TextWidget extends ConcreteWidget {
-  static public final type:WidgetType = new UniqueId(); 
+  static public final type:WidgetType = new WidgetType(); 
 
   static public inline function node(text, ?key, ?ref) {
     return new VText(text, key, ref);

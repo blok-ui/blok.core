@@ -1,9 +1,4 @@
-package blok.diff;
-
-import blok.ui.Widget;
-import blok.ui.Platform;
-import blok.ui.VNode;
-import blok.ui.Key;
+package blok.ui;
 
 /**
   The heart of Blok -- the differ is responsible for comparing a

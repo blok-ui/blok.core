@@ -7,8 +7,16 @@ import blok.core.DisposableHost;
 import blok.ui.Component;
 import blok.ui.VNode;
 
-@:nullSafety
+/**
+  A simple container for dependencies.
+**/
 final class Context implements Disposable implements DisposableHost {
+  /**
+    Get access to the current Context instance in a Widget tree.
+
+    If no Context is available, you can optionally provide your own
+    Context instance to `fallback` to use instead. 
+  **/
   public inline static function use(build, ?fallback, ?key) {
     return ContextUser.node({ build: build, fallback: fallback }, key);
   }
@@ -21,17 +29,26 @@ final class Context implements Disposable implements DisposableHost {
     this.parent = parent;
   }
 
-  public function get<T>(name:String, ?def:T):Null<T> {
+  /**
+    Get a value from the Context. This method will recursively search
+    parent Contexts until it finds a matching key. If no match is
+    found, it will return null _or_ the value of `def`.
+  **/
+  public function get<T>(key:String, ?def:T):Null<T> {
     if (parent == null) {
-      return data.exists(name) ? data.get(name) : def; 
+      return data.exists(key) ? data.get(key) : def; 
     }
-    return switch [ data.get(name), parent.get(name) ] {
+    return switch [ data.get(key), parent.get(key) ] {
       case [ null, null ]: def;
       case [ null, res ]: res;
       case [ res, _ ]: res;
     }
   }
 
+  /**
+    Set a value in this Context. If the value is `blok.core.Disposable`,
+    it will be disposed when this Context is.
+  **/
   public function set<T>(name:String, value:T) {
     data.set(name, value);
     if (value is Disposable) {
@@ -39,20 +56,33 @@ final class Context implements Disposable implements DisposableHost {
     }
   }
 
+  /**
+    Add a `blok.context.ServiceProvider`.
+  **/
   public inline function addService<T:ServiceProvider>(service:T) {
     service.register(this);
   }
 
+  /**
+    Use a `blok.context.ServiceResolver` to find a matching value
+    in this Context.
+  **/
   public inline function getService<T>(resolver:ServiceResolver<T>):Null<T> {
     return resolver.from(this);
   }
 
+  /**
+    Create a child Context that uses _this_ Context as its parent.
+  **/
   public function getChild() {
     var child = new Context(this);
     disposables.push(child);
     return child;
   }
 
+  /**
+    Dispose of this context and all disposable children.
+  **/
   public function dispose() {
     var ds = disposables.copy();
     for (d in ds) d.dispose();

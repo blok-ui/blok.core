@@ -27,8 +27,12 @@ abstract class Component extends Widget {
 
   override function __registerPlatform(platform:Platform) {
     __platform = platform;
-    __manager = __platform.createManagerForComponent(this);
+    __manager = __createConcreteManager(platform);
     addDisposable(__manager);
+  }
+
+  function __createConcreteManager(platform:Platform):ConcreteManager {
+    return __platform.createManagerForComponent(this);
   }
 
   abstract function __beforeHooks():Void;

@@ -12,6 +12,13 @@ import blok.ui.VNode;
 **/
 final class Context implements Disposable implements DisposableHost {
   /**
+    Allows `Context` to be used as a `ServiceResolver`.
+  **/
+  public static function from(context:Context) {
+    return context;
+  }
+
+  /**
     Get access to the current Context instance in a Widget tree.
 
     If no Context is available, you can optionally provide your own

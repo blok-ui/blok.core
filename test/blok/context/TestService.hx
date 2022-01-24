@@ -130,6 +130,16 @@ class TestService implements TestCase {
       Node.text(optional == null ? 'none' : optional.foo);
     }).renders('none', done);
   }
+
+  @:test('Services can use Context directly')
+  function testServicesCanUseContext() {
+    var context = new Context();
+    var service = UsesContext.from(context.getChild());
+
+    context.set('foo', 'foo');
+
+    (service.getContext().get('foo'):String).equals('foo');
+  }
 }
 
 @service(fallback = new SimpleService('default'))
@@ -179,5 +189,16 @@ class UsesSimpleService extends Component {
 
   public function render() {
     return Node.text(service.value);
+  }
+}
+
+@service(fallback = new UsesContext())
+class UsesContext implements Service {
+  @use var context:Context;
+
+  public function new() {}
+
+  public function getContext() {
+    return context;
   }
 }

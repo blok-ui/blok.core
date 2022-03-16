@@ -1,5 +1,7 @@
 package blok.ui;
 
+
+
 /**
   The heart of Blok -- the differ is responsible for comparing a
   Widget tree to a VNode tree and rebuilding and reordering it 
@@ -17,12 +19,12 @@ final class Differ {
     widget:Null<Widget>,
     vNode:VNode,
     platform:Platform,
-    registerEffect:(effect:()->Void)->Void
+    effects:Effect
   ) {
     if (widget == null || vNode.type != widget.getWidgetType()) {
-      parent.replaceChild(widget, vNode.createWidget(parent, platform, registerEffect));
+      parent.replaceChild(widget, vNode.createWidget(parent, platform, effects));
     } else {
-      vNode.updateWidget(widget, registerEffect);
+      vNode.updateWidget(widget, effects);
     }
   }
 
@@ -30,7 +32,7 @@ final class Differ {
     parent:Widget,
     vnodes:Array<VNode>,
     platform:Platform,
-    registerEffect:(effect:()->Void)->Void
+    effects:Effect
   ) {
     vnodes = flatten(vnodes, parent);
 
@@ -53,7 +55,7 @@ final class Differ {
         children[oldHead++],
         vnodes[newHead++],
         platform,
-        registerEffect
+        effects
       );
     }
 
@@ -68,7 +70,7 @@ final class Differ {
         children[oldTail--],
         vnodes[newTail--],
         platform,
-        registerEffect
+        effects
       );
     }
 
@@ -76,7 +78,7 @@ final class Differ {
       while (newHead <= newTail) {
         parent.insertChildBefore(
           children[oldHead],
-          vnodes[newHead++].createWidget(parent, platform, registerEffect)
+          vnodes[newHead++].createWidget(parent, platform, effects)
         );
       }
     } else if (newHead > newTail) {
@@ -114,7 +116,7 @@ final class Differ {
               existingWidget,
               vnodes[newHead],
               platform,
-              registerEffect
+              effects
             );
             newHead++;
           }
@@ -126,7 +128,7 @@ final class Differ {
               existingWidget,
               vnodes[newHead],
               platform,
-              registerEffect
+              effects
             );
             newKeyed.set(newKey, true);
             oldHead++;
@@ -136,13 +138,13 @@ final class Differ {
               var vn = vnodes[newHead];
               parent.moveChildTo(
                 newHead,
-                vn.updateWidget(keyedWidget, registerEffect)
+                vn.updateWidget(keyedWidget, effects)
               );
               newKeyed.set(newKey, true);
             } else {
               parent.insertChildAt(
                 newHead,
-                vnodes[newHead].createWidget(parent, platform, registerEffect)
+                vnodes[newHead].createWidget(parent, platform, effects)
               );
             }
           }

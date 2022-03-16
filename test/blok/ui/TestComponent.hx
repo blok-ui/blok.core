@@ -193,10 +193,10 @@ class TestComponent implements TestCase {
   }
 
   function render(root:RootWidget, vn:VNode, ?next) {
-    root.getPlatform().schedule(registerEffect -> {
+    root.getPlatform().schedule(effects -> {
       root.setChildren([ vn ]);
-      root.performUpdate(registerEffect);
-      if (next != null) registerEffect(next);
+      root.performUpdate(effects);
+      if (next != null) effects.register(next);
     });
   }
 }

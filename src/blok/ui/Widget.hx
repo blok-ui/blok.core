@@ -85,15 +85,15 @@ abstract class Widget implements Disposable implements DisposableHost {
     }
   }
 
-  public function updatePendingChildren(registerEffect:(effect:()->Void)->Void) {
+  public function updatePendingChildren(effects:Effect) {
     if (__pendingUpdates.length == 0) return;
     var updates = __pendingUpdates.copy();
     __pendingUpdates = [];
     for (child in updates) switch child.__status {
       case WidgetInvalid:
-        child.performUpdate(registerEffect);
+        child.performUpdate(effects);
       default:
-        child.updatePendingChildren(registerEffect);
+        child.updatePendingChildren(effects);
     }
   }
 
@@ -102,7 +102,7 @@ abstract class Widget implements Disposable implements DisposableHost {
     __platform.schedule(updatePendingChildren);
   }
 
-  public function performUpdate(registerEffect:(effect:()->Void)->Void) {
+  public function performUpdate(effects:Effect) {
     __pendingUpdates = [];
     switch __status {
       case WidgetPending | WidgetDisposed:
@@ -111,7 +111,7 @@ abstract class Widget implements Disposable implements DisposableHost {
         throw new WidgetIsUpdatingException(this);
       default: 
         __status = WidgetUpdating;
-        __performUpdate(registerEffect);
+        __performUpdate(effects);
         __status = WidgetValid;
     }
   }
@@ -121,7 +121,7 @@ abstract class Widget implements Disposable implements DisposableHost {
     __platform.schedule(performUpdate);
   }
 
-  abstract public function __performUpdate(registerEffect:(effect:()->Void)->Void):Void;
+  abstract public function __performUpdate(effects:Effect):Void;
 
   public function dispose() {
     switch __status {

@@ -21,8 +21,8 @@ class TextWidget extends ConcreteWidget {
     this.ref = ref;
   }
 
-  public function __performUpdate(registerEffect:(effect:()->Void)->Void) {
-    if (ref != null) registerEffect(() -> ref(internalTextContent));
+  public function __performUpdate(effects:Effect) {
+    if (ref != null) effects.register(() -> ref(internalTextContent));
   }
 
   public function shouldUpdate(text:String) {

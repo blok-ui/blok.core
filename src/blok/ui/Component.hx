@@ -37,9 +37,9 @@ abstract class Component extends Widget {
 
   abstract function __beforeHooks():Void;
 
-  public function __performUpdate(registerEffect:(task:()->Void)->Void) {
-    Differ.diffChildren(this, __performRender(), __platform, registerEffect);
-    registerEffect(runComponentEffects);
+  public function __performUpdate(effects:Effect) {
+    Differ.diffChildren(this, __performRender(), __platform, effects);
+    effects.register(runComponentEffects);
   }
   
   function __performRender():VNodeResult {

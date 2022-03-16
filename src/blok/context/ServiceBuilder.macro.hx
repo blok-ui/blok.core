@@ -149,7 +149,7 @@ class ServiceBuilder {
           //       unifies with blok.context.ServiceResolver, but doing that
           //       can cause problems as we can end up typing it before
           //       macros have a chance to run. Instead, we just do this.
-          //       The error message isn't as good, but it does run.
+          //       The error message isn't as good, but it does work.
           useHooks.push(macro @:pos(f.pos) this.$backingName = (${path}:blok.context.ServiceResolver<$t>).from(context));
         default:
           Context.error('@use may only be used on vars', f.pos);

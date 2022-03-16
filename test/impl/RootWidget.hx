@@ -34,8 +34,8 @@ class RootWidget extends ConcreteWidget {
     return toConcrete().pop();
   }
 
-  public function __performUpdate(registerEffect:(effect:()->Void)->Void):Void {
-    Differ.diffChildren(this, children, __platform, registerEffect);
+  public function __performUpdate(effects:Effect):Void {
+    Differ.diffChildren(this, children, __platform, effects);
   }
 
   public function addConcreteChild(child:Widget):Void {

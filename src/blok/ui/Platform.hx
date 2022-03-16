@@ -10,7 +10,6 @@ import blok.core.Scheduler;
   See libraries like `blok.platform.dom` or 'blok.platform.static`
   for implementations.
 **/
-@:nullSafety
 abstract class Platform {
   /**
     Get the current Platform inside of a Widget tree.
@@ -26,14 +25,16 @@ abstract class Platform {
   }
 
   /**
-    Schedule an some action. This method will also give you access
-    to an EffectManager to register callbacks that will run in the
-    next frame (the API used by `@effect` mehods in Components).
+    Schedule some action. The provided callback will also recieve
+    a 'blok.ui.Effect` that can be used to add additonal effects 
+    which will be scheduled for the subsequent frame. 
+    
+    Widgets use this internally to handle things like `@effect` methods.
   **/
-  public function schedule(action) {
-    var effects = createEffectManager();
+  public function schedule(action:(effects:Effect)->Void) {
+    var effects = Effect.createTrigger();
     scheduler.schedule(() -> {
-      action(effects.register);
+      action(effects);
       scheduler.schedule(() -> effects.dispatch());
     });
   }
@@ -42,9 +43,9 @@ abstract class Platform {
     Bootstraps the app with the given ConcreteWidget. 
   **/
   public function mountRootWidget(root:ConcreteWidget, ?effect) {
-    var effects = createEffectManager();
+    var effects = Effect.createTrigger();
     root.initializeWidget(null, this);
-    root.performUpdate(effects.register);
+    root.performUpdate(effects);
     if (effect != null) effects.register(effect);
     scheduler.schedule(() -> effects.dispatch());
   }
@@ -56,10 +57,6 @@ abstract class Platform {
     your own Platform. 
   **/
   abstract public function createManagerForComponent(component:Component):ConcreteManager;
-
-  function createEffectManager():EffectManager {
-    return new DefaultEffectManager();
-  }
 }
 
 private class PlatformUser extends Component {

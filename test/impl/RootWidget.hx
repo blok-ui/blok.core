@@ -22,7 +22,7 @@ class RootWidget extends ConcreteWidget {
 
   public function toConcrete() {
     var text:Array<String> = [];
-    for (child in getChildConcreteManagers()) text = text.concat(cast child.toConcrete());
+    for (child in getChildApplicators()) text = text.concat(cast child.toConcrete());
     return text;
   }
 

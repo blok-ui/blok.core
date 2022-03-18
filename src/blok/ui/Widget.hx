@@ -160,10 +160,10 @@ abstract class Widget implements Disposable implements DisposableHost {
     return __children;
   }
   
-  abstract public function getConcreteManager():ConcreteManager;
+  abstract public function getApplicator():Applicator;
 
-  public inline function getChildConcreteManagers():Array<ConcreteManager> {
-    return [ for (child in __children) child.getConcreteManager() ];
+  public inline function getChildApplicators():Array<Applicator> {
+    return [ for (child in __children) child.getApplicator() ];
   }
 
   public inline function hasChild(widget:Widget) {
@@ -171,13 +171,13 @@ abstract class Widget implements Disposable implements DisposableHost {
   }
 
   public function addChild(widget:Widget) {
-    getConcreteManager().addConcreteChild(widget);
+    getApplicator().addConcreteChild(widget);
     __children.add(widget);
   }
 
   public function removeChild(widget:Widget) {
     if (widget != null && __children.has(widget)) {
-      getConcreteManager().removeConcreteChild(widget);
+      getApplicator().removeConcreteChild(widget);
       widget.dispose();
       widget.__parent = null;
       __children.remove(widget);
@@ -187,7 +187,7 @@ abstract class Widget implements Disposable implements DisposableHost {
   }
 
   public function insertChildAt(pos:Int, widget:Widget) {
-    getConcreteManager().insertConcreteChildAt(pos, widget);
+    getApplicator().insertConcreteChildAt(pos, widget);
     __children.insert(pos, widget);
   }
 
@@ -220,7 +220,7 @@ abstract class Widget implements Disposable implements DisposableHost {
   }
 
   public function moveChildTo(pos:Int, widget:Widget) {
-    getConcreteManager().moveConcreteChildTo(pos, widget);
+    getApplicator().moveConcreteChildTo(pos, widget);
 
     if (!__children.has(widget)) {
       __children.insert(pos, widget);

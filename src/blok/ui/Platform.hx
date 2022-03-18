@@ -4,7 +4,7 @@ import blok.core.Scheduler;
 
 /**
   The Platform implements the way Blok apps are actually rendered,
-  either through the DOM or some other target (along with a ConcreteManager
+  either through the DOM or some other target (along with a Applicator
   and ConcreteWidgets).
 
   See libraries like `blok.platform.dom` or 'blok.platform.static`
@@ -51,12 +51,12 @@ abstract class Platform {
   }
 
   /**
-    Create ConcreteManagers that Components will use to manipulate this
+    Create Applicators that Components will use to manipulate this
     Platform's concrete target (such as the DOM). This 
     is the main method you need to implement if you're creating
     your own Platform. 
   **/
-  abstract public function createManagerForComponent(component:Component):ConcreteManager;
+  abstract public function createComponentApplicator(component:Component):Applicator;
 }
 
 private class PlatformUser extends Component {

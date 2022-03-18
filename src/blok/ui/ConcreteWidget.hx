@@ -10,9 +10,9 @@ package blok.ui;
 **/
 abstract class ConcreteWidget 
   extends Widget 
-  implements ConcreteManager
+  implements Applicator
 {
-  function getConcreteManager() {
+  function getApplicator() {
     return this;
   }
 }

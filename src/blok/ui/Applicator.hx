@@ -3,12 +3,12 @@ package blok.ui;
 import blok.core.Disposable;
 
 /**
-  ConcreteManagers are used by Blok platforms to take Blok's Widget tree
+  Applicators are used by Blok platforms to take Blok's Widget tree
   and apply them to whatever the platform needs (such as, for example, the
   DOM). You should never have to use this class unless you're building
   a platform.
 **/
-interface ConcreteManager extends Disposable {
+interface Applicator extends Disposable {
   public function toConcrete():Concrete;
   public function addConcreteChild(child:Widget):Void;
   public function insertConcreteChildAt(pos:Int, child:Widget):Void;

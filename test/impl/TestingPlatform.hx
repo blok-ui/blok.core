@@ -18,7 +18,7 @@ class TestingPlatform extends Platform {
     return root;
   }
 
-  public function createManagerForComponent(component:Component):ConcreteManager {
-    return new ComponentConcreteManager(component);
+  public function createComponentApplicator(component:Component):Applicator {
+    return new ComponentApplicator(component);
   }
 }

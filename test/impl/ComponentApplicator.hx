@@ -2,7 +2,7 @@ package impl;
 
 import blok.ui.*;
 
-class ComponentConcreteManager implements ConcreteManager {
+class ComponentApplicator implements Applicator {
   final component:Component;
 
   public function new(component) {
@@ -11,7 +11,7 @@ class ComponentConcreteManager implements ConcreteManager {
 
   public function toConcrete():Array<Dynamic> {
     var text:Array<String> = [];
-    for (child in component.getChildConcreteManagers()) text = text.concat(cast child.toConcrete());
+    for (child in component.getChildApplicators()) text = text.concat(cast child.toConcrete());
     return text;
   }
 

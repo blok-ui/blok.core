@@ -4,7 +4,7 @@ package blok.ui;
 abstract class Component extends Widget {
   var __currentRevision:Int = 0;
   var __lastRevision:Int = 0;
-  var __manager:ConcreteManager = null;
+  var __applicator:Applicator = null;
 
   abstract public function updateComponentProperties(props:Dynamic):Void;
   
@@ -21,18 +21,18 @@ abstract class Component extends Widget {
     super.dispose();
   }
 
-  function getConcreteManager():ConcreteManager {
-    return __manager;
+  function getApplicator():Applicator {
+    return __applicator;
   }
 
   override function __registerPlatform(platform:Platform) {
     __platform = platform;
-    __manager = __createConcreteManager(platform);
-    addDisposable(__manager);
+    __applicator = __createApplicator(platform);
+    addDisposable(__applicator);
   }
 
-  function __createConcreteManager(platform:Platform):ConcreteManager {
-    return __platform.createManagerForComponent(this);
+  function __createApplicator(platform:Platform):Applicator {
+    return __platform.createComponentApplicator(this);
   }
 
   abstract function __beforeHooks():Void;

@@ -1,12 +1,5 @@
-Note: This is a pretty close copy of Flutter's "framework.dart" file. It's missing a lot of the stuff that makes Blok work (like Effects and the way we make sure Components don't render too many times), and is only to get a sense of how Flutter does things.
+This is an experimental reworking of Blok's backend. The idea is to create something more robust and simple, while not changing the API much.
 
-I think this *is* a better way of doing things, but DO NOT USE this code directly. Figure out how Google is doing things and go from there.
+Note: This approach is a pretty close port (at times basically a direct copy) of Flutter's "framework.dart" file. You can find it [here](https://github.com/flutter/flutter/blob/6af40a7004f886c8b8b87475a40107611bc5bb0a/packages/flutter/lib/src/widgets/framework.dart) (and is why this experiment is called `blok.framework`).
 
-Things we'll change:
-
-- `activate` and `deactivate` don't really mean anything for us. Replace with a simple `dispose`?
-- `effects` should always be passed to the `update` method somehow -- we'll probably have to depend on `Platform` batching things.
-- We need a name for the `RenderObject`. Maybe we can just refer to them as `Objects`?
-- Also (and this is already true) we don't have `StatefulWidgets`. Instead, State is controlled directly by a `Component` (which is a subclass of `Element`, not `Widget`) which is built by a generic `ComponentWidget`. We also use macros (already present) to update state, not a `setState` method. The main issue we have now is how we invalidate Elements -- we'll need to do a bit more work.
-- We might want to rework inheritance to be a bit closer to Flutter, rather than the Context system we have now. Not sure about that though. 
-- The API is a bit too OOP for my taste -- there are a LOT of `override`s in the code, and a good bit of class inheritance. I'd like to flatten things if possible.
+This is only a proof-of-concept, as Flutter's API seems close to how I want Blok to work (and so far it does seem a lot simpler than the current approach found in `blok.ui`). The final implementation will probably differ from this a bit, now that I have a better understanding of what's going on.

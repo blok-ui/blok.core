@@ -1,6 +1,6 @@
 package blok.framework;
 
-import blok.core.Assert;
+import blok.core.Debug;
 
 @:autoBuild(blok.framework.ComponentBuilder.build())
 abstract class Component extends Element {
@@ -9,7 +9,7 @@ abstract class Component extends Element {
   var lastRevision:Int = 0;
 
   abstract function render():Widget;
-  abstract function updateWidget(incomingProps:Dynamic):Void;
+  abstract function updateWidget(props:Dynamic):Void;
 
   override function mount(parent:Element, ?slot:Slot) {
     super.mount(parent, slot);
@@ -19,12 +19,12 @@ abstract class Component extends Element {
   override function update(widget:Widget) {
     lifecycle = Valid;
     updateWidget(widget);
-    if (shouldUpdate()) performBuild();
+    if (shouldInvalidate()) performBuild();
   }
 
   override function rebuildElement() {
     if (lifecycle != Invalid) return;
-    assert(lifecycle != Building);
+    Debug.assert(lifecycle != Building);
     performBuild();
   }
 
@@ -42,7 +42,14 @@ abstract class Component extends Element {
     lifecycle = Valid;
   }
 
-  function shouldUpdate():Bool {
+  function shouldInvalidate():Bool {
     return currentRevision > lastRevision;
+  }
+
+  function updateWidgetAndInvalidateElement(props:Dynamic) {
+    Debug.assert(status == Active);
+    Debug.assert(lifecycle != Building);
+    updateWidget(props);
+    if (shouldInvalidate()) invalidateElement();
   }
 }

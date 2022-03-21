@@ -46,25 +46,6 @@ class ComponentBuilder {
       });
     }
 
-    // builder.addClassMetaHandler({
-    //   name: 'lazy',
-    //   hook: After,
-    //   options: [],
-    //   build: function (options:{}, builder, fields) {
-    //     if (fields.exists(f -> f.name == 'shouldUpdate')) {
-    //       Context.error(
-    //         'Cannot use @lazy and a custom shouldUpdate method',
-    //         fields.find(f -> f.name == 'shouldUpdate').pos
-    //       );
-    //     }
-    //     builder.add(macro class {
-    //       override function shouldUpdate():Bool {
-    //         return currentRevision > lastRevision;
-    //       }
-    //     });
-    //   } 
-    // });
-
     builder.addFieldMetaHandler(
       createPropFieldHandler(
         addProp,
@@ -132,9 +113,7 @@ class ComponentBuilder {
             inline function closure():Null<$updatePropsRet> ${e};
             switch closure() {
               case null:
-              case data: 
-                updateWidget(data);
-                if (shouldUpdate()) invalidateElement();
+              case props: updateWidgetAndInvalidateElement(props);
             }
           }
         default:

@@ -1,5 +1,7 @@
 package blok.framework;
 
+typedef Effect = ()->Void;
+
 abstract Effects(Array<Effect>) from Array<Effect> {
   public inline function new() {
     this = [];

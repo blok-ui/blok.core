@@ -1,6 +1,6 @@
 package blok.framework;
 
-import blok.core.Assert;
+import blok.core.Debug;
 import blok.core.DisposableHost;
 import blok.core.Disposable;
 import haxe.ds.Option;
@@ -40,8 +40,8 @@ abstract class Element implements Disposable implements DisposableHost {
   }
 
   public function invalidateElement() {
-    assert(status == Active);
-    assert(lifecycle == Valid);
+    Debug.assert(status == Active);
+    Debug.assert(lifecycle == Valid);
 
     lifecycle = Invalid;
     platform.scheduleForRebuild(this);
@@ -58,7 +58,7 @@ abstract class Element implements Disposable implements DisposableHost {
       if (Std.isOfType(this, kind)) return Some(cast this);
       return None;
     }
-    
+
     return switch (Std.downcast(parent, kind):Null<T>) {
       case null: parent.findAncestorOfType(kind);
       case found: Some(cast found);
@@ -68,7 +68,7 @@ abstract class Element implements Disposable implements DisposableHost {
   public function getObject():Dynamic {
     var object:Dynamic = null;
     function visit(element:Element) {
-      assert(object == null); // Check we don't find more than one object.
+      Debug.assert(object == null); // Check we don't find more than one object.
       if (element.status == Disposed) return;
       switch Std.downcast(element, ObjectElement) {
         case null: element.visitChildren(visit);
@@ -88,7 +88,7 @@ abstract class Element implements Disposable implements DisposableHost {
   }
 
   public function dispose() {
-    assert(status == Active);
+    Debug.assert(status == Active);
     
     visitChildren(child -> child.dispose());
 
@@ -102,7 +102,7 @@ abstract class Element implements Disposable implements DisposableHost {
   }
   
   public function update(widget:Widget) {
-    assert(lifecycle != Building);
+    Debug.assert(lifecycle != Building);
     this.widget = widget;
     lifecycle = Valid;
   }

@@ -1,7 +1,7 @@
 package blok.context;
 
-import blok.framework.Component;
-import blok.framework.Widget;
+import blok.ui.Component;
+import blok.ui.VNode;
 
 /**
   Provide a Service, making it accessable to all child widgets
@@ -50,7 +50,7 @@ final class Provider<T:ServiceProvider> extends Component {
   }
 
   @prop var service:Null<T> = null;
-  @prop var build:(context:Context)->Widget;
+  @prop var build:(context:Context)->VNode;
   @prop var parentContext:Null<Context> = null;
   var context:Null<Context> = null;
 
@@ -88,7 +88,7 @@ private abstract ProviderFactory(ServiceBundle) from ServiceBundle {
     return this;
   }
 
-  public inline function render(build:(context:Context)->Widget) {
+  public inline function render(build:(context:Context)->VNode) {
     return Provider.provide(this, build);
   }
 }

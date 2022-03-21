@@ -3,9 +3,18 @@ package blok.ui;
 @:allow(blok.ui)
 abstract Effect(Array<()->Void>) from Array<()->Void> {
   public inline static function withEffect(child:VNode, effect:()->Void):VNode {
-    return EffectUser.node({ child: child, effect: effect });
+    return use(effects -> {
+      effects.register(effect);
+      return child;
+    });
   }
 
+  @:noUsing
+  public inline static function use(build:(effects:Effect)->VNode) {
+    return EffectUser.node({ build: build });
+  }
+
+  @:noUsing
   public inline static function createTrigger():EffectTrigger {
     return new EffectTrigger(new Effect());
   }
@@ -36,15 +45,16 @@ abstract EffectTrigger(Effect) from Effect to Effect {
 }
 
 private class EffectUser extends Component {
-  @prop var child:VNode = null;
-  @prop var effect:()->Void;
+  @prop var build:(effects:Effect)->VNode;
+  var currentEffects:Null<Effect> = null;
 
-  @effect
-  function runEffect() {
-    effect();
+  override function __performUpdate(effects:Effect) {
+    // @todo: This seems a bit fragile.
+    currentEffects = effects;
+    super.__performUpdate(effects);
   }
 
   function render() {
-    return child;
+    return build(currentEffects);
   }
 }

@@ -10,8 +10,6 @@ abstract class Component extends Widget {
   
   abstract function render():VNodeResult;
 
-  abstract public function runComponentEffects():Void;
-
   public function shouldComponentRender():Bool {
     return true;
   }
@@ -37,9 +35,11 @@ abstract class Component extends Widget {
 
   abstract function __beforeHooks():Void;
 
+  abstract function __registerEffects(effects:Effect):Void;
+
   public function __performUpdate(effects:Effect) {
     Differ.diffChildren(this, __performRender(), __platform, effects);
-    effects.register(runComponentEffects);
+    __registerEffects(effects);
   }
   
   function __performRender():VNodeResult {

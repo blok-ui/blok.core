@@ -1,10 +1,10 @@
-package blok.ui;
+package blok.framework;
 
 import haxe.macro.Context;
 import haxe.macro.Expr;
 import blok.macro.BuilderHelpers.*;
 import blok.macro.BuilderHandlers.createMemoFieldHandler;
-import blok.macro.BuilderHandlers.createPropFieldHandler;
+// import blok.macro.BuilderHandlers.createPropFieldHandler;
 import blok.macro.ClassBuilder;
 
 using Lambda;
@@ -25,7 +25,7 @@ class ComponentBuilder {
     var beforeHooks:Array<Expr> = [];
     var effectHooks:Array<Expr> = [];
 
-    if (builder.cls.superClass.t.get().module != 'blok.ui.Component') {
+    if (builder.cls.superClass.t.get().module != 'blok.framework.Component') {
       Context.error('Subclassing components is not supported', builder.cls.pos);
     }
     
@@ -46,24 +46,24 @@ class ComponentBuilder {
       });
     }
 
-    builder.addClassMetaHandler({
-      name: 'lazy',
-      hook: After,
-      options: [],
-      build: function (options:{}, builder, fields) {
-        if (fields.exists(f -> f.name == 'shouldComponentRender')) {
-          Context.error(
-            'Cannot use @lazy and a custom shouldComponentRender method',
-            fields.find(f -> f.name == 'shouldComponentRender').pos
-          );
-        }
-        builder.add(macro class {
-          override function shouldComponentRender():Bool {
-            return __currentRevision > __lastRevision;
-          }
-        });
-      } 
-    });
+    // builder.addClassMetaHandler({
+    //   name: 'lazy',
+    //   hook: After,
+    //   options: [],
+    //   build: function (options:{}, builder, fields) {
+    //     if (fields.exists(f -> f.name == 'shouldUpdate')) {
+    //       Context.error(
+    //         'Cannot use @lazy and a custom shouldUpdate method',
+    //         fields.find(f -> f.name == 'shouldUpdate').pos
+    //       );
+    //     }
+    //     builder.add(macro class {
+    //       override function shouldUpdate():Bool {
+    //         return currentRevision > lastRevision;
+    //       }
+    //     });
+    //   } 
+    // });
 
     builder.addFieldMetaHandler(
       createPropFieldHandler(
@@ -91,7 +91,7 @@ class ComponentBuilder {
           var path = t.toType().getPathExprFromType();
           var name = field.name;
           var getter = 'get_$name';
-          var backingName = '__computedValue_$name';
+          var backingName = 'computedValue_$name';
 
           field.kind = FProp('get', 'never', t, null);
 
@@ -100,11 +100,11 @@ class ComponentBuilder {
 
             function $getter() {
               if (this.$backingName == null) {
-                var context = switch findParentOfType(blok.context.Provider) {
-                  case None: new blok.context.Context();
+                var context = switch findAncestorOfType(blok.framework.context.Provider) {
+                  case None: new blok.framework.context.Context();
                   case Some(provider): provider.getContext();
                 }
-                @:pos(field.pos) this.$backingName = (${path}:blok.context.ServiceResolver<$t>).from(context);
+                @:pos(field.pos) this.$backingName = (${path}:blok.framework.context.ServiceResolver<$t>).from(context);
               }
               return this.$backingName;
             } 
@@ -133,8 +133,8 @@ class ComponentBuilder {
             switch closure() {
               case null:
               case data: 
-                updateComponentProperties(data);
-                if (shouldComponentRender()) invalidateWidget();
+                updateWidget(data);
+                if (shouldUpdate()) invalidateElement();
             }
           }
         default:
@@ -210,28 +210,12 @@ class ComponentBuilder {
       }
     });
 
-    // Makes functions return a VNodeResult to ease writing Components.
-    function ensureReturnTypes(name:String) {
-      var method = builder.getField(name);
-      if (method == null) return;
-      switch method.kind {
-        case FFun(f):
-          if (f.ret == null) {
-            f.ret = macro:blok.ui.VNodeResult;
-          }
-        default: 
-          throw 'assert';
-      }
-    }
-
     builder.addLater(() -> {
       var propType = TAnonymous(props);
       var updateType = TAnonymous(updateProps);
       var createParams = builder.cls.params.length > 0
         ? [ for (p in builder.cls.params) { name: p.name, constraints: extractTypeParams(p) } ]
         : [];
-
-      ensureReturnTypes('render');
 
       builder.addFields([
         {
@@ -243,18 +227,18 @@ class ComponentBuilder {
             params: createParams,
             args: [
               { name: 'props', type: macro:$propType },
-              { name: 'key', type: macro:Null<blok.ui.Key>, opt: true }
+              { name: 'key', type: macro:Null<blok.framework.Key>, opt: true }
             ],
-            expr: macro return new blok.ui.VComponent(__type, props, props -> new $clsTp(props), key),
-            ret: macro:blok.ui.VNode
+            expr: macro return new blok.framework.ComponentWidget(type, props, widget -> new $clsTp(widget), key),
+            ret: macro:blok.framework.Widget
           })
         }
       ]);
 
       if (!builder.fieldExists('new')) {
         builder.add(macro class {
-          public function new($INCOMING_PROPS:$propType) {
-            __initComponentProps($i{INCOMING_PROPS});
+          public function new(widget:blok.framework.ComponentWidget<$propType>) {
+            super(widget);
           }
         });
       } else {
@@ -266,52 +250,141 @@ class ComponentBuilder {
         );
       }
 
+      if (disposeHooks.length > 0) {
+        builder.add(macro class {
+          override function dispose() {
+            super.dispose();
+            $b{disposeHooks};
+          }
+        });
+      }
+
+      if (beforeHooks.length > 0) {
+        builder.add(macro class {
+          override function performRender() {
+            $b{beforeHooks}
+            return super.performRender();
+          }
+        });
+      }
+
+      if (initHooks.length > 0) {
+        builder.add(macro class {
+          override function mount(parent, ?slot) {
+            $b{initHooks};
+            super.mount(parent, slot);
+          }
+        });
+      }
+
+      if (effectHooks.length > 0) {
+        builder.add(macro class {
+          override function performBuild() {
+            super.performBuild();
+            platform.scheduleEffects(effects -> $b{effectHooks});
+          }
+        });
+      }
+
       return macro class {
-        @:noCompletion var $PROPS:$propType;
+        @:noCompletion
+        static public final type = new blok.core.UniqueId();
 
         @:noCompletion
-        static public final __type = new blok.ui.WidgetType();
-
-        public function getWidgetType() return __type;
-
-        inline function __initComponentProps($INCOMING_PROPS:$propType) {
-          this.$PROPS = ${ {
-            expr: EObjectDecl(initializers),
-            pos: (macro null).pos
-          } };
-        }
-
-        override function __initHooks() {
-          $b{initHooks}
-        }
-
-        function __beforeHooks() {
-          $b{beforeHooks}
-        }
-
-        function __registerEffects(effects:blok.ui.Effect) {
-          $b{effectHooks}
-        }
-
-        public function updateComponentProperties(props:Dynamic) {
-          switch __status {
-            case WidgetUpdating:
-              // throw new blok.exception.ComponentIsRenderingException(this);
-            case _:
-          }
-          
+        function updateWidget(props:Dynamic) {
+          var widget:blok.framework.ComponentWidget<$propType> = cast this.widget;
+          var $PROPS = widget.props;
           var $INCOMING_PROPS:$updateType = cast props;
-          __lastRevision = __currentRevision;
-          $b{updates};
-        }
+          lastRevision = currentRevision;
 
-        override function dispose() {
-          $b{disposeHooks};
-          super.dispose();
+          $b{updates};
+
+          if (currentRevision > lastRevision) {
+            this.widget = widget.withProperties($i{PROPS});
+          }
         }
       }
     });
     
     return builder.export();
   }
+}
+
+// @todo: temp while we're working on the API
+function createPropFieldHandler(
+  addProp:(name:String, type:ComplexType, isOptional:Bool)->Void,
+  addInitializer:(name:String, expr:Expr)->Void,
+  addInitHook:(expr:Expr)->Void,
+  addUpdateHook:(expr:Expr)->Void,
+  ?extra:(f:Field)->Void
+):FieldMetaHandler<{ 
+  ?onChange:Expr,
+  ?comparator:Expr
+}> {
+  return {
+    name: 'prop',
+    hook: Normal,
+    options: [
+      { name: 'comparator', optional: true, handleValue: e -> e },
+      { name: 'onChange', optional: true, handleValue: e -> e }
+    ],
+    build: function (options:{ 
+      ?onChange:Expr,
+      ?comparator:Expr 
+    }, builder, f) switch f.kind {
+      case FVar(t, e):
+        if (t == null) {
+          Context.error('Types cannot be inferred for @prop vars', f.pos);
+        }
+
+        var name = f.name;
+        var getName = 'get_${name}';
+        var comparator = options.comparator != null
+          ? macro (@:pos(options.comparator.pos) ${options.comparator})
+          : macro (a != b);
+        var onChange:Array<Expr> = options.onChange != null
+          ? [ macro @:pos(options.onChange.pos) ${options.onChange} ]
+          : [];
+        var init = e == null
+          ? macro $i{INCOMING_PROPS}.$name
+          : macro $i{INCOMING_PROPS}.$name == null ? @:pos(e.pos) ${e} : $i{INCOMING_PROPS}.$name;
+        
+        f.kind = FProp('get', 'never', t, null);
+
+        builder.add(macro class {
+          inline function $getName() return (cast widget:blok.framework.ComponentWidget<Dynamic>).props.$name;
+        });
+
+        addProp(name, t, e != null);
+        addInitializer(name, init);
+        
+        if (onChange.length > 0 ) {
+          addInitHook(macro {
+            var prev = null;
+            var value = props.$name;
+            $b{onChange};
+          });
+        }
+
+        addUpdateHook(macro {
+          if (Reflect.hasField($i{INCOMING_PROPS}, $v{name})) {
+            switch [
+              $i{PROPS}.$name, 
+              $i{INCOMING_PROPS}.$name 
+            ] {
+              case [ a, b ] if (!${comparator}):
+                // noop
+              case [ prev, value ]:
+                currentRevision++;
+                $i{PROPS}.$name = value;
+                $b{onChange}
+            }
+          }
+        });
+
+        if (extra != null) extra(f);
+      default:
+        Context.error('@prop can only be used on vars', f.pos);
+    }
+  };
 }

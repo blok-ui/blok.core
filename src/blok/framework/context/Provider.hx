@@ -1,4 +1,4 @@
-package blok.context;
+package blok.framework.context;
 
 import blok.framework.Component;
 import blok.framework.Widget;
@@ -57,7 +57,7 @@ final class Provider<T:ServiceProvider> extends Component {
   @init
   function findOrCreateContext() {
     context = parentContext == null 
-      ? switch findParentOfType(Provider) {
+      ? switch findAncestorOfType(Provider) {
         case None: 
           new Context();
         case Some(provider): 

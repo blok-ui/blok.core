@@ -1,7 +1,5 @@
 package blok.ui;
 
-
-
 /**
   The heart of Blok -- the differ is responsible for comparing a
   Widget tree to a VNode tree and rebuilding and reordering it 

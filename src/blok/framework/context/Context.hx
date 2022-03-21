@@ -1,6 +1,7 @@
-package blok.context;
+package blok.framework.context;
 
 import haxe.ds.Map;
+import blok.exception.NoProviderException;
 import blok.core.Disposable;
 import blok.core.DisposableHost;
 import blok.framework.Component;
@@ -63,14 +64,14 @@ final class Context implements Disposable implements DisposableHost {
   }
 
   /**
-    Add a `blok.context.ServiceProvider`.
+    Add a `blok.framework.context.ServiceProvider`.
   **/
   public inline function addService<T:ServiceProvider>(service:T) {
     service.register(this);
   }
 
   /**
-    Use a `blok.context.ServiceResolver` to find a matching value
+    Use a `blok.framework.context.ServiceResolver` to find a matching value
     in this Context.
   **/
   public inline function getService<T>(resolver:ServiceResolver<T>):Null<T> {
@@ -108,7 +109,7 @@ private class ContextUser extends Component {
   public function findContext() {
     context = switch findAncestorOfType(Provider) {
       case None:
-        fallback;
+        fallback; 
       case Some(provider): 
         provider.getContext(); 
     }

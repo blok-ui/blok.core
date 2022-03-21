@@ -6,6 +6,6 @@ abstract Key({}) from {} to {} {
   }
 
   public function isString() {
-    return Std.is(this, String);
+    return (this is String);
   }
 }

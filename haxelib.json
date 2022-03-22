@@ -9,7 +9,7 @@
     "wartman"
   ],
   "releasenote": "Refactoring and a different package structure",
-  "version": "0.6.0-alpha.1",
+  "version": "0.7.0-alpha.1",
   "url": "https://github.com/blok-ui/blok.core",
   "dependencies": {}
 }

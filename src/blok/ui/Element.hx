@@ -1,4 +1,4 @@
-package blok.framework;
+package blok.ui;
 
 import blok.core.Debug;
 import blok.core.DisposableHost;
@@ -17,7 +17,7 @@ enum ElementLifecycle {
   Building;
 }
 
-@:allow(blok.framework)
+@:allow(blok.ui)
 abstract class Element implements Disposable implements DisposableHost {
   var widget:Widget;
   var slot:Null<Slot> = null;
@@ -35,7 +35,7 @@ abstract class Element implements Disposable implements DisposableHost {
     disposables.push(disposable);
   }
 
-  public final inline function getWidget() {
+  public final inline function getWidget():Widget {
     return widget;
   }
 
@@ -47,11 +47,8 @@ abstract class Element implements Disposable implements DisposableHost {
     platform.scheduleForRebuild(this);
   }
 
-  public function rebuildElement():Void {
-    lifecycle = Valid;
-  }
-
-  abstract function visitChildren(visitor:ElementVisitor):Void;
+  abstract public function rebuildElement():Void;
+  abstract public function visitChildren(visitor:ElementVisitor):Void;
 
   public function findAncestorOfType<T:Element>(kind:Class<T>):Option<T> {
     if (parent == null) {
@@ -67,6 +64,7 @@ abstract class Element implements Disposable implements DisposableHost {
 
   public function getObject():Dynamic {
     var object:Dynamic = null;
+    
     function visit(element:Element) {
       Debug.assert(object == null); // Check we don't find more than one object.
       if (element.status == Disposed) return;
@@ -76,6 +74,9 @@ abstract class Element implements Disposable implements DisposableHost {
       }
     }
     visit(this);
+    
+    Debug.assert(object != null, 'No object could be found');
+
     return object;
   }
 
@@ -112,7 +113,6 @@ abstract class Element implements Disposable implements DisposableHost {
       if (child != null) removeChild(child);
       return null;
     }
-
     return if (child != null) {
       if (child.widget == widget) {
         if (child.slot != slot) updateSlotForChild(child, slot);

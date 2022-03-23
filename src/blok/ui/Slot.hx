@@ -1,4 +1,4 @@
-package blok.framework;
+package blok.ui;
 
 class Slot {
   public final index:Int;

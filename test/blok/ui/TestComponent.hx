@@ -1,13 +1,12 @@
 package blok.ui;
 
-import impl.RootWidget;
+import impl.TestingRootElement;
 import impl.TestingPlatform;
 import impl.Node;
 import haxe.ds.Option;
 
 using Medic;
-using medic.VNodeAssert;
-using impl.Tools;
+using medic.WidgetAssert;
 
 class TestComponent implements TestCase {
   public function new() {}
@@ -54,7 +53,7 @@ class TestComponent implements TestCase {
         case None:
           Assert.fail('Lazy component updated when it should not have');
         case Some(v):
-          comp.stringifyWidget().equals(v);
+          root.toString().equals(v);
       }
     }
 
@@ -63,13 +62,13 @@ class TestComponent implements TestCase {
       if (next == null) next = done;
       expected = e;
 
-      var vn = LazyComponent.node({
+      var widget = LazyComponent.node({
         foo: foo,
         bar: bar,
         test: check
       });
 
-      render(root, vn, next);
+      render(root, widget, next);
     }
 
     tests = [
@@ -89,18 +88,17 @@ class TestComponent implements TestCase {
     var one = Node.text('one', 'one');
     var two = Node.text('two', 'two');
     var three = Node.text('three', 'three');
-    var oneComp:Widget = null;
-    var twoComp:Widget = null;
-    var threeComp:Widget = null;
+    var oneComp:Element = null;
+    var twoComp:Element = null;
+    var threeComp:Element = null;
 
     function test6() {
       render(root, ChildrenComponent.node({
         children: [],
-        test: comp -> {
-          var children = comp.getChildren();
-          
-          children.length.equals(0);
-
+        test: element -> {
+          var len = 0;
+          element.visitChildren(_ -> len++);
+          len.equals(0);
           done();
         }
       }));
@@ -109,8 +107,9 @@ class TestComponent implements TestCase {
     function test5() {
       render(root, ChildrenComponent.node({
         children: [ three, two, Node.text('interloper'), one ],
-        test: comp -> {
-          var children = comp.getChildren();
+        test: element -> {
+          var children = [];
+          element.visitChildren(child -> children.push(child));
           
           children.length.equals(4);
 
@@ -126,8 +125,9 @@ class TestComponent implements TestCase {
     function test4() {
       render(root, ChildrenComponent.node({
         children: [ three, two, one ],
-        test: comp -> {
-          var children = comp.getChildren();
+        test: element -> {
+          var children = [];
+          element.visitChildren(child -> children.push(child));
           
           children.length.equals(3);
 
@@ -143,8 +143,9 @@ class TestComponent implements TestCase {
     function test3() {
       render(root, ChildrenComponent.node({
         children: [ two, three, one ],
-        test: comp -> {
-          var children = comp.getChildren();
+        test: element -> {
+          var children = [];
+          element.visitChildren(child -> children.push(child));
           
           children.length.equals(3);
 
@@ -160,15 +161,16 @@ class TestComponent implements TestCase {
     function test2() {
       render(root, ChildrenComponent.node({
         children: [ one, three, two ],
-        test: comp -> {
-          var children = comp.getChildren();
+        test: element -> {
+          var children = [];
+          element.visitChildren(child -> children.push(child));
           
           children.length.equals(3);
 
           oneComp.equals(children[0]);
           twoComp.equals(children[2]);
           threeComp.equals(children[1]);
-          
+
           test3();
         }
       }));
@@ -176,28 +178,25 @@ class TestComponent implements TestCase {
 
     render(root, ChildrenComponent.node({
       children: [ one, two, three ],
-      test: comp -> {
-        var children = comp.getChildren();
+      test: element -> {
+        var children = [];
+        element.visitChildren(child -> children.push(child));
         
         oneComp = children[0];
         twoComp = children[1];
         threeComp = children[2];
 
-        children[0].getWidgetKey().equals(one.key);
-        children[1].getWidgetKey().equals(two.key);
-        children[2].getWidgetKey().equals(three.key);
+        children[0].widget.key.equals(one.key);
+        children[1].widget.key.equals(two.key);
+        children[2].widget.key.equals(three.key);
 
         test2();
       }
     }));
   }
 
-  function render(root:RootWidget, vn:VNode, ?next) {
-    root.getPlatform().schedule(effects -> {
-      root.setChildren([ vn ]);
-      root.performUpdate(effects);
-      if (next != null) effects.register(next);
-    });
+  function render(root:TestingRootElement, widget:Widget, ?next) {
+    root.setChild(Node.fragment(widget), next);
   }
 }
 
@@ -217,7 +216,7 @@ class SimpleComponent extends Component {
   }
   
   public function render() {
-    return Node.text(content, null, result -> ref = result);
+    return Node.text(content, null, result -> ref = result.toString());
   }
 }
 
@@ -238,15 +237,15 @@ class LazyComponent extends Component {
 }
 
 class ChildrenComponent extends Component {
-  @prop var children:Array<VNode>;
-  @prop var test:(comp:ChildrenComponent)->Void = null;
+  @prop var children:Array<Widget>;
+  @prop var test:(comp:Element)->Void = null;
 
   @effect
   public function maybeRunTest() {
-    if (test != null) test(this);
+    if (test != null) test(childElement);
   }
   
   public function render() {
-    return children;
+    return Node.fragment(...children);
   }
 }

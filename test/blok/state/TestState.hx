@@ -7,8 +7,7 @@ import medic.TestableComponent;
 import impl.Node;
 
 using Medic;
-using medic.VNodeAssert;
-using impl.Tools;
+using medic.WidgetAssert;
 
 class TestState implements TestCase {
   public function new() {}
@@ -70,7 +69,7 @@ class TestState implements TestCase {
         children: [ Node.text(state.foo) ],
         test: (result) -> {
           var test = tests.shift();
-          if (test != null) test(result.stringifyWidget());
+          if (test != null) test(result.getObject().toString());
         }
       }))
     }).renderWithoutAssert();
@@ -96,7 +95,7 @@ class TestState implements TestCase {
         children: [ Node.text(state.foo) ],
         test: (result) -> {
           var test = tests.shift();
-          if (test != null) test(result.stringifyWidget());
+          if (test != null) test(result.getObject().toString());
         }
       }))
     }).renderWithoutAssert();

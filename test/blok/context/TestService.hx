@@ -4,7 +4,7 @@ import blok.ui.Component;
 import impl.Node;
 
 using Medic;
-using medic.VNodeAssert;
+using medic.WidgetAssert;
 
 class TestService implements TestCase {
   public function new() {}

@@ -1,7 +1,8 @@
 package blok.context;
 
+import blok.core.Debug;
 import blok.ui.Component;
-import blok.ui.VNode;
+import blok.ui.Widget;
 
 /**
   Provide a Service, making it accessable to all child widgets
@@ -50,14 +51,14 @@ final class Provider<T:ServiceProvider> extends Component {
   }
 
   @prop var service:Null<T> = null;
-  @prop var build:(context:Context)->VNode;
+  @prop var build:(context:Context)->Widget;
   @prop var parentContext:Null<Context> = null;
   var context:Null<Context> = null;
 
   @init
   function findOrCreateContext() {
     context = parentContext == null 
-      ? switch findParentOfType(Provider) {
+      ? switch findAncestorOfType(Provider) {
         case None: 
           new Context();
         case Some(provider): 
@@ -70,6 +71,7 @@ final class Provider<T:ServiceProvider> extends Component {
   }
 
   public function getContext() {
+    Debug.assert(context != null, 'Context was not initialized correctly.');
     return context;
   }
 
@@ -88,7 +90,7 @@ private abstract ProviderFactory(ServiceBundle) from ServiceBundle {
     return this;
   }
 
-  public inline function render(build:(context:Context)->VNode) {
+  public inline function render(build:(context:Context)->Widget) {
     return Provider.provide(this, build);
   }
 }

@@ -1,67 +1,39 @@
 package impl;
 
-import blok.ui.*;
+import blok.core.UniqueId;
+import blok.ui.Widget;
+import blok.ui.ObjectWidget;
 
-class TextWidget extends ConcreteWidget {
-  static public final type:WidgetType = new WidgetType(); 
+class TextWidget extends ObjectWidget {
+  public static final type = new UniqueId();
 
-  static public inline function node(text, ?key, ?ref) {
-    return new VText(text, key, ref);
-  }
-  
-  public function requestResortWidgets():Void {
-    // noop
-  }
-  
-  var internalTextContent:String;
-  var ref:Null<(content:String)->Void>;
+  public final content:String;
+  public final ref:Null<(object:TestingObject)->Void>;
 
-  public function new(text:String, ?ref) {
-    internalTextContent = text;
+  public function new(content, ?key, ?ref) {
+    super(key);
+    this.content = content;
     this.ref = ref;
   }
 
-  public function __performUpdate(effects:Effect) {
-    if (ref != null) effects.register(() -> ref(internalTextContent));
-  }
-
-  public function shouldUpdate(text:String) {
-    return internalTextContent != text;
-  }
-
-  public function setText(text:String) {
-    internalTextContent = text;
-  }
-
-  public function getWidgetType() {
+  public function getWidgetType():UniqueId {
     return type;
   }
 
-  public function toConcrete() {
-    return [ internalTextContent ];
+  public function createElement() {
+    return new TextElement(this);
   }
 
-  public function getFirstConcreteChild():Dynamic {
-    return internalTextContent;
+  public function getChildren():Array<Widget> {
+    return [];
   }
 
-  public function getLastConcreteChild():Dynamic {
-    return internalTextContent;
+  public function createObject():Dynamic {
+    return new TestingObject(content);
   }
 
-  public function addConcreteChild(child:Widget):Void {
-    // noop
-  }
-  
-  public function insertConcreteChildAt(pos:Int, child:Widget):Void {
-    // noop
-  }
-  
-  public function moveConcreteChildTo(pos:Int, child:Widget):Void {
-    // noop
-  }
-  
-  public function removeConcreteChild(child:Widget):Void {
-    // noop
+  public function updateObject(object:Dynamic, ?previousWidget:Widget):Dynamic {
+    (object:TestingObject).content = content;
+    return object;
   }
 }

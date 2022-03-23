@@ -1,6 +1,6 @@
 package blok.state;
 
-import blok.ui.VNode;
+import blok.ui.Widget;
 import blok.data.Result;
 
 @:forward(observe, handle, observeNext, handleNext)
@@ -54,7 +54,7 @@ abstract ObservableResult<Data, Error>(Observable<Result<Data, Error>>)
     return this.map(transform);
   }
 
-  public inline function render(build:(result:Result<Data, Error>)->VNode) {
-    return this.mapToVNode(build);
+  public inline function render(build:(result:Result<Data, Error>)->Widget) {
+    return this.render(build);
   }
 }

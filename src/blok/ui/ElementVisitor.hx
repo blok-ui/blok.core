@@ -1,4 +1,4 @@
-package blok.framework;
+package blok.ui;
 
 abstract ElementVisitor((element:Element)->Void) from (element:Element)->Void {
   public inline function new(visitor) {

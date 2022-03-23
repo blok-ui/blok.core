@@ -86,9 +86,9 @@ class ServiceBuilder {
           access: [ AStatic, APublic, AInline ],
           kind: FFun({
             params: createParams,
-            ret: macro:blok.ui.VNode,
+            ret: macro:blok.ui.Widget,
             args: [
-              { name: 'build', type: macro:(service:$ct)->blok.ui.VNode },
+              { name: 'build', type: macro:(service:$ct)->blok.ui.Widget },
               { name: 'key', opt: true, type: macro:blok.ui.Key }
             ],
             expr: macro {

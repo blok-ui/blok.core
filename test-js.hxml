@@ -1,5 +1,6 @@
 test-common.hxml
 
+-D debug
 -js dist/test.js
 
 -cmd node dist/test

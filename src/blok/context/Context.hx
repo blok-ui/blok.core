@@ -3,8 +3,8 @@ package blok.context;
 import haxe.ds.Map;
 import blok.core.Disposable;
 import blok.core.DisposableHost;
-import blok.framework.Component;
-import blok.framework.Widget;
+import blok.ui.Component;
+import blok.ui.Widget;
 
 /**
   A simple container for dependencies.

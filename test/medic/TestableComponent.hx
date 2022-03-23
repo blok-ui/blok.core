@@ -1,10 +1,11 @@
 package medic;
 
 import blok.ui.Component;
-import blok.ui.VNode;
+import blok.ui.Widget;
+import impl.Node;
 
 class TestableComponent extends Component {
-  @prop var children:Array<VNode>;
+  @prop var children:Array<Widget>;
   @prop var test:(comp:TestableComponent)->Void = null;
 
   @effect
@@ -13,6 +14,6 @@ class TestableComponent extends Component {
   }
   
   public function render() {
-    return children;
+    return Node.fragment(...children);
   }
 }

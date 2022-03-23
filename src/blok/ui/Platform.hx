@@ -1,68 +1,55 @@
 package blok.ui;
 
+import blok.ui.Effects;
 import blok.core.Scheduler;
 
-/**
-  The Platform implements the way Blok apps are actually rendered,
-  either through the DOM or some other target (along with a Applicator
-  and ConcreteWidgets).
-
-  See libraries like `blok.platform.dom` or 'blok.platform.static`
-  for implementations.
-**/
 abstract class Platform {
-  /**
-    Get the current Platform inside of a Widget tree.
-  **/
-  public inline static function use(build) {
-    return PlatformUser.node({ build: build });
-  }
-
-  public final scheduler:Scheduler;
+  var invalidElements:Array<Element> = [];
+  var rebuildScheduled:Bool = false;
+  var effects:Null<Effects> = null;
+  final scheduler:Scheduler;
 
   public function new(scheduler) {
     this.scheduler = scheduler;
   }
+  
+  abstract public function insert(object:Dynamic, slot:Null<Slot>, findParent:()->Dynamic):Void;
+  abstract public function move(object:Dynamic, from:Null<Slot>, to:Null<Slot>, findParent:()->Dynamic):Void;
+  abstract public function remove(object:Dynamic, slot:Null<Slot>):Void;
 
-  /**
-    Schedule some action. The provided callback will also recieve
-    a 'blok.ui.Effect` that can be used to add additonal effects 
-    which will be scheduled for the subsequent frame. 
+  public function mountRootWidget(widget:RootWidget, ?effect:Effect) {
+    var element:RootElement = cast widget.createElement();
+    if (effect != null) scheduleEffects(effects -> effects.register(effect));
+    element.bootstrap();
+    return element;
+  }
+
+  public function scheduleEffects(cb:(effects:Effects) -> Void) {
+    if (effects == null) {
+      effects = new Effects();
+      scheduler.schedule(() -> {
+        effects.dispatch();
+        effects = null;
+      });
+    }
+    cb(effects);
+  }
+
+  public function scheduleForRebuild(element:Element) {
+    if (invalidElements.contains(element)) return;
+    invalidElements.push(element);
+    if (!rebuildScheduled) {
+      rebuildScheduled = true;
+      scheduler.schedule(rebuild);
+    }
+  }
+
+  function rebuild() {
+    var elements = invalidElements.copy();
     
-    Widgets use this internally to handle things like `@effect` methods.
-  **/
-  public function schedule(action:(effects:Effect)->Void) {
-    var effects = Effect.createTrigger();
-    scheduler.schedule(() -> {
-      action(effects);
-      scheduler.schedule(() -> effects.dispatch());
-    });
-  }
+    invalidElements = [];
+    rebuildScheduled = false;
 
-  /**
-    Bootstraps the app with the given ConcreteWidget. 
-  **/
-  public function mountRootWidget(root:ConcreteWidget, ?effect) {
-    var effects = Effect.createTrigger();
-    root.initializeWidget(null, this);
-    root.performUpdate(effects);
-    if (effect != null) effects.register(effect);
-    scheduler.schedule(() -> effects.dispatch());
-  }
-
-  /**
-    Create Applicators that Components will use to manipulate this
-    Platform's concrete target (such as the DOM). This 
-    is the main method you need to implement if you're creating
-    your own Platform. 
-  **/
-  abstract public function createComponentApplicator(component:Component):Applicator;
-}
-
-private class PlatformUser extends Component {
-  @prop var build:(platform:Platform)->VNode;
-
-  function render() {
-    return build(getPlatform());
+    for (el in elements) el.rebuildElement();
   }
 }

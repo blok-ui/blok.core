@@ -1,52 +1,63 @@
 package blok.ui;
 
+import blok.core.Debug;
+
 @:autoBuild(blok.ui.ComponentBuilder.build())
-abstract class Component extends Widget {
-  var __currentRevision:Int = 0;
-  var __lastRevision:Int = 0;
-  var __applicator:Applicator = null;
+abstract class Component extends Element {
+  var childElement:Null<Element> = null;
+  var currentRevision:Int = 0;
+  var lastRevision:Int = 0;
 
-  abstract public function updateComponentProperties(props:Dynamic):Void;
-  
-  abstract function render():VNodeResult;
+  abstract function render():Widget;
+  abstract function updateWidget(props:Dynamic):Void;
 
-  public function shouldComponentRender():Bool {
+  override function mount(parent:Element, ?slot:Slot) {
+    super.mount(parent, slot);
+    performFirstBuild();
+  }
+
+  override function update(widget:Widget) {
+    Debug.assert(lifecycle != Building);
+    // @todo: We need to rethink this -- right now, we basically create three
+    // widgets per update.
+    updateWidget((cast widget:ComponentWidget<Dynamic>).props);
+    if (shouldInvalidate()) performBuild();
+    lifecycle = Valid;
+  }
+
+  function rebuildElement() {
+    if (lifecycle != Invalid) return;
+    performBuild();
+  }
+
+  function visitChildren(visitor:ElementVisitor) {
+    if (childElement != null) visitor.visit(childElement);
+  }
+
+  function performRender() {
+    return render();
+  }
+
+  function performFirstBuild() {
+    performBuild();
+  }
+
+  function performBuild() {
+    Debug.assert(lifecycle != Building);
+    lifecycle = Building;
+    childElement = updateChild(childElement, performRender(), slot);
+    lifecycle = Valid;
+  }
+
+  function shouldInvalidate():Bool {
     return true;
+    // return currentRevision > lastRevision;
   }
 
-  override function dispose() {
-    __platform = null;
-    super.dispose();
-  }
-
-  function getApplicator():Applicator {
-    return __applicator;
-  }
-
-  override function __registerPlatform(platform:Platform) {
-    __platform = platform;
-    __applicator = __createApplicator(platform);
-    addDisposable(__applicator);
-  }
-
-  function __createApplicator(platform:Platform):Applicator {
-    return __platform.createComponentApplicator(this);
-  }
-
-  abstract function __beforeHooks():Void;
-
-  abstract function __registerEffects(effects:Effect):Void;
-
-  public function __performUpdate(effects:Effect) {
-    Differ.diffChildren(this, __performRender(), __platform, effects);
-    __registerEffects(effects);
-  }
-  
-  function __performRender():VNodeResult {
-    __beforeHooks();
-    return switch render() {
-      case null: new VNodeResult(VNone);
-      case vnode: vnode; 
-    }
+  function updateWidgetAndInvalidateElement(props:Dynamic) {
+    Debug.assert(status == Active);
+    Debug.assert(lifecycle != Building);
+    updateWidget(props);
+    if (shouldInvalidate()) invalidateElement();
   }
 }

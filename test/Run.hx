@@ -1,8 +1,11 @@
-import blok.state.TestState;
+import medic.DefaultReporter;
 import medic.Runner;
 
 function main() {
-  var runner = new Runner();
+  var runner = new Runner(new DefaultReporter({
+    trackProgress: true,
+    verbose: true
+  }));
 
   runner.add(new blok.data.TestRecord());
 

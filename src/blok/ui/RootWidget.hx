@@ -1,4 +1,4 @@
-package blok.framework;
+package blok.ui;
 
 abstract class RootWidget extends Widget {
   public final platform:Platform;

@@ -2,7 +2,7 @@ package blok.state;
 
 import blok.core.Disposable;
 import blok.ui.Component;
-import blok.ui.VNode;
+import blok.ui.Widget;
 
 typedef ObservableOptions = {
   /**
@@ -92,7 +92,7 @@ class Observable<T> implements Disposable {
   static var uid:Int = 0;
 
   /**
-    Use an observable directly in a VNode tree.
+    Use an observable directly in a Widget tree.
 
     A good example of where this is useful is something like
     the following:
@@ -115,7 +115,7 @@ class Observable<T> implements Disposable {
 
     For more complex states, use `blok.State`.
   **/
-  public static function use<T>(value:T, build:(value:T, update:(value:T)->Void)->VNode) {
+  public static function use<T>(value:T, build:(value:T, update:(value:T)->Void)->Widget) {
     var state = new Observable(value);
     return ObservableUser.node({
       observable: state,
@@ -299,9 +299,9 @@ class Observable<T> implements Disposable {
   }
 
   /**
-    Map this Observable into a VNode.
+    Map this Observable into a Widget.
   **/
-  public inline function mapToVNode(build) {
+  public inline function render(build) {
     return ObservableUser.node({
       observable: this,
       build: build
@@ -311,7 +311,7 @@ class Observable<T> implements Disposable {
 
 private class ObservableUser<T> extends Component {
   @prop(onChange = cleanupLink()) var observable:Observable<T>;
-  @prop var build:(value:Null<T>)->VNode;
+  @prop var build:(value:Null<T>)->Widget;
   var link:Null<Disposable> = null;
   var value:Null<T> = null;
 
@@ -321,7 +321,7 @@ private class ObservableUser<T> extends Component {
     var first = true;
     link = observable.observe(value -> {
       this.value = value;
-      if (!first) invalidateWidget();
+      if (!first) invalidateElement();
       first = false;
     });
   }

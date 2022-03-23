@@ -5,8 +5,7 @@ import impl.Node;
 import medic.TestableComponent;
 
 using Medic;
-using medic.VNodeAssert;
-using impl.Tools;
+using medic.WidgetAssert;
 
 class TestObservableResult implements TestCase {
   public function new() {}
@@ -39,7 +38,7 @@ class TestObservableResult implements TestCase {
           } ],
           test: result -> {
             var test = tests.shift();
-            if (test != null) test(result.stringifyWidget());
+            if (test != null) test(result.getObject().toString());
           }
         })
       )

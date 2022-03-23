@@ -1,4 +1,4 @@
-package blok.framework;
+package blok.ui;
 
 typedef Effect = ()->Void;
 

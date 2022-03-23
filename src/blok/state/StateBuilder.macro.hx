@@ -188,8 +188,8 @@ class StateBuilder {
         case TInst(t, _): haxe.macro.Type.TInst(t, cls.params.map(f -> f.t));
         default: throw 'assert';
       }).toComplexType();
-      var providerFactory = macro:(context:blok.context.Context)->blok.ui.VNode;
-      var observerFactory = macro:(data:$ct)->blok.ui.VNode;
+      var providerFactory = macro:(context:blok.context.Context)->blok.ui.Widget;
+      var observerFactory = macro:(data:$ct)->blok.ui.Widget;
 
       builder.addFields([
         {
@@ -198,7 +198,7 @@ class StateBuilder {
           access: [ APublic, AStatic ],
           kind: FFun({
             params: createParams,
-            ret: macro:blok.ui.VNode,
+            ret: macro:blok.ui.Widget,
             args: [
               { name: 'props', type: macro:$propType },
               { name: 'build', type: macro:$providerFactory }
@@ -219,12 +219,12 @@ class StateBuilder {
           access: [ APublic, AStatic, AInline ],
           kind: FFun({
             params: createParams,
-            ret: macro:blok.ui.VNode,
+            ret: macro:blok.ui.Widget,
             args: [
               { name: 'context', type: macro:blok.context.Context },
               { name: 'build', type: macro:$observerFactory }
             ],
-            expr: macro return from(context).getObservable().mapToVNode(build)
+            expr: macro return from(context).getObservable().render(build)
           })
         },
 
@@ -234,7 +234,7 @@ class StateBuilder {
           access: [ APublic, AStatic, AInline ],
           kind: FFun({
             params: createParams,
-            ret: macro:blok.ui.VNode,
+            ret: macro:blok.ui.Widget,
             args: [
               { name: 'build', type: macro:$observerFactory }
             ],

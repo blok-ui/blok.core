@@ -19,6 +19,7 @@ class ComponentBuilder {
     var props:Array<Field> = [];
     var updateProps:Array<Field> = [];
     var updates:Array<Expr> = [];
+    var comparisons:Array<Expr> = [];
     var initializers:Array<ObjectField> = [];
     var initHooks:Array<Expr> = [];
     var disposeHooks:Array<Expr> = [];
@@ -46,30 +47,12 @@ class ComponentBuilder {
       });
     }
 
-    builder.addClassMetaHandler({
-      name: 'lazy',
-      hook: After,
-      options: [],
-      build: function (options:{}, builder, fields) {
-        if (fields.exists(f -> f.name == 'shouldInvalidate')) {
-          Context.error(
-            'Cannot use @lazy and a custom shouldInvalidate method',
-            fields.find(f -> f.name == 'shouldInvalidate').pos
-          );
-        }
-        builder.add(macro class {
-          override function shouldInvalidate():Bool {
-            return currentRevision > lastRevision;
-          }
-        });
-      } 
-    });
-
     builder.addFieldMetaHandler(
       createPropFieldHandler(
         addProp,
         (name, expr) -> initializers.push({ field: name, expr: expr }),
         initHooks.push,
+        comparisons.push,
         updates.push
       )
     );
@@ -110,7 +93,7 @@ class ComponentBuilder {
             } 
           });
 
-          updates.push(macro this.$backingName = null);
+          // updates.push(macro this.$backingName = null);
         default:
           Context.error('@use can only be used on vars', field.pos);
       }
@@ -227,8 +210,36 @@ class ComponentBuilder {
               { name: 'props', type: macro:$propType },
               { name: 'key', type: macro:Null<blok.ui.Key>, opt: true }
             ],
-            expr: macro return new blok.ui.ComponentWidget(type, props, widget -> new $clsTp(widget), key),
+            expr: macro return new blok.ui.ComponentWidget(
+              type,
+              props,
+              compareWidgets,
+              widget -> new $clsTp(widget),
+              key
+            ),
             ret: macro:blok.ui.Widget
+          })
+        },
+
+        {
+          name: 'compareWidgets',
+          access: [ AStatic, APublic ],
+          pos: (macro null).pos,
+          meta: [],
+          kind: FFun({
+            params: createParams,
+            args: [
+              { name: 'oldWidget', type: macro:blok.ui.ComponentWidget<$propType> },
+              { name: 'newWidget', type: macro:blok.ui.ComponentWidget<$propType> },
+            ],
+            ret: macro:Bool,
+            expr: macro {
+              var $PROPS:$propType = oldWidget.props;
+              var $INCOMING_PROPS:$propType = newWidget.props;
+              var changed:Int = 0;
+              $b{comparisons};
+              return changed > 0;
+            }
           })
         }
       ]);
@@ -257,10 +268,11 @@ class ComponentBuilder {
         });
       }
 
-      if (beforeHooks.length > 0) {
+      if (beforeHooks.length > 0 || updates.length > 0) {
         builder.add(macro class {
           override function performRender() {
             $b{beforeHooks}
+            $b{updates};
             return super.performRender();
           }
         });
@@ -285,22 +297,7 @@ class ComponentBuilder {
       }
 
       return macro class {
-        @:noCompletion
         static public final type = new blok.core.UniqueId();
-
-        @:noCompletion
-        function updateWidget(props:Dynamic) {
-          var widget:blok.ui.ComponentWidget<$propType> = cast this.widget;
-          var $PROPS = widget.props;
-          var $INCOMING_PROPS:$updateType = cast props;
-          lastRevision = currentRevision;
-
-          $b{updates};
-
-          if (currentRevision > lastRevision) {
-            this.widget = widget.withProperties($i{PROPS});
-          }
-        }
       }
     });
     
@@ -313,6 +310,7 @@ function createPropFieldHandler(
   addProp:(name:String, type:ComplexType, isOptional:Bool)->Void,
   addInitializer:(name:String, expr:Expr)->Void,
   addInitHook:(expr:Expr)->Void,
+  addCompareHook:(expr:Expr)->Void,
   addUpdateHook:(expr:Expr)->Void,
   ?extra:(f:Field)->Void
 ):FieldMetaHandler<{ 
@@ -323,11 +321,9 @@ function createPropFieldHandler(
     name: 'prop',
     hook: Normal,
     options: [
-      { name: 'comparator', optional: true, handleValue: e -> e },
-      { name: 'onChange', optional: true, handleValue: e -> e }
+      { name: 'comparator', optional: true, handleValue: e -> e }
     ],
-    build: function (options:{ 
-      ?onChange:Expr,
+    build: function (options:{
       ?comparator:Expr 
     }, builder, f) switch f.kind {
       case FVar(t, e):
@@ -340,9 +336,6 @@ function createPropFieldHandler(
         var comparator = options.comparator != null
           ? macro (@:pos(options.comparator.pos) ${options.comparator})
           : macro (a != b);
-        var onChange:Array<Expr> = options.onChange != null
-          ? [ macro @:pos(options.onChange.pos) ${options.onChange} ]
-          : [];
         var init = e == null
           ? macro $i{INCOMING_PROPS}.$name
           : macro $i{INCOMING_PROPS}.$name == null ? @:pos(e.pos) ${e} : $i{INCOMING_PROPS}.$name;
@@ -355,29 +348,10 @@ function createPropFieldHandler(
 
         addProp(name, t, e != null);
         addInitializer(name, init);
-        
-        if (onChange.length > 0 ) {
-          addInitHook(macro {
-            var prev = null;
-            var value = (cast widget:blok.ui.ComponentWidget<Dynamic>).props.$name;
-            $b{onChange};
-          });
-        }
 
-        addUpdateHook(macro {
-          if (Reflect.hasField($i{INCOMING_PROPS}, $v{name})) {
-            switch [
-              $i{PROPS}.$name, 
-              $i{INCOMING_PROPS}.$name 
-            ] {
-              case [ a, b ] if (!${comparator}):
-                // noop
-              case [ prev, value ]:
-                currentRevision++;
-                $i{PROPS}.$name = value;
-                $b{onChange}
-            }
-          }
+        addCompareHook(macro switch [ $i{PROPS}.$name, $i{INCOMING_PROPS}.$name ] {
+          case [ a, b ] if (!${comparator}):
+          default: changed++;
         });
 
         if (extra != null) extra(f);

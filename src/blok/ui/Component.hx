@@ -5,11 +5,8 @@ import blok.core.Debug;
 @:autoBuild(blok.ui.ComponentBuilder.build())
 abstract class Component extends Element {
   var childElement:Null<Element> = null;
-  var currentRevision:Int = 0;
-  var lastRevision:Int = 0;
 
   abstract function render():Widget;
-  abstract function updateWidget(props:Dynamic):Void;
 
   override function mount(parent:Element, ?slot:Slot) {
     super.mount(parent, slot);
@@ -18,10 +15,10 @@ abstract class Component extends Element {
 
   override function update(widget:Widget) {
     Debug.assert(lifecycle != Building);
-    // @todo: We need to rethink this -- right now, we basically create three
-    // widgets per update.
-    updateWidget((cast widget:ComponentWidget<Dynamic>).props);
-    if (shouldInvalidate()) performBuild();
+    if ((cast this.widget:ComponentWidget<Dynamic>).hasChanged(widget)) {
+      this.widget = widget;
+      performBuild();
+    }
     lifecycle = Valid;
   }
 
@@ -49,15 +46,14 @@ abstract class Component extends Element {
     lifecycle = Valid;
   }
 
-  function shouldInvalidate():Bool {
-    return true;
-    // return currentRevision > lastRevision;
-  }
-
   function updateWidgetAndInvalidateElement(props:Dynamic) {
     Debug.assert(status == Active);
     Debug.assert(lifecycle != Building);
-    updateWidget(props);
-    if (shouldInvalidate()) invalidateElement();
+    var comp:ComponentWidget<Dynamic> = cast widget;
+    var newWidget = comp.withProperties(props);
+    if (comp.hasChanged(newWidget)) {
+      widget = newWidget;
+      invalidateElement();
+    } 
   }
 }

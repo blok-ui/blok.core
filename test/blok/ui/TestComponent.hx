@@ -220,7 +220,6 @@ class SimpleComponent extends Component {
   }
 }
 
-@lazy
 class LazyComponent extends Component {
   @prop var foo:String;
   @prop var bar:String;

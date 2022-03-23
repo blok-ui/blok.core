@@ -66,7 +66,7 @@ abstract class Element implements Disposable implements DisposableHost {
     var object:Dynamic = null;
     
     function visit(element:Element) {
-      Debug.assert(object == null); // Check we don't find more than one object.
+      Debug.assert(object == null, 'Element has more than one objects');
       if (element.status == Disposed) return;
       switch Std.downcast(element, ObjectElement) {
         case null: element.visitChildren(visit);
@@ -75,7 +75,7 @@ abstract class Element implements Disposable implements DisposableHost {
     }
     visit(this);
     
-    Debug.assert(object != null, 'No object could be found');
+    Debug.assert(object != null, 'Element does not have an object');
 
     return object;
   }
@@ -117,7 +117,7 @@ abstract class Element implements Disposable implements DisposableHost {
       if (child.widget == widget) {
         if (child.slot != slot) updateSlotForChild(child, slot);
         child;
-      } else if (child.widget.canBeUpdated(widget)) {
+      } else if (child.widget.shouldBeUpdated(widget)) {
         if (child.slot != slot) updateSlotForChild(child, slot);
         child.update(widget);
         child;
@@ -147,7 +147,7 @@ abstract class Element implements Disposable implements DisposableHost {
     while ((oldHead <= oldTail) && (newHead <= newTail)) {
       var oldChild = oldChildren[oldHead];
       var newWidget = newWidgets[newHead];
-      if (oldChild == null || !oldChild.widget.canBeUpdated(newWidget)) {
+      if (oldChild == null || !oldChild.widget.shouldBeUpdated(newWidget)) {
         break;
       }
 
@@ -162,7 +162,7 @@ abstract class Element implements Disposable implements DisposableHost {
     while ((oldHead <= oldTail) && (newHead <= newTail)) {
       var oldChild = oldChildren[oldTail];
       var newWidget = newWidgets[newTail];
-      if (oldChild == null || !oldChild.widget.canBeUpdated(newWidget)) {
+      if (oldChild == null || !oldChild.widget.shouldBeUpdated(newWidget)) {
         break;
       }
       oldTail -= 1;
@@ -202,7 +202,7 @@ abstract class Element implements Disposable implements DisposableHost {
         if (key != null) {
           oldChild = oldKeyedChildren.get(key);
           if (oldChild != null) {
-            if (oldChild.widget.canBeUpdated(newWidget)) {
+            if (oldChild.widget.shouldBeUpdated(newWidget)) {
               // We do -- remove a keyed child from the list so we don't 
               // unsync it later.
               oldKeyedChildren.remove(key);

@@ -12,7 +12,7 @@ abstract class Widget {
   abstract public function getWidgetType():UniqueId;
   abstract public function createElement():Element;
 
-  public function canBeUpdated(newWidget:Widget):Bool {
+  public function shouldBeUpdated(newWidget:Widget):Bool {
     return getWidgetType() == newWidget.getWidgetType() && key == newWidget.key;
   }
 }

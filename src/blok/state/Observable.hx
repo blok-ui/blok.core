@@ -310,14 +310,14 @@ class Observable<T> implements Disposable {
 }
 
 private class ObservableUser<T> extends Component {
-  @prop(onChange = cleanupLink()) var observable:Observable<T>;
+  @prop var observable:Observable<T>;
   @prop var build:(value:Null<T>)->Widget;
   var link:Null<Disposable> = null;
   var value:Null<T> = null;
 
   @before
   function track() {
-    if (link != null) return;
+    cleanupLink();
     var first = true;
     link = observable.observe(value -> {
       this.value = value;

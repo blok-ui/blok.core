@@ -35,6 +35,19 @@ class ObjectTools {
     return changed;
   }
 
+  public static function merge(props:Dynamic, other:Dynamic):Dynamic {
+    if (props == other) return props;
+    var obj:DynamicAccess<Dynamic> = {};
+    diffObject(props, other, (key, a, b) -> {
+      if (b == null) {
+        obj.set(key, a);
+      } else {
+        obj.set(key, b);
+      }
+    });
+    return obj;
+  }
+
   public static function hash(str:String):Int {
     var i = 0;
     var out = 11;

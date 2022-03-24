@@ -24,25 +24,17 @@ abstract class RootElement extends Element {
   override function mount(parent:Null<Element>, ?slot:Slot) {
     Debug.assert(parent == null, 'Root elements should not have a parent');
     status = Active;
+    lifecycle = Building;
+    buildElement(null);
     lifecycle = Valid;
-    performBuild();
   }
 
-  override function update(widget:Widget) {
-    this.widget = widget;
-    performBuild();
-  }
-
-  function rebuildElement() {
-    if (lifecycle != Invalid) return;
+  function buildElement(previousWidget:Widget) {
     performBuild();
   }
 
   function performBuild() {
-    Debug.assert(lifecycle != Building);
-    lifecycle = Building;
     child = updateChild(child, (cast widget:RootWidget).child, slot);
-    lifecycle = Valid;
   }
   
   function visitChildren(visitor:ElementVisitor) {

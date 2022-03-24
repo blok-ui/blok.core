@@ -50,6 +50,6 @@ abstract class Platform {
     invalidElements = [];
     rebuildScheduled = false;
 
-    for (el in elements) el.rebuildElement();
+    for (el in elements) el.rebuild();
   }
 }

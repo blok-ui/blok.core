@@ -117,10 +117,7 @@ class Observable<T> implements Disposable {
   **/
   public static function use<T>(value:T, build:(value:T, update:(value:T)->Void)->Widget) {
     var state = new Observable(value);
-    return ObservableUser.node({
-      observable: state,
-      build: value -> build(value, state.update)
-    });
+    return new ObservableWidget(state, value -> build(value, state.update));
   }
 
   final comparator:ObservableComparitor<T>;
@@ -302,37 +299,6 @@ class Observable<T> implements Disposable {
     Map this Observable into a Widget.
   **/
   public inline function render(build) {
-    return ObservableUser.node({
-      observable: this,
-      build: build
-    });
-  }
-}
-
-private class ObservableUser<T> extends Component {
-  @prop var observable:Observable<T>;
-  @prop var build:(value:Null<T>)->Widget;
-  var link:Null<Disposable> = null;
-  var value:Null<T> = null;
-
-  @before
-  function track() {
-    cleanupLink();
-    var first = true;
-    link = observable.observe(value -> {
-      this.value = value;
-      if (!first) invalidateElement();
-      first = false;
-    });
-  }
-
-  @dispose
-  function cleanupLink() {
-    if (link != null) link.dispose();
-    link = null;
-  }
-
-  function render() {
-    return build(value);
+    return new ObservableWidget(this, build);
   }
 }

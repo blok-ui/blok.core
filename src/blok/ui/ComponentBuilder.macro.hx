@@ -25,6 +25,7 @@ class ComponentBuilder {
     var disposeHooks:Array<Expr> = [];
     var beforeHooks:Array<Expr> = [];
     var effectHooks:Array<Expr> = [];
+    var isLazy:Bool = false;
 
     if (builder.cls.superClass.t.get().module != 'blok.ui.Component') {
       Context.error('Subclassing components is not supported', builder.cls.pos);
@@ -46,6 +47,15 @@ class ComponentBuilder {
         pos: (macro null).pos
       });
     }
+
+    builder.addClassMetaHandler({
+      name: 'lazy',
+      options: [],
+      hook: Init,
+      build: function (options:{}, builder, fields) {
+        isLazy = true;
+      }
+    });
 
     builder.addFieldMetaHandler(
       createPropFieldHandler(
@@ -213,33 +223,11 @@ class ComponentBuilder {
             expr: macro return new blok.ui.ComponentWidget(
               type,
               props,
-              compareWidgets,
+              // compareWidgets,
               widget -> new $clsTp(widget),
               key
             ),
             ret: macro:blok.ui.Widget
-          })
-        },
-
-        {
-          name: 'compareWidgets',
-          access: [ AStatic, APublic ],
-          pos: (macro null).pos,
-          meta: [],
-          kind: FFun({
-            params: createParams,
-            args: [
-              { name: 'oldWidget', type: macro:blok.ui.ComponentWidget<$propType> },
-              { name: 'newWidget', type: macro:blok.ui.ComponentWidget<$propType> },
-            ],
-            ret: macro:Bool,
-            expr: macro {
-              var $PROPS:$propType = oldWidget.props;
-              var $INCOMING_PROPS:$propType = newWidget.props;
-              var changed:Int = 0;
-              $b{comparisons};
-              return changed > 0;
-            }
           })
         }
       ]);
@@ -292,6 +280,24 @@ class ComponentBuilder {
           override function performBuild() {
             super.performBuild();
             platform.scheduleEffects(effects -> $b{effectHooks});
+          }
+        });
+      }
+
+      if (isLazy) {
+        builder.add(macro class {
+          function widgetHasChanged(current:blok.ui.Widget, previous:blok.ui.Widget) {
+            var $PROPS = (cast previous:blok.ui.ComponentWidget<$propType>).props;
+            var $INCOMING_PROPS = (cast current:blok.ui.ComponentWidget<$propType>).props;
+            var changed:Int = 0;
+            $b{comparisons};
+            return changed > 0;
+          }
+        });
+      } else {
+        builder.add(macro class {
+          function widgetHasChanged(current:blok.ui.Widget, previous:blok.ui.Widget) {
+            return true;
           }
         });
       }

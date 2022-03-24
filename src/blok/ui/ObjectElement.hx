@@ -1,7 +1,5 @@
 package blok.ui;
 
-import blok.core.Debug;
-
 class ObjectElement extends Element {
   var object:Null<Dynamic> = null;
   var children:Array<Element> = [];
@@ -22,13 +20,18 @@ class ObjectElement extends Element {
     return object;
   }
 
-  override function mount(parent:Null<Element>, ?slot:Slot) {
-    super.mount(parent, slot);
+  function buildElement(previousWidget:Null<Widget>) {
+    if (previousWidget == null) {
+      object = createObject();
+      platform.insert(object, slot, findAncestorObject);
+      initializeChildren();
+    } else {
+      if (previousWidget != widget) updateObject(previousWidget);
+      rebuildChildren();
+    }
+  }
 
-    lifecycle = Building;
-    object = createObject();
-    platform.insert(object, slot, findAncestorObject);
-
+  function initializeChildren() {
     var widgets = (cast widget:ObjectWidget).getChildren();
     var previous:Null<Element> = null;
     var children:Array<Element> = [];
@@ -40,32 +43,12 @@ class ObjectElement extends Element {
     }
 
     this.children = children;
-    lifecycle = Valid;
-  }
-
-  override function update(widget:Widget) {
-    if (this.widget == widget) return;
-
-    var oldWidget = this.widget;
-
-    super.update(widget);
-
-    updateObject(oldWidget);
-    rebuildChildren();
-  }
-
-  public function rebuildElement() {
-    if (lifecycle != Invalid) return;
-    updateObject(widget);
-    rebuildChildren();
   }
 
   function rebuildChildren() {
-    Debug.assert(lifecycle != Building);
     lifecycle = Building;
     var widgets = (cast widget:ObjectWidget).getChildren();
     children = diffChildren(children, widgets);
-    lifecycle = Valid;
   }
 
   override function updateSlot(slot:Slot) {

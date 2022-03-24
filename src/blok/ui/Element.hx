@@ -31,12 +31,44 @@ abstract class Element implements Disposable implements DisposableHost {
     this.widget = widget;
   }
 
-  public function addDisposable(disposable:Disposable) {
-    disposables.push(disposable);
+  public function mount(parent:Null<Element>, ?slot:Slot) {
+    this.parent = parent;
+    this.slot = slot;
+    platform = this.parent.platform;
+    status = Active;
+    lifecycle = Building;
+    buildElement(null);
+    lifecycle = Valid;
+  }
+  
+  public function update(widget:Widget) {
+    Debug.assert(lifecycle != Building);
+    lifecycle = Building;
+    var previousWidget = this.widget;
+    this.widget = widget;
+    buildElement(previousWidget);
+    lifecycle = Valid;
   }
 
-  public final inline function getWidget():Widget {
-    return widget;
+  public function rebuild() {
+    if (lifecycle != Invalid) return;
+    lifecycle = Building;
+    buildElement(widget);
+    lifecycle = Valid;
+  }
+
+  public function dispose() {
+    Debug.assert(status == Active);
+    
+    visitChildren(child -> child.dispose());
+
+    for (disposable in disposables) disposable.dispose();
+
+    status = Disposed;
+    parent = null;
+    platform = null;
+    widget = null;
+    slot = null;
   }
 
   public function invalidateElement() {
@@ -47,8 +79,18 @@ abstract class Element implements Disposable implements DisposableHost {
     platform.scheduleForRebuild(this);
   }
 
-  abstract public function rebuildElement():Void;
+  // @todo: Pasing in the *previous* instead of the *current* widget might be
+  //        a bit confusing. Perhaps we should pass in both?
+  abstract public function buildElement(previousWidget:Null<Widget>):Void;
   abstract public function visitChildren(visitor:ElementVisitor):Void;
+
+  public function addDisposable(disposable:Disposable) {
+    disposables.push(disposable);
+  }
+
+  public final inline function getWidget():Widget {
+    return widget;
+  }
 
   public function findAncestorOfType<T:Element>(kind:Class<T>):Option<T> {
     if (parent == null) {
@@ -78,34 +120,6 @@ abstract class Element implements Disposable implements DisposableHost {
     Debug.assert(object != null, 'Element does not have an object');
 
     return object;
-  }
-
-  public function mount(parent:Null<Element>, ?slot:Slot) {
-    this.parent = parent;
-    this.slot = slot;
-    platform = this.parent.platform;
-    status = Active;
-    lifecycle = Valid;
-  }
-
-  public function dispose() {
-    Debug.assert(status == Active);
-    
-    visitChildren(child -> child.dispose());
-
-    for (disposable in disposables) disposable.dispose();
-
-    status = Disposed;
-    parent = null;
-    platform = null;
-    widget = null;
-    slot = null;
-  }
-  
-  public function update(widget:Widget) {
-    Debug.assert(lifecycle != Building);
-    this.widget = widget;
-    lifecycle = Valid;
   }
 
   function updateChild(?child:Element, ?widget:Widget, ?slot:Slot):Null<Element> {

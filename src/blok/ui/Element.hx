@@ -32,6 +32,9 @@ abstract class Element implements Disposable implements DisposableHost {
   }
 
   public function mount(parent:Null<Element>, ?slot:Slot) {
+    Debug.assert(status == Pending, 'Attempted to mount an already mounted Element');
+    Debug.assert(lifecycle == Invalid);
+
     this.parent = parent;
     this.slot = slot;
     platform = this.parent.platform;
@@ -43,6 +46,7 @@ abstract class Element implements Disposable implements DisposableHost {
   
   public function update(widget:Widget) {
     Debug.assert(lifecycle != Building);
+
     lifecycle = Building;
     var previousWidget = this.widget;
     this.widget = widget;
@@ -51,7 +55,10 @@ abstract class Element implements Disposable implements DisposableHost {
   }
 
   public function rebuild() {
+    Debug.assert(lifecycle != Building);
+    
     if (lifecycle != Invalid) return;
+
     lifecycle = Building;
     buildElement(widget);
     lifecycle = Valid;

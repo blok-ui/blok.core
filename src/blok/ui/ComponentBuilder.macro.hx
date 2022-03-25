@@ -53,6 +53,12 @@ class ComponentBuilder {
       options: [],
       hook: Init,
       build: function (options:{}, builder, fields) {
+        if (fields.exists(f -> f.name == 'widgetHasChanged')) {
+          Context.error(
+            'Cannot use @lazy and a custom widgetHasChanged method',
+            fields.find(f -> f.name == 'widgetHasChanged').pos
+          );
+        }
         isLazy = true;
       }
     });
@@ -223,7 +229,6 @@ class ComponentBuilder {
             expr: macro return new blok.ui.ComponentWidget(
               type,
               props,
-              // compareWidgets,
               widget -> new $clsTp(widget),
               key
             ),
@@ -286,18 +291,12 @@ class ComponentBuilder {
 
       if (isLazy) {
         builder.add(macro class {
-          function widgetHasChanged(current:blok.ui.Widget, previous:blok.ui.Widget) {
+          override function widgetHasChanged(current:blok.ui.Widget, previous:blok.ui.Widget) {
             var $PROPS = (cast previous:blok.ui.ComponentWidget<$propType>).props;
             var $INCOMING_PROPS = (cast current:blok.ui.ComponentWidget<$propType>).props;
             var changed:Int = 0;
             $b{comparisons};
             return changed > 0;
-          }
-        });
-      } else {
-        builder.add(macro class {
-          function widgetHasChanged(current:blok.ui.Widget, previous:blok.ui.Widget) {
-            return true;
           }
         });
       }

@@ -40,7 +40,7 @@ class ObservableElement<T> extends Element {
     if (childElement != null) visitor.visit(childElement);
   }
 
-	public function buildElement(previousWidget:Null<Widget>) {
+  public function buildElement(previousWidget:Null<Widget>) {
     if (previousWidget == null) {
       track();
       performBuild();
@@ -51,7 +51,6 @@ class ObservableElement<T> extends Element {
       var oldObs:ObservableWidget<T> = cast previousWidget;
 
       if (obs.observable != oldObs.observable) {
-        cleanupLink();
         track();
       }
 
@@ -60,8 +59,11 @@ class ObservableElement<T> extends Element {
   }
 
   function track() {
+    cleanupLink();
+
     var obs:ObservableWidget<T> = cast widget;
     var first = true;
+    
     link = obs.observable.observe(value -> {
       this.value = value;
       if (!first) invalidateElement();
@@ -69,7 +71,7 @@ class ObservableElement<T> extends Element {
     });
   }
 
-  function cleanupLink() {
+  inline function cleanupLink() {
     if (link != null) link.dispose();
     link = null;
   }
@@ -77,5 +79,10 @@ class ObservableElement<T> extends Element {
   function performBuild() {
     var obs:ObservableWidget<T> = cast widget;
     childElement = updateChild(childElement, obs.build(value), slot);
+  }
+
+  override function dispose() {
+    super.dispose();
+    cleanupLink();
   }
 }

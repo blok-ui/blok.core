@@ -1,7 +1,7 @@
 package impl;
 
-import blok.ui.Widget;
 import blok.core.UniqueId;
+import blok.ui.Widget;
 import blok.ui.Element;
 import blok.ui.ObjectWidget;
 import blok.ui.ObjectElement;

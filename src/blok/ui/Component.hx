@@ -7,15 +7,16 @@ abstract class Component extends Element {
   var childElement:Null<Element> = null;
 
   abstract function render():Widget;
-  abstract function widgetHasChanged(current:Widget, previous:Widget):Bool;
+  
+  function widgetHasChanged(current:Widget, previous:Widget) {
+    return true;
+  }
 
   function buildElement(previousWidget:Null<Widget>) {
     if (previousWidget == null) {
       performFirstBuild();
     } else if (previousWidget != widget) {
-      if (widgetHasChanged(widget, previousWidget)) {
-        performBuild();
-      }
+      if (widgetHasChanged(widget, previousWidget)) performBuild();
     } else {
       performBuild();
     }
@@ -24,8 +25,10 @@ abstract class Component extends Element {
   function updateWidgetAndInvalidateElement(props:Dynamic) {
     Debug.assert(status == Active);
     Debug.assert(lifecycle != Building);
+
     var comp:ComponentWidget<Dynamic> = cast widget;
     var newWidget = comp.withProperties(props);
+
     if (widgetHasChanged(newWidget, comp)) {
       widget = newWidget;
       invalidateElement();

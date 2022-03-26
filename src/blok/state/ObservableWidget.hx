@@ -28,10 +28,6 @@ class ObservableWidget<T> extends Widget {
 }
 
 class ObservableElement<T> extends Element {
-  override function update(widget:Widget) {
-    super.update(widget);
-  }
-
   var link:Disposable = null;
   var value:Null<T> = null;
   var childElement:Null<Element> = null;

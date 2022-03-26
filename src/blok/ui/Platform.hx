@@ -1,13 +1,17 @@
 package blok.ui;
 
-import blok.ui.Effects;
+import blok.core.Debug;
 import blok.core.Scheduler;
+import blok.ui.Effects;
+
+typedef ScheduledUpdate = {
+  public final invalidElements:Array<Element>;
+  public final effects:Effects;
+}
 
 abstract class Platform {
-  var invalidElements:Array<Element> = [];
-  var rebuildScheduled:Bool = false;
-  var effects:Null<Effects> = null;
   final scheduler:Scheduler;
+  var currentUpdate:Null<ScheduledUpdate> = null;
 
   public function new(scheduler) {
     this.scheduler = scheduler;
@@ -28,31 +32,37 @@ abstract class Platform {
   }
 
   public function scheduleEffects(cb:(effects:Effects) -> Void) {
-    if (effects == null) {
-      effects = new Effects();
-      scheduler.schedule(() -> {
-        effects.dispatch();
-        effects = null;
-      });
-    }
-    cb(effects);
+    var update = getUpdate();
+    Debug.assert(update != null);
+    cb(update.effects);
   }
 
   public function scheduleForRebuild(element:Element) {
-    if (invalidElements.contains(element)) return;
-    invalidElements.push(element);
-    if (!rebuildScheduled) {
-      rebuildScheduled = true;
-      scheduler.schedule(rebuild);
+    var update = getUpdate();
+    Debug.assert(update != null);
+    if (!update.invalidElements.contains(element)) {
+      update.invalidElements.push(element);
     }
   }
 
-  function rebuild() {
-    var elements = invalidElements.copy();
-    
-    invalidElements = [];
-    rebuildScheduled = false;
+  function getUpdate() {
+    if (currentUpdate == null) enqueueUpdate();
+    return currentUpdate;
+  }
 
-    for (el in elements) el.rebuild();
+  inline function enqueueUpdate() {
+    Debug.assert(currentUpdate == null);
+    
+    currentUpdate = {
+      invalidElements: [],
+      effects: new Effects()
+    };
+
+    scheduler.schedule(() -> {
+      var update = currentUpdate;
+      currentUpdate = null;
+      for (el in update.invalidElements) el.rebuild();
+      update.effects.dispatch();
+    });
   }
 }

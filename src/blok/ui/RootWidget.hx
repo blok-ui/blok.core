@@ -9,4 +9,10 @@ abstract class RootWidget extends Widget {
     this.platform = platform;
     this.child = child;
   }
+
+  abstract public function resolveRootObject():Dynamic;
+
+  public function createElement():Element {
+    return new RootElement(this);
+  }
 }

@@ -4,12 +4,13 @@ import blok.ui.Effects;
 import blok.ui.RootElement;
 import blok.ui.ObjectWidget;
 
+// Note: most platforms should be able to just implement
+// the RootWidget and ignore needing a custom RootElement.
+//
+// @todo: It would probably be a good idea to integrate Effects
+// into the Element lifecycle better.
 class TestingRootElement extends RootElement {
   var effects:Effects = null;
-
-  function resolveRootObject():Dynamic {
-    return (cast widget:TestingRootWidget).object;
-  }
 
   public function setChild(widget:ObjectWidget, ?next:Effect) {
     var prev:TestingRootWidget = cast this.widget;

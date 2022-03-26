@@ -18,7 +18,11 @@ class TestingRootWidget extends RootWidget {
     return type;
   }
 
-  public function createElement():Element {
+  override function createElement():Element {
     return new TestingRootElement(this);
+  }
+
+  public function resolveRootObject():Dynamic {
+    return object;
   }
 }

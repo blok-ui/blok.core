@@ -2,7 +2,7 @@ package blok.ui;
 
 import blok.core.Debug;
 
-abstract class RootElement extends ObjectElement {
+class RootElement extends ObjectElement {
   var child:Null<Element> = null;
 
   public function new(root:RootWidget) {
@@ -15,10 +15,8 @@ abstract class RootElement extends ObjectElement {
     mount(null);
   }
 
-  abstract function resolveRootObject():Dynamic;
-
   override function getObject():Dynamic {
-    return resolveRootObject();
+    return (cast widget:RootWidget).resolveRootObject();
   }
 
   override function mount(parent:Null<Element>, ?slot:Slot) {

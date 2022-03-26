@@ -14,6 +14,7 @@ function main() {
   runner.add(new blok.state.TestState());
 
   runner.add(new blok.ui.TestComponent());
+  runner.add(new blok.ui.TestFragment());
 
   runner.add(new blok.context.TestContext());
   runner.add(new blok.context.TestService());

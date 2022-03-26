@@ -111,6 +111,13 @@ abstract class Element implements Disposable implements DisposableHost {
     }
   }
 
+  function findAncestorObject():Dynamic {
+    return switch findAncestorOfType(ObjectElement) {
+      case None: throw 'Unable to find ObjectElement ancestor.';
+      case Some(root): root.getObject();
+    }
+  }
+
   public function getObject():Dynamic {
     var object:Dynamic = null;
     
@@ -153,6 +160,7 @@ abstract class Element implements Disposable implements DisposableHost {
 
   function updateSlot(slot:Slot) {
     this.slot = slot;
+    visitChildren(child -> child.updateSlot(slot));
   }
 
   function diffChildren(oldChildren:Array<Element>, newWidgets:Array<Widget>) {
@@ -172,7 +180,7 @@ abstract class Element implements Disposable implements DisposableHost {
         break;
       }
 
-      var newChild = updateChild(oldChild, newWidget, new Slot(newHead, previousChild));
+      var newChild = updateChild(oldChild, newWidget, createSlotForChild(newHead, previousChild));
       newChildren[newHead] = newChild;
       previousChild = newChild;
       newHead += 1;
@@ -235,7 +243,7 @@ abstract class Element implements Disposable implements DisposableHost {
         }
       }
 
-      var newChild = updateChild(oldChild, newWidget, new Slot(newHead, previousChild));
+      var newChild = updateChild(oldChild, newWidget, createSlotForChild(newHead, previousChild));
       newChildren[newHead] = newChild;
       previousChild = newChild;
       newHead += 1;
@@ -248,7 +256,7 @@ abstract class Element implements Disposable implements DisposableHost {
     while ((oldHead <= oldTail) && (newHead <= newTail)) {
       var oldChild = oldChildren[oldHead];
       var newWidget = newWidgets[newHead];
-      var newChild = updateChild(oldChild, newWidget, new Slot(newHead, previousChild));
+      var newChild = updateChild(oldChild, newWidget, createSlotForChild(newHead, previousChild));
       newChildren[newHead] = newChild;
       previousChild = newChild;
       newHead += 1;
@@ -265,13 +273,7 @@ abstract class Element implements Disposable implements DisposableHost {
   }
 
   function updateSlotForChild(child:Element, slot:Slot) {
-    function visit(element:Element) {
-      element.updateSlot(slot);
-      if (!(element is ObjectElement)) {
-        element.visitChildren(visit);
-      }
-    }
-    visit(child);
+    child.updateSlot(slot);
   }
 
   function removeChild(child:Element) {
@@ -282,5 +284,9 @@ abstract class Element implements Disposable implements DisposableHost {
     var element = widget.createElement();
     element.mount(this, slot);
     return element;
+  }
+
+  function createSlotForChild(index:Int, previous:Null<Element>) {
+    return new Slot(index, previous);
   }
 }

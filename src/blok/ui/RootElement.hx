@@ -2,7 +2,7 @@ package blok.ui;
 
 import blok.core.Debug;
 
-abstract class RootElement extends Element {
+abstract class RootElement extends ObjectElement {
   var child:Null<Element> = null;
 
   public function new(root:RootWidget) {

@@ -13,9 +13,12 @@ abstract class Platform {
     this.scheduler = scheduler;
   }
   
-  abstract public function insert(object:Dynamic, slot:Null<Slot>, findParent:()->Dynamic):Void;
-  abstract public function move(object:Dynamic, from:Null<Slot>, to:Null<Slot>, findParent:()->Dynamic):Void;
-  abstract public function remove(object:Dynamic, slot:Null<Slot>):Void;
+  abstract public function insertObject(object:Dynamic, slot:Null<Slot>, findParent:()->Dynamic):Void;
+  abstract public function moveObject(object:Dynamic, from:Null<Slot>, to:Null<Slot>, findParent:()->Dynamic):Void;
+  abstract public function removeObject(object:Dynamic, slot:Null<Slot>):Void;
+  abstract public function updateObject(object:Dynamic, newWidget:ObjectWidget, oldWidget:Null<ObjectWidget>):Dynamic;
+  abstract public function createObjectForWidget(widget:ObjectWidget):Dynamic;
+  abstract public function createPlaceholderObjectForWidget(widget:Widget):Dynamic;
 
   public function mountRootWidget(widget:RootWidget, ?effect:Effect) {
     var element:RootElement = cast widget.createElement();

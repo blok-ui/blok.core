@@ -196,7 +196,7 @@ class TestComponent implements TestCase {
   }
 
   function render(root:TestingRootElement, widget:Widget, ?next) {
-    root.setChild(Node.fragment(widget), next);
+    root.setChild(Node.wrap(widget), next);
   }
 }
 

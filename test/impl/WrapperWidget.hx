@@ -4,9 +4,9 @@ import blok.core.UniqueId;
 import blok.ui.Widget;
 import blok.ui.Element;
 import blok.ui.ObjectWidget;
-import blok.ui.ObjectElement;
+import blok.ui.SingleObjectElement;
 
-class FragmentWidget extends ObjectWidget {
+class WrapperWidget extends ObjectWidget {
   public static final type = new UniqueId();
 
   final children:Array<Widget>;
@@ -25,7 +25,7 @@ class FragmentWidget extends ObjectWidget {
   }
 
   public function createElement():Element {
-    return new ObjectElement(this);
+    return new SingleObjectElement(this);
   }
 
   public function createObject():Dynamic {

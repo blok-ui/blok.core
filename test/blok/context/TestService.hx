@@ -107,11 +107,11 @@ class TestService implements TestCase {
     Node.fragment(
       UsesSimpleService.node({}), // Should use default
       Provider.node({
-        service: new SimpleService('bar'),
+        service: new SimpleService('simple'),
         build: _ -> Node.fragment(
           UsesSimpleService.node({}), // should use provided service
           Provider.node({
-            service: new OtherService('bin'),
+            service: new OtherService('other'),
             build: context -> Node.text(
               SimpleService.from(context).value + ' ' // Should be from outer scope
               + OtherService.from(context).value
@@ -119,7 +119,7 @@ class TestService implements TestCase {
           })
         )
       })
-    ).renders('default bar bar bin', done);
+    ).renders('default simple simple other', done);
   }
 
   @:test('Services can be optional')

@@ -3,9 +3,9 @@ package impl;
 import blok.ui.Widget;
 import blok.ui.Element;
 import blok.ui.Slot;
-import blok.ui.SingleObjectElement;
+import blok.ui.ObjectWithoutChildrenElement;
 
-class TextElement extends SingleObjectElement {
+class TextElement extends ObjectWithoutChildrenElement {
   override function mount(parent:Null<Element>, ?slot:Slot) {
     super.mount(parent, slot);
     registerRef();

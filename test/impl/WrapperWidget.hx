@@ -4,7 +4,7 @@ import blok.core.UniqueId;
 import blok.ui.Widget;
 import blok.ui.Element;
 import blok.ui.ObjectWidget;
-import blok.ui.SingleObjectElement;
+import blok.ui.ObjectWithChildrenElement;
 
 class WrapperWidget extends ObjectWidget {
   public static final type = new UniqueId();
@@ -25,7 +25,7 @@ class WrapperWidget extends ObjectWidget {
   }
 
   public function createElement():Element {
-    return new SingleObjectElement(this);
+    return new ObjectWithChildrenElement(this);
   }
 
   public function createObject():Dynamic {

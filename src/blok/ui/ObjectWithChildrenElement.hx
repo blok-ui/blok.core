@@ -1,20 +1,7 @@
 package blok.ui;
 
-class SingleObjectElement extends ObjectElement {
-  var object:Null<Dynamic> = null;
+class ObjectWithChildrenElement extends ObjectElement {
   var children:Array<Element> = [];
-
-  override function getObject():Dynamic {
-    return object;
-  }
-
-  public function createObject():Dynamic {
-    return platform.createObjectForWidget(cast widget);
-  }
-
-  public function updateObject(?oldWidget:Widget) {
-    object = platform.updateObject(object, cast widget, cast oldWidget);
-  }
 
   public function getChildren() {
     return children.copy();

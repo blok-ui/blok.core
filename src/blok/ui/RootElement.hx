@@ -15,8 +15,8 @@ class RootElement extends ObjectElement {
     mount(null);
   }
 
-  override function getObject():Dynamic {
-    return (cast widget:RootWidget).resolveRootObject();
+  override function createObject():Dynamic {
+    return (cast widget:RootWidget).resolveRootObject(); 
   }
 
   override function mount(parent:Null<Element>, ?slot:Slot) {
@@ -27,7 +27,12 @@ class RootElement extends ObjectElement {
     lifecycle = Valid;
   }
 
-  function buildElement(previousWidget:Widget) {
+  function buildElement(previousWidget:Null<Widget>) {
+    if (previousWidget == null) {
+      object = createObject();
+    } else {
+      if (previousWidget != widget) updateObject(previousWidget);
+    }
     performBuild();
   }
 

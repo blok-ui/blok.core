@@ -44,10 +44,26 @@ abstract class Component extends Element {
   }
 
   function performFirstBuild() {
+    performInit();
     performBuildChild();
   }
 
   function performBuildChild() {
+    performBefore();
     childElement = updateChild(childElement, performRender(), slot);
+    performEffects();
   }
+
+  function performHydrate(cursor:HydrationCursor):Void {
+    performInit();
+    performBefore();
+    childElement = hydrateElementForWidget(cursor, performRender(), slot);
+    performEffects();
+  }
+
+  @:noCompletion function performInit() {}
+
+  @:noCompletion function performBefore() {}
+
+  @:noCompletion function performEffects() {}
 }

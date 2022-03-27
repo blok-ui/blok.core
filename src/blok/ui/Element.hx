@@ -32,6 +32,20 @@ abstract class Element implements Disposable implements DisposableHost {
   }
 
   public function mount(parent:Null<Element>, ?slot:Slot) {
+    performSetup(parent, slot);
+    lifecycle = Building;
+    performBuild(null);
+    lifecycle = Valid;
+  }
+
+  public function hydrate(cursor:HydrationCursor, parent:Null<Element>, ?slot:Slot) {
+    performSetup(parent, slot);
+    lifecycle = Building;
+    performHydrate(cursor);
+    lifecycle = Valid;
+  }
+
+  function performSetup(parent:Null<Element>, ?slot:Slot) {
     Debug.assert(status == Pending, 'Attempted to mount an already mounted Element');
     Debug.assert(lifecycle == Invalid);
 
@@ -39,10 +53,6 @@ abstract class Element implements Disposable implements DisposableHost {
     this.slot = slot;
     platform = this.parent.platform;
     status = Active;
-
-    lifecycle = Building;
-    performBuild(null);
-    lifecycle = Valid;
   }
   
   public function update(widget:Widget) {
@@ -87,7 +97,8 @@ abstract class Element implements Disposable implements DisposableHost {
     platform.scheduleForRebuild(this);
   }
 
-  abstract public function performBuild(previousWidget:Null<Widget>):Void;
+  abstract function performHydrate(cursor:HydrationCursor):Void;
+  abstract function performBuild(previousWidget:Null<Widget>):Void;
   abstract public function visitChildren(visitor:ElementVisitor):Void;
 
   public function addDisposable(disposable:Disposable) {
@@ -283,6 +294,12 @@ abstract class Element implements Disposable implements DisposableHost {
   function createElementForWidget(widget:Widget, ?slot:Slot) {
     var element = widget.createElement();
     element.mount(this, slot);
+    return element;
+  }
+
+  function hydrateElementForWidget(cursor:HydrationCursor, widget:Widget, ?slot:Slot) {
+    var element = widget.createElement();
+    element.hydrate(cursor, this, slot);
     return element;
   }
 

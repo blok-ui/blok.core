@@ -1,5 +1,6 @@
 package blok.ui;
 
+import impl.TestingObject;
 import impl.TestingRootElement;
 import impl.TestingPlatform;
 import impl.Node;
@@ -79,6 +80,29 @@ class TestComponent implements TestCase {
     ];
 
     test('foo', 'bar', Some('foo | bar'))();
+  }
+
+  // @todo: this needs to be way more robust.
+  @:test('Hydration works')
+  @:test.async
+  public function testHydration(done) {
+    var root = new TestingObject('');
+    var object = new TestingObject('');
+    object.append(new TestingObject('foo'));
+    object.append(new TestingObject('bar'));
+    
+    root.append(object);
+    root.toString().equals('foo bar');
+
+    TestingPlatform
+      .hydrate(root, Node.wrap(
+        Node.text('foo'),
+        Node.text('bar')
+      ), (obj) -> {
+        (root == obj).isTrue();
+        obj.toString().equals('foo bar');
+        done();
+      });
   }
 
   @:test('Keys work')

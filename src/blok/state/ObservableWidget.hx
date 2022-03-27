@@ -1,5 +1,6 @@
 package blok.state;
 
+import blok.ui.HydrationCursor;
 import blok.core.Disposable;
 import blok.core.UniqueId;
 import blok.ui.Widget;
@@ -80,5 +81,11 @@ class ObservableElement<T> extends Element {
   override function dispose() {
     super.dispose();
     cleanupLink();
+  }
+
+  function performHydrate(cursor:HydrationCursor) {
+    var obs:ObservableWidget<T> = cast widget;
+    track();
+    childElement = hydrateElementForWidget(cursor, obs.build(value), slot);
   }
 }

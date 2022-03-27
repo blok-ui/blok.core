@@ -263,27 +263,24 @@ class ComponentBuilder {
 
       if (beforeHooks.length > 0 || updates.length > 0) {
         builder.add(macro class {
-          override function performRender() {
+          override function performBefore() {
             $b{beforeHooks}
             $b{updates};
-            return super.performRender();
           }
         });
       }
 
       if (initHooks.length > 0) {
         builder.add(macro class {
-          override function performFirstBuild() {
+          override function performInit() {
             $b{initHooks};
-            super.performFirstBuild();
           }
         });
       }
 
       if (effectHooks.length > 0) {
         builder.add(macro class {
-          override function performBuildChild() {
-            super.performBuildChild();
+          override function performEffects() {
             platform.scheduleEffects(effects -> $b{effectHooks});
           }
         });

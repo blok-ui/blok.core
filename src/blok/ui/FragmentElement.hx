@@ -48,6 +48,26 @@ class FragmentElement extends Element {
     this.children = children;
   }
 
+  function performHydrate(cursor:HydrationCursor) {
+    var widgets = (cast widget:FragmentWidget).getChildren();
+    var previous:Null<Element> = slot != null ? slot.previous : null;
+    var children:Array<Element> = [];
+
+    if (widgets.length == 0) {
+      marker = platform.createPlaceholderObjectForWidget(widget);
+      platform.insertObject(marker, slot, findAncestorObject);
+      return;
+    }
+    
+    for (i in 0...widgets.length) {
+      var element = hydrateElementForWidget(cursor, widgets[i], createSlotForChild(i, previous));
+      children.push(element);
+      previous = element;
+    }
+
+    this.children = children;
+  }
+
   function rebuildChildren() {
     var widgets = (cast widget:FragmentWidget).getChildren();
     children = diffChildren(children, widgets);

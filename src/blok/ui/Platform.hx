@@ -31,6 +31,13 @@ abstract class Platform {
     return element;
   }
 
+  public function hydrateRootWidget(cursor:HydrationCursor, widget:RootWidget, ?effect:Effect) {
+    var element:RootElement = cast widget.createElement();
+    if (effect != null) scheduleEffects(effects -> effects.register(effect));
+    element.hydrate(cursor, null);
+    return element;
+  }
+
   public function scheduleEffects(cb:(effects:Effects) -> Void) {
     var update = getUpdate();
     Debug.assert(update != null);

@@ -1,5 +1,7 @@
 package blok.ui;
 
+import blok.core.Debug;
+
 class ObjectWithChildrenElement extends ObjectElement {
   var children:Array<Element> = [];
 
@@ -16,6 +18,29 @@ class ObjectWithChildrenElement extends ObjectElement {
       if (previousWidget != widget) updateObject(previousWidget);
       rebuildChildren();
     }
+  }
+
+  function performHydrate(cursor:HydrationCursor) {
+    object = cursor.current();
+    Debug.assert(object != null);
+    updateObject(object);
+
+    var widgets = (cast widget:ObjectWidget).getChildren();
+    var objects = cursor.getCurrentChildren();
+    var children:Array<Element> = [];
+    var previous:Null<Element> = null;
+
+    for (i in 0...widgets.length) {
+      var element = hydrateElementForWidget(objects, widgets[i], createSlotForChild(i, previous));
+      children.push(element);
+      previous = element;
+    }
+
+    Debug.assert(objects.current() == null);
+    
+    cursor.next();
+
+    this.children = children;
   }
 
   function initializeChildren() {

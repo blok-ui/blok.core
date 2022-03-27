@@ -19,12 +19,11 @@ class RootElement extends ObjectElement {
     return (cast widget:RootWidget).resolveRootObject(); 
   }
 
-  override function mount(parent:Null<Element>, ?slot:Slot) {
+  override function performSetup(parent:Null<Element>, ?slot:Slot) {
     Debug.assert(parent == null, 'Root elements should not have a parent');
+    Debug.assert(platform != null, 'Root elements should get their platform from their widgets');
+    this.slot = slot;
     status = Active;
-    lifecycle = Building;
-    performBuild(null);
-    lifecycle = Valid;
   }
 
   function performBuild(previousWidget:Null<Widget>) {
@@ -34,6 +33,12 @@ class RootElement extends ObjectElement {
       if (previousWidget != widget) updateObject(previousWidget);
     }
     performBuildChild();
+  }
+
+  function performHydrate(cursor:HydrationCursor) {
+    object = cursor.current();
+    child = hydrateElementForWidget(cursor.getCurrentChildren(), (cast widget:RootWidget).child, slot);
+    cursor.next();
   }
 
   function performBuildChild() {

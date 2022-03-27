@@ -39,8 +39,9 @@ abstract class Element implements Disposable implements DisposableHost {
     this.slot = slot;
     platform = this.parent.platform;
     status = Active;
+
     lifecycle = Building;
-    buildElement(null);
+    performBuild(null);
     lifecycle = Valid;
   }
   
@@ -50,7 +51,7 @@ abstract class Element implements Disposable implements DisposableHost {
     lifecycle = Building;
     var previousWidget = this.widget;
     this.widget = widget;
-    buildElement(previousWidget);
+    performBuild(previousWidget);
     lifecycle = Valid;
   }
 
@@ -60,7 +61,7 @@ abstract class Element implements Disposable implements DisposableHost {
     if (lifecycle != Invalid) return;
 
     lifecycle = Building;
-    buildElement(widget);
+    performBuild(widget);
     lifecycle = Valid;
   }
 
@@ -78,7 +79,7 @@ abstract class Element implements Disposable implements DisposableHost {
     slot = null;
   }
 
-  public function invalidateElement() {
+  public function invalidate() {
     Debug.assert(status == Active);
     Debug.assert(lifecycle == Valid);
 
@@ -86,9 +87,7 @@ abstract class Element implements Disposable implements DisposableHost {
     platform.scheduleForRebuild(this);
   }
 
-  // @todo: Pasing in the *previous* instead of the *current* widget might be
-  //        a bit confusing. Perhaps we should pass in both?
-  abstract public function buildElement(previousWidget:Null<Widget>):Void;
+  abstract public function performBuild(previousWidget:Null<Widget>):Void;
   abstract public function visitChildren(visitor:ElementVisitor):Void;
 
   public function addDisposable(disposable:Disposable) {
@@ -141,6 +140,7 @@ abstract class Element implements Disposable implements DisposableHost {
       if (child != null) removeChild(child);
       return null;
     }
+    
     return if (child != null) {
       if (child.widget == widget) {
         if (child.slot != slot) updateSlotForChild(child, slot);
@@ -164,7 +164,7 @@ abstract class Element implements Disposable implements DisposableHost {
   }
 
   function diffChildren(oldChildren:Array<Element>, newWidgets:Array<Widget>) {
-    // More or less taken from: https://github.com/flutter/flutter/blob/6af40a7004f886c8b8b87475a40107611bc5bb0a/packages/flutter/lib/src/widgets/framework.dart#L5761
+    // Almost entirely taken from: https://github.com/flutter/flutter/blob/6af40a7004f886c8b8b87475a40107611bc5bb0a/packages/flutter/lib/src/widgets/framework.dart#L5761
     var newHead = 0;
     var oldHead = 0;
     var newTail = newWidgets.length - 1;

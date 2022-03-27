@@ -7,12 +7,9 @@ class FragmentElement extends Element {
   override function getObject():Dynamic {
     var child:Element = null;
 
-    // First, we need to find our last child.
     visitChildren(c -> child = c);
 
-    // If the child is null...
     if (child == null) {
-      // ...return our marker.
       if (marker == null) {
         marker = platform.createPlaceholderObjectForWidget(widget);
         platform.insertObject(marker, slot, findAncestorObject);
@@ -20,13 +17,10 @@ class FragmentElement extends Element {
       return marker;
     }
 
-    // Otherwise, we need the last object in our Fragment. This will
-    // ensure that the Slot for the next element will be placed 
-    // after this one.
     return child.getObject();
   }
 
-  public function buildElement(previousWidget:Null<Widget>) {
+  public function performBuild(previousWidget:Null<Widget>) {
     if (previousWidget == null) {
       initializeChildren();
     } else {

@@ -1,7 +1,7 @@
 package blok.ui;
 
 class ObjectWithoutChildrenElement extends ObjectElement {
-  public function buildElement(previousWidget:Null<Widget>) {
+  public function performBuild(previousWidget:Null<Widget>) {
     if (previousWidget == null) {
       object = createObject();
       platform.insertObject(object, slot, findAncestorObject);

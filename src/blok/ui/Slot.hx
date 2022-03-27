@@ -8,8 +8,4 @@ class Slot {
     this.index = index;
     this.previous = previous;
   }
-
-  public function getPreviousObject():Null<Dynamic> {
-    return previous != null ? previous.getObject() : null;
-  }
 }

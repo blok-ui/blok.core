@@ -7,7 +7,7 @@ class ObjectWithChildrenElement extends ObjectElement {
     return children.copy();
   }
 
-  function buildElement(previousWidget:Null<Widget>) {
+  function performBuild(previousWidget:Null<Widget>) {
     if (previousWidget == null) {
       object = createObject();
       platform.insertObject(object, slot, findAncestorObject);

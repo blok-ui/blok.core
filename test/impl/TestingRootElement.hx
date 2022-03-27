@@ -25,11 +25,11 @@ class TestingRootElement extends RootElement {
       widget
     );
 
-    invalidateElement();
+    invalidate();
   }
 
-  override function performBuild() {
-    super.performBuild();
+  override function performBuildChild() {
+    super.performBuildChild();
     if (effects != null) {
       var e = effects;
       effects = null;

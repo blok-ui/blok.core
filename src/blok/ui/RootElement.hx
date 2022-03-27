@@ -23,20 +23,20 @@ class RootElement extends ObjectElement {
     Debug.assert(parent == null, 'Root elements should not have a parent');
     status = Active;
     lifecycle = Building;
-    buildElement(null);
+    performBuild(null);
     lifecycle = Valid;
   }
 
-  function buildElement(previousWidget:Null<Widget>) {
+  function performBuild(previousWidget:Null<Widget>) {
     if (previousWidget == null) {
       object = createObject();
     } else {
       if (previousWidget != widget) updateObject(previousWidget);
     }
-    performBuild();
+    performBuildChild();
   }
 
-  function performBuild() {
+  function performBuildChild() {
     child = updateChild(child, (cast widget:RootWidget).child, slot);
   }
   

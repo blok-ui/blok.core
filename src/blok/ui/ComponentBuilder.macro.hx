@@ -109,7 +109,7 @@ class ComponentBuilder {
             } 
           });
 
-          // updates.push(macro this.$backingName = null);
+          updates.push(macro this.$backingName = null);
         default:
           Context.error('@use can only be used on vars', field.pos);
       }
@@ -282,8 +282,8 @@ class ComponentBuilder {
 
       if (effectHooks.length > 0) {
         builder.add(macro class {
-          override function performBuild() {
-            super.performBuild();
+          override function performBuildChild() {
+            super.performBuildChild();
             platform.scheduleEffects(effects -> $b{effectHooks});
           }
         });

@@ -19,7 +19,7 @@ class TestingPlatform extends Platform {
   public function insertObject(object:Dynamic, slot:Null<Slot>, findParent:()->Dynamic) {
     var obj:TestingObject = object;
     if (slot != null && slot.previous != null) {
-      var relative:TestingObject = slot.getPreviousObject();
+      var relative:TestingObject = slot.previous.getObject();
       var parent = relative.parent;
       var index = parent.children.indexOf(relative);
       parent.insert(index + 1, obj);
@@ -42,7 +42,7 @@ class TestingPlatform extends Platform {
       return;
     }
 
-    var relative:TestingObject = to.getPreviousObject();
+    var relative:TestingObject = to.previous.getObject();
     var parent = relative.parent;
     var index = parent.children.indexOf(relative);
 

@@ -12,13 +12,13 @@ abstract class Component extends Element {
     return true;
   }
 
-  function buildElement(previousWidget:Null<Widget>) {
+  function performBuild(previousWidget:Null<Widget>) {
     if (previousWidget == null) {
       performFirstBuild();
     } else if (previousWidget != widget) {
-      if (widgetHasChanged(widget, previousWidget)) performBuild();
+      if (widgetHasChanged(widget, previousWidget)) performBuildChild();
     } else {
-      performBuild();
+      performBuildChild();
     }
   }
 
@@ -31,7 +31,7 @@ abstract class Component extends Element {
 
     if (widgetHasChanged(newWidget, comp)) {
       widget = newWidget;
-      invalidateElement();
+      invalidate();
     } 
   }
 
@@ -44,10 +44,10 @@ abstract class Component extends Element {
   }
 
   function performFirstBuild() {
-    performBuild();
+    performBuildChild();
   }
 
-  function performBuild() {
+  function performBuildChild() {
     childElement = updateChild(childElement, performRender(), slot);
   }
 }

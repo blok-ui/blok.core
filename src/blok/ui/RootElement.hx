@@ -37,8 +37,10 @@ class RootElement extends ObjectElement {
 
   function performHydrate(cursor:HydrationCursor) {
     object = cursor.current();
-    child = hydrateElementForWidget(cursor.getCurrentChildren(), (cast widget:RootWidget).child, slot);
+    var objects = cursor.getCurrentChildren();
+    child = hydrateElementForWidget(objects, (cast widget:RootWidget).child, slot);
     cursor.next();
+    Debug.assert(objects.current() == null);
   }
 
   function performBuildChild() {

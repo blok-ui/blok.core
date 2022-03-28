@@ -57,19 +57,22 @@ abstract class Platform {
     return currentUpdate;
   }
 
-  inline function enqueueUpdate() {
+  function enqueueUpdate() {
     Debug.assert(currentUpdate == null);
-    
     currentUpdate = {
       invalidElements: [],
       effects: new Effects()
     };
+    scheduler.schedule(performUpdate);
+  }
 
-    scheduler.schedule(() -> {
-      var update = currentUpdate;
-      currentUpdate = null;
-      for (el in update.invalidElements) el.rebuild();
-      update.effects.dispatch();
-    });
+  function performUpdate() {
+    var update = currentUpdate;
+    currentUpdate = null;
+    
+    Debug.assert(update != null);
+
+    for (el in update.invalidElements) el.rebuild();
+    update.effects.dispatch();
   }
 }

@@ -1,7 +1,7 @@
 package blok.ui;
 
 import impl.TestingObject;
-import impl.TestingRootElement;
+import impl.TestingRootWidget;
 import impl.TestingPlatform;
 import impl.Node;
 import haxe.ds.Option;

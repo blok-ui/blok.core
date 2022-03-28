@@ -11,7 +11,7 @@ class FragmentElement extends Element {
 
     if (child == null) {
       if (marker == null) {
-        marker = platform.createPlaceholderObjectForWidget(widget);
+        marker = platform.createPlaceholderObject(widget);
         platform.insertObject(marker, slot, findAncestorObject);
       }
       return marker;
@@ -54,8 +54,10 @@ class FragmentElement extends Element {
     var children:Array<Element> = [];
 
     if (widgets.length == 0) {
-      marker = platform.createPlaceholderObjectForWidget(widget);
+      marker = platform.createPlaceholderObject(widget);
       platform.insertObject(marker, slot, findAncestorObject);
+      cursor.move(marker);
+      cursor.next();
       return;
     }
     

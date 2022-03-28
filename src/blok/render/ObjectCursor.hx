@@ -13,6 +13,11 @@ class ObjectCursor implements HydrationCursor {
     return object;
   }
 
+  public function currentChildren():HydrationCursor {
+    if (object == null) return new ObjectCursor(null);
+    return new ObjectCursor(object.children[0]);
+  }
+
   public function next() {
     if (object == null) return;
     if (object.parent == null) {
@@ -26,8 +31,7 @@ class ObjectCursor implements HydrationCursor {
     object = parent.children[index + 1];
   }
 
-  public function getCurrentChildren():HydrationCursor {
-    if (object == null) return new ObjectCursor(null);
-    return new ObjectCursor(object.children[0]);
+  public function move(current:Dynamic) {
+    object = current;
   }
 }

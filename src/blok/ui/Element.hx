@@ -77,6 +77,7 @@ abstract class Element implements Disposable implements DisposableHost {
 
   public function dispose() {
     Debug.assert(status == Active);
+    Debug.assert(lifecycle != Building);
     
     visitChildren(child -> child.dispose());
 
@@ -109,6 +110,14 @@ abstract class Element implements Disposable implements DisposableHost {
     return widget;
   }
 
+  public function queryAncestor(query:(parent:Element)->Bool):Option<Element> {
+    if (parent == null) {
+      return None;
+    }
+    if (query(parent)) return Some(parent);
+    return parent.queryAncestor(query);
+  }
+
   public function findAncestorOfType<T:Element>(kind:Class<T>):Option<T> {
     if (parent == null) {
       if (Std.isOfType(this, kind)) return Some(cast this);
@@ -126,6 +135,21 @@ abstract class Element implements Disposable implements DisposableHost {
       case None: throw 'Unable to find ObjectElement ancestor.';
       case Some(root): root.getObject();
     }
+  }
+
+  public function queryChildren(query:(child:Element)->Bool):Option<Array<Element>> {
+    var found:Array<Element> = [];
+    visitChildren(child -> if (query(child)) found.push(child));
+    return if (found.length == 0) None else Some(found);
+  }
+
+  public function findChildrenOfType<T:Element>(kind:Class<T>):Option<Array<T>> {
+    var found:Array<T> = [];
+    visitChildren(child -> switch Std.downcast(child, kind) {
+      case null:
+      case el: found.push(el);
+    });
+    return if (found.length == 0) None else Some(found);
   }
 
   public function getObject():Dynamic {

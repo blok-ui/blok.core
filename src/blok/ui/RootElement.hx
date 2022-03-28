@@ -37,7 +37,7 @@ class RootElement extends ObjectElement {
 
   function performHydrate(cursor:HydrationCursor) {
     object = cursor.current();
-    var objects = cursor.getCurrentChildren();
+    var objects = cursor.currentChildren();
     child = hydrateElementForWidget(objects, (cast widget:RootWidget).child, slot);
     cursor.next();
     Debug.assert(objects.current() == null);

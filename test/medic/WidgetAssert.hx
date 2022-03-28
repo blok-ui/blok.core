@@ -10,14 +10,14 @@ class WidgetAssert {
     TestingPlatform.mount(result, handler);
   }
 
-  public static function renders(vn:Widget, expected:String, next:()->Void, ?p:PosInfos) {
-    mount(vn, actual -> {
+  public static function renders(widget:Widget, expected:String, next:()->Void, ?p:PosInfos) {
+    mount(widget, actual -> {
       Assert.equals(actual.toString(), expected, p);
       next();
     });
   }
 
-  public static function renderWithoutAssert(vn:Widget) {
-    TestingPlatform.mount(vn);
+  public static function renderWithoutAssert(widget:Widget) {
+    TestingPlatform.mount(widget);
   }
 }

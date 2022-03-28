@@ -39,10 +39,16 @@ typedef ClassMetaHandler<Options:{}> = {
 
 class ClassBuilder {
   public inline static function fromContext() {
-    return new ClassBuilder(
-      Context.getLocalClass().get(),
-      Context.getBuildFields()
-    );
+    return switch BuilderHelpers.getBuildFieldsSafe() {
+      case Some(fields): 
+        new ClassBuilder(
+          Context.getLocalClass().get(),
+          fields
+        );
+      case None:
+        Context.error('Impossible to get builds fields now. Possible cause: https://github.com/HaxeFoundation/haxe/issues/9853', Context.currentPos());
+        null;
+    }
   }
 
   public final cls:ClassType;

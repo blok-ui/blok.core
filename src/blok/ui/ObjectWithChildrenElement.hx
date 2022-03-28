@@ -26,7 +26,7 @@ class ObjectWithChildrenElement extends ObjectElement {
     updateObject(object);
 
     var widgets = (cast widget:ObjectWidget).getChildren();
-    var objects = cursor.getCurrentChildren();
+    var objects = cursor.currentChildren();
     var children:Array<Element> = [];
     var previous:Null<Element> = null;
 

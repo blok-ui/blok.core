@@ -8,7 +8,7 @@ abstract class ObjectElement extends Element {
   }
 
   public function createObject():Dynamic {
-    return platform.createObjectForWidget(cast widget);
+    return platform.createObject(cast widget);
   }
 
   public function updateObject(?oldWidget:Widget) {

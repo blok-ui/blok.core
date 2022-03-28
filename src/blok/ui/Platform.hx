@@ -21,8 +21,8 @@ abstract class Platform {
   abstract public function moveObject(object:Dynamic, from:Null<Slot>, to:Null<Slot>, findParent:()->Dynamic):Void;
   abstract public function removeObject(object:Dynamic, slot:Null<Slot>):Void;
   abstract public function updateObject(object:Dynamic, newWidget:ObjectWidget, oldWidget:Null<ObjectWidget>):Dynamic;
-  abstract public function createObjectForWidget(widget:ObjectWidget):Dynamic;
-  abstract public function createPlaceholderObjectForWidget(widget:Widget):Dynamic;
+  abstract public function createObject(widget:ObjectWidget):Dynamic;
+  abstract public function createPlaceholderObject(widget:Widget):Dynamic;
 
   public function mountRootWidget(widget:RootWidget, ?effect:Effect) {
     var element:RootElement = cast widget.createElement();

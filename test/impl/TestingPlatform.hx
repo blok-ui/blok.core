@@ -4,6 +4,7 @@ import blok.render.ObjectCursor;
 import blok.core.DefaultScheduler;
 import blok.ui.Widget;
 import blok.render.Platform;
+import impl.TestingRootWidget;
 
 class TestingPlatform extends Platform {
   public static function mount(?child:Widget, ?handler:(result:TestingObject)->Void):TestingRootElement {
@@ -22,7 +23,7 @@ class TestingPlatform extends Platform {
     });
   }
 
-  public function createPlaceholderObjectForWidget(widget:Widget):Dynamic {
+  public function createPlaceholderObject(widget:Widget):Dynamic {
     return new TestingObject('');
   }
 }

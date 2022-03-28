@@ -47,7 +47,7 @@ abstract class Platform extends blok.ui.Platform {
     return newWidget.updateObject(object, oldWidget);
   }
 
-  public function createObjectForWidget(widget:ObjectWidget):Dynamic {
+  public function createObject(widget:ObjectWidget):Dynamic {
     return widget.createObject();
   }
 }

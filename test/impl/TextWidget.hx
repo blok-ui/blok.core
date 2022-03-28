@@ -3,6 +3,9 @@ package impl;
 import blok.core.UniqueId;
 import blok.ui.Widget;
 import blok.ui.ObjectWidget;
+import blok.ui.Element;
+import blok.ui.Slot;
+import blok.ui.ObjectWithoutChildrenElement;
 
 class TextWidget extends ObjectWidget {
   public static final type = new UniqueId();
@@ -35,5 +38,24 @@ class TextWidget extends ObjectWidget {
   public function updateObject(object:Dynamic, ?previousWidget:Widget):Dynamic {
     (object:TestingObject).content = content;
     return object;
+  }
+}
+
+class TextElement extends ObjectWithoutChildrenElement {
+  override function mount(parent:Null<Element>, ?slot:Slot) {
+    super.mount(parent, slot);
+    registerRef();
+  }
+
+  override function update(widget:Widget) {
+    super.update(widget);
+    registerRef();
+  }
+
+  inline function registerRef() {
+    var text:TextWidget = cast widget;
+    if (text.ref != null) platform.scheduleEffects(effects -> {
+      effects.register(() -> text.ref(object));
+    });
   }
 }

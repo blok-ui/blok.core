@@ -8,4 +8,8 @@ class Slot {
     this.index = index;
     this.previous = previous;
   }
+
+  public function indexChanged(other:Slot) {
+    return index != other.index;
+  }
 }

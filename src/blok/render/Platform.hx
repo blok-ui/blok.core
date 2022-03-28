@@ -24,6 +24,10 @@ abstract class Platform extends blok.ui.Platform {
     
     Debug.assert(to != null);
 
+    if (from != null && !from.indexChanged(to)) {
+      return;
+    }
+
     if (to.previous == null) {
       var parent:Object = findParent();
       Debug.assert(parent != null);

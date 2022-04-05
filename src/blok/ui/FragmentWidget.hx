@@ -43,7 +43,6 @@ class FragmentSlot extends Slot {
   }
 }
 
-
 class FragmentElement extends Element {
   var children:Array<Element>;
   var marker:Dynamic;
@@ -117,6 +116,12 @@ class FragmentElement extends Element {
   function rebuildChildren() {
     var widgets = (cast widget:FragmentWidget).getChildren();
     children = diffChildren(children, widgets);
+    
+    // @todo: Test to make sure this is a good idea.
+    if (children.length > 0 && marker != null) {
+      platform.removeObject(marker, slot);
+      marker = null;
+    }
   }
 
   override function updateSlot(slot:Slot) {
@@ -135,7 +140,7 @@ class FragmentElement extends Element {
   }
 
   override function dispose() {
-    super.dispose();
     if (marker != null) platform.removeObject(marker, slot);
+    super.dispose();
   }
 }

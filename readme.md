@@ -5,34 +5,41 @@ Blok's core functionality.
 
 > Note: Blok is currently a fun personal project and something that changes a lot. Most of the surface API is pretty stable, but use it at your own risk. Things may change at any moment.
 
-Using Blok
-----------
+Getting Started
+---------------
 
 Generally, you'll want to use one of Blok's Platforms instead of using `blok.core` directly. Currently, there are two platforms:
 
-| Platform             | Target                    |
-|----------------------|---------------------------|
+| Platform | Target |
+|----------|--------|
 | [blok.platform.dom](https://github.com/blok-ui/blok.platform.dom) | Web                       |
 | [blok.platform.static](https://github.com/blok-ui/blok.platform.static) | Servers / Html Generators |
 
 Blok is designed to be flexible, so there are plans for more platforms.
 
-Blok also provides some useful base components (like Routers and Portals) which are available here:
+Blok also has some other packages that provide more functionality:
 
 | Repository | Provides |
 |------------|----------|
-| [blok.core.foundation](https://github.com/blok-ui/blok.core.foundation) | Routing, Portals, Suspension (async rendering) |
+| [blok.core.foundation](https://github.com/blok-ui/blok.core.foundation) | Routing, Portals |
+| [blok.gen](https://github.com/blok-ui/blok.gen) | Static site generation |
 
+Using Blok
+----------
 
-Packages
---------
+Blok is a *declarative UI framework*, similar in concept to React and Flutter. It takes a tree of *Widgets* (or "VNodes", in React parlance) and uses them to build and re-build a UI. Blok is designed to be flexible, so the actual rendering of the UI is handled by a `blok.ui.Platform` (like the one that targets the DOM) which just needs a few simple functions to be implemented.
 
-The core package for blok currently consists of several sub-packages (which could be split off into their own repositories at some point in the future). Here they are, in no particular order:
+Regardless of the platform, the main class you'll be extending is the `blok.ui.Component`. For these examples, let's assume we're using a simple platform that gives us a low-level "TextWidget". 
 
-- blok.core: Utility classes and basic interfaces that don't fit anywhere else.
-- blok.exception: Various exceptions that might be thrown during the lifetime of a Blok app (note: this is currently in flux -- expect this to get more useful).
-- blok.ui: The core UI framework for Blok -- Components, VNodes and Diffing all live here.
-- blok.context: The Context API for Blok, allowing the passing of services around an app (it's Dependency Injection, basically).
-- blok.data: Tools for immutable data and JSON serialization (sill a work in progress).
-- blok.state: Classes that provide simple reactivity to your app.
-- blok.macro: Macro tools used for much of Blok's API; provides a more consistent way to use metadata to generate code. 
+```haxe
+import blok.ui.Widget;
+import blok.ui.Component;
+
+class Foo extends Component {
+  @prop var foo:String;
+
+  function render():Widget {
+    return new TextWidget(foo);
+  }
+}
+```

@@ -24,6 +24,6 @@ class TestingPlatform extends Platform {
   }
 
   public function createPlaceholderObject(widget:Widget):Dynamic {
-    return new TestingObject('');
+    return new TestingObject('<marker>');
   }
 }

@@ -5,7 +5,7 @@ import blok.core.Scheduler;
 import blok.ui.Effects;
 
 typedef ScheduledUpdate = {
-  public final invalidElements:Array<Element>;
+  public final invalidElements:Children;
   public final effects:Effects;
 }
 
@@ -47,9 +47,7 @@ abstract class Platform {
   public function scheduleForRebuild(element:Element) {
     var update = getUpdate();
     Debug.assert(update != null);
-    if (!update.invalidElements.contains(element)) {
-      update.invalidElements.push(element);
-    }
+    update.invalidElements.add(element);
   }
 
   function getUpdate() {
@@ -72,7 +70,7 @@ abstract class Platform {
     
     Debug.assert(update != null);
 
-    for (el in update.invalidElements) el.rebuild();
+    update.invalidElements.rebuild();
     update.effects.dispatch();
   }
 }

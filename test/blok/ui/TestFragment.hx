@@ -1,5 +1,7 @@
 package blok.ui;
 
+import blok.render.Object;
+import impl.TestingPlatform;
 import impl.Node;
 
 using Medic;
@@ -41,12 +43,35 @@ class TestFragment implements TestCase {
   @:test('Empty fragments render relative to the elements around them')
   @:test.async
   function testEmptyInContext(done) {
-    // Note: the extra space in `before  after` is expected --
-    // that indicates an empty node.
     Node.fragment(
       Node.text('before'),
       Node.fragment(),
       Node.text('after')
-    ).renders('before  after', done);
+    ).renders('before <marker> after', done);
+  }
+
+  @:test('Fragments work when being rebuilt')
+  @:test.async
+  function canYouRebuildFragments(done) {
+    var root = TestingPlatform.mount();
+    var result = () -> (root.getObject():Object).toString();
+
+    root.setChild(Node.wrap(
+      Node.fragment(Node.text('a.1'), Node.text('a.2')),
+      Node.fragment(),
+      Node.fragment(Node.text('c.1'), Node.text('c.2'))
+    ), () -> {
+      result().equals('a.1 a.2 <marker> c.1 c.2');
+      root.setChild(Node.wrap(
+        Node.fragment(Node.text('a.1'), Node.text('a.2')),
+        Node.text('foo'),
+        Node.fragment(Node.text('b.1'), Node.text('b.2')),
+        Node.text('bar'),
+        Node.fragment(Node.text('c.1'), Node.text('c.2'))
+      ), () -> {
+        result().equals('a.1 a.2 foo b.1 b.2 bar c.1 c.2');
+        done();
+      });
+    });
   }
 }

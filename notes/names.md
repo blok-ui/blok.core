@@ -11,35 +11,41 @@ Basically we have a few layers we're working with:
 - The "glue" layer, which actually tracks updates and stores the UI -- currently `Elements` (and `Components`, confusingly).
 - The render layer, handled by the platform. This one we don't really think about, but we DO call the stuff here `Objects`.
 
-So let's think through this.
+My attempts to change the naming system keeps running into issues, so I think we're stuck with what we've got here. Widgets, Elements, Components and Objects. The real issue is thus figuring out what to rename the `.node` method on components. This is a big deal -- it's going to be one of the most common things the user is going to type and it needs to make sense. Right now it kind of doesn't.
 
-First off, perhaps this will work well for our names:
-
-- Declarative layer -> `blok.ui.Node`
-- Glue layer -> `blok.ui.Object` and `blok.ui.Component`
-- Render layer -> we can refer to these objects as "targets".
-
-This seems like it fits a bit better with our code -- `nodes` create `objects` that are "rendered" to a `target`. Thus, methods like `getObject` should become `getRenderTarget` and so forth. The distinction between `Object` and `Component` is still maybe a bit weird, but I feel this is still better.
-
-Just for testing, here's what the end user would mostly be looking at:
+Some ideas:
 
 ```haxe
-package todos;
+Foo.of({ prop: 'foo' });
+```
+I sort of like this one -- it's simple (only two letters!) and mostly makes sense (you're getting a `Foo` made up of `{ prop: 'foo' }`). The one problem is that now `of` and `from` both exist in Blok and mean rather different things, which is potentially odd. That said...
 
-using Blok;
+```haxe
+Foo.from({ prop: 'foo' });
+```
+...maybe we just lean into it and use `from` everywhere?
 
-class TodoContainer extends Component {
-  @prop var todo:Todo;
+```haxe
+Foo.widget({ prop: 'foo' });
+```
+This is the clearest option. It's only real downside is its length *and* the fact that it conflicts with the existing `widget` property on `Elements`, which we'll have to work around. Not an impossible task though. 
 
-  function render():Node {
-    return Html.li({
-      className: 'todo-item'
-    },
-      TodoHeader.node({ title: todo.title }),
-      TodoContent.node({ content: todo.content })
-    );
-  }
-}
+```haxe
+Foo.create({ prop: 'foo' });
+```
+I don't really like this one, mostly because we're not actually creating a `Foo` -- we're creating a `ComponentWidget` that will later instantiate a `Foo` component.
+
+Some other ideas, just for completeness:
+
+```haxe
+Foo.into({ prop: 'foo' });
+Foo.w({ prop: 'foo' }); // for `[w]idget`
+Foo.make({ prop: 'foo' });
+Foo.use({ prop: 'foo' }); // ugh
+Foo.get({ prop: 'foo' });
+Foo.where({ prop: 'foo' });
+Foo.with({ prop: 'foo' });
+Foo.createWidget({ prop: 'foo' }); // Ugly
 ```
 
-Seems to make a bit more sense?
+Right now I'm leaning towards `of`. It's mostly comprehensible, it's really concise, and it sounds pretty good.

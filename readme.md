@@ -27,19 +27,4 @@ Blok also has some other packages that provide more functionality:
 Using Blok
 ----------
 
-Blok is a *declarative UI framework*, similar in concept to React and Flutter. It takes a tree of *Widgets* (or "VNodes", in React parlance) and uses them to build and re-build a UI. Blok is designed to be flexible, so the actual rendering of the UI is handled by a `blok.ui.Platform` (like the one that targets the DOM) which just needs a few simple functions to be implemented.
-
-Regardless of the platform, the main class you'll be extending is the `blok.ui.Component`. For these examples, let's assume we're using a simple platform that gives us a low-level "TextWidget". 
-
-```haxe
-import blok.ui.Widget;
-import blok.ui.Component;
-
-class Foo extends Component {
-  @prop var foo:String;
-
-  function render():Widget {
-    return new TextWidget(foo);
-  }
-}
-```
+> Todo: this section will be filled out when the API settles again.

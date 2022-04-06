@@ -281,6 +281,21 @@ class RecordBuilder {
             } }),
             ret: macro:$clsType
           })
+        },
+
+        {
+          name: 'of',
+          access: [ AStatic, APublic, AInline ],
+          pos: (macro null).pos,
+          meta: [],
+          kind: FFun({
+            params: params,
+            args: [
+              { name: INCOMING_PROPS, type: macro:$propType }
+            ],
+            expr: macro return new $clsTp($i{INCOMING_PROPS}),
+            ret: macro:$clsType
+          })
         }
       ]);
 

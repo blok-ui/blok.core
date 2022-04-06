@@ -23,7 +23,7 @@ final class Provider<T:ServiceProvider> extends Component {
     uses internally).
   **/
   public inline static function provide<T:ServiceProvider>(service:T, build) {
-    return node({
+    return of({
       service: service,
       build: build
     });
@@ -37,7 +37,7 @@ final class Provider<T:ServiceProvider> extends Component {
     *or* if you really know what you're doing.
   **/
   public inline static function forContext(parentContext:Context, build) {
-    return node({
+    return of({
       parentContext: parentContext,
       build: build
     });

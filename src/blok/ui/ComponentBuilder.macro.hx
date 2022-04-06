@@ -219,6 +219,26 @@ class ComponentBuilder {
           name: 'node',
           access: [ AStatic, APublic, AInline ],
           pos: (macro null).pos,
+          meta: [
+            { name: ':deprecated', pos: (macro null).pos, params: [ macro 'Use `of` instead' ] }
+          ],
+          kind: FFun({
+            params: createParams,
+            args: [
+              { name: 'props', type: macro:$propType },
+              { name: 'key', type: macro:Null<blok.ui.Key>, opt: true }
+            ],
+            expr: macro return of(props, key),
+            ret: macro:blok.ui.Widget
+          })
+        }
+      ]);
+
+      builder.addFields([
+        {
+          name: 'of',
+          access: [ AStatic, APublic, AInline ],
+          pos: (macro null).pos,
           meta: [],
           kind: FFun({
             params: createParams,

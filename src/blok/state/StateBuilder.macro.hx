@@ -205,7 +205,7 @@ class StateBuilder {
             ],
             expr: macro {
               var state = new $clsTp(props);
-              return blok.context.Provider.node({
+              return blok.context.Provider.of({
                 service: state,
                 build: build
               });

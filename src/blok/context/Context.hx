@@ -24,7 +24,7 @@ final class Context implements Disposable implements DisposableHost {
     Context instance to `fallback` to use instead. 
   **/
   public inline static function use(build, ?fallback, ?key) {
-    return ContextUser.node({ build: build, fallback: fallback }, key);
+    return ContextUser.of({ build: build, fallback: fallback }, key);
   }
 
   final data:Map<String, Dynamic> = [];

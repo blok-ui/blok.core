@@ -15,7 +15,7 @@ class TestComponent implements TestCase {
   @:test('Components render')
   @:test.async
   public function testSimple(done) {
-    SimpleComponent.node({
+    SimpleComponent.of({
       content: 'foo',
     }).renders('foo', done);
   }
@@ -33,7 +33,7 @@ class TestComponent implements TestCase {
         done();
       }
     ];
-    SimpleComponent.node({
+    SimpleComponent.of({
       content: 'foo',
       test: comp -> {
         var test = tests.shift();
@@ -63,7 +63,7 @@ class TestComponent implements TestCase {
       if (next == null) next = done;
       expected = e;
 
-      var widget = LazyComponent.node({
+      var widget = LazyComponent.of({
         foo: foo,
         bar: bar,
         test: check
@@ -117,7 +117,7 @@ class TestComponent implements TestCase {
     var threeComp:Element = null;
 
     function test6() {
-      render(root, ChildrenComponent.node({
+      render(root, ChildrenComponent.of({
         children: [],
         test: element -> {
           var len = 0;
@@ -129,7 +129,7 @@ class TestComponent implements TestCase {
     }
 
     function test5() {
-      render(root, ChildrenComponent.node({
+      render(root, ChildrenComponent.of({
         children: [ three, two, Node.text('interloper'), one ],
         test: element -> {
           var children = [];
@@ -147,7 +147,7 @@ class TestComponent implements TestCase {
     }
     
     function test4() {
-      render(root, ChildrenComponent.node({
+      render(root, ChildrenComponent.of({
         children: [ three, two, one ],
         test: element -> {
           var children = [];
@@ -165,7 +165,7 @@ class TestComponent implements TestCase {
     }
 
     function test3() {
-      render(root, ChildrenComponent.node({
+      render(root, ChildrenComponent.of({
         children: [ two, three, one ],
         test: element -> {
           var children = [];
@@ -183,7 +183,7 @@ class TestComponent implements TestCase {
     }
 
     function test2() {
-      render(root, ChildrenComponent.node({
+      render(root, ChildrenComponent.of({
         children: [ one, three, two ],
         test: element -> {
           var children = [];
@@ -200,7 +200,7 @@ class TestComponent implements TestCase {
       }));
     }
 
-    render(root, ChildrenComponent.node({
+    render(root, ChildrenComponent.of({
       children: [ one, two, three ],
       test: element -> {
         var children = [];

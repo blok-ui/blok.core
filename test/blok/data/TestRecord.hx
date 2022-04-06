@@ -106,6 +106,13 @@ class TestRecord implements TestCase {
       ]
     }));
   }
+
+  @:test('Records have an `of` static method for consistancy with Components')
+  function testOfMethod() {
+    var data = Foo.of({ foo: 'foo' });
+    (data is Foo).isTrue();
+    data.foo.equals('foo');
+  }
 }
 
 class Foo implements Record {

@@ -27,7 +27,7 @@ class TestObservableResult implements TestCase {
         Timer.delay(() -> resume('Foo'), 100);
       })
       .render(result -> 
-        TestableComponent.node({
+        TestableComponent.of({
           children: [ switch result {
             case Suspended:
               Node.text('Loading...');

@@ -63,9 +63,9 @@ class TestState implements TestCase {
         done();
       }
     ];
-    Provider.node({
+    Provider.of({
       service: state,
-      build: context -> SimpleState.observe(context, state -> TestableComponent.node({
+      build: context -> SimpleState.observe(context, state -> TestableComponent.of({
         children: [ Node.text(state.foo) ],
         test: (result) -> {
           var test = tests.shift();
@@ -89,9 +89,9 @@ class TestState implements TestCase {
         done();
       }
     ];
-    Provider.node({
+    Provider.of({
       service: state,
-      build: _ -> SimpleState.use(state -> TestableComponent.node({
+      build: _ -> SimpleState.use(state -> TestableComponent.of({
         children: [ Node.text(state.foo) ],
         test: (result) -> {
           var test = tests.shift();
@@ -107,7 +107,7 @@ class TestState implements TestCase {
     var state = new StateWithServices({
       fooService: new FooService('Provided')
     });
-    Provider.node({
+    Provider.of({
       service: state,
       build: context -> Node.text(FooService.from(context).foo)
     }).renders('Provided', done);

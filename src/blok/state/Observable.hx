@@ -99,13 +99,13 @@ class Observable<T> implements Disposable {
 
     ```haxe
     Observable.use(false, (status, update) -> Html.fragment(
-      Button.node({
+      Button.of({
         action: () -> update(true),
         label: 'Show'
       }),
       switch status {
         case false: null;
-        case true: Modal.node({
+        case true: Modal.of({
           requestClose: () -> update(false),
           content: Html.text('Showing!')
         })

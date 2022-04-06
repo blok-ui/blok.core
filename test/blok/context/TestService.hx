@@ -27,7 +27,7 @@ class TestService implements TestCase {
   @:test('Services are available inside context scopes')
   @:test.async
   public function testScope(done) {
-    Provider.node({
+    Provider.of({
       service: new SimpleService('bar'),
       build: _ -> Context.use(context -> Node.text(SimpleService.from(context).value)) 
     }).renders('bar', done);
@@ -36,7 +36,7 @@ class TestService implements TestCase {
   @:test('The `use` static function will get the service from the closest context')
   @:test.async
   public function testUse(done) {
-    Provider.node({
+    Provider.of({
       service: new SimpleService('bar'),
       build: _ -> SimpleService.use(service -> Node.text(service.value)) 
     }).renders('bar', done);
@@ -48,7 +48,7 @@ class TestService implements TestCase {
   @:test('services work with Provider')
   @:test.async
   public function testProviderIntegration(done) {
-    Provider.node({
+    Provider.of({
       service: new SimpleService('bar'),
       build: context -> Node.text(SimpleService.from(context).value)
     }).renders('bar', done);
@@ -57,9 +57,9 @@ class TestService implements TestCase {
   @:test('Services work with @use')
   @:test.async
   public function testComponentIntegration(done) {
-    Provider.node({
+    Provider.of({
       service: new SimpleService('bar'),
-      build: _ -> UsesSimpleService.node({})
+      build: _ -> UsesSimpleService.of({})
     }).renders('bar', done);
   }
 
@@ -67,19 +67,19 @@ class TestService implements TestCase {
   @:test.async
   public function testComponentIntegrationScope(done) {
     Node.fragment(
-      UsesSimpleService.node({}), // Should use default
-      Provider.node({
+      UsesSimpleService.of({}), // Should use default
+      Provider.of({
         service: new SimpleService('bar'),
-        build: _ -> UsesSimpleService.node({}) // should use provided service
+        build: _ -> UsesSimpleService.of({}) // should use provided service
       }),
-      UsesSimpleService.node({}) // Should use default
+      UsesSimpleService.of({}) // Should use default
     ).renders('default bar default', done);
   }
 
   @:test('Services can provide other services')
   @:test.async
   public function testServiceProvider(done) {
-    Provider.node({
+    Provider.of({
       service: new HasProviders(),
       build: _ -> SimpleService.use(service -> Node.text(service.value))
     }).renders('provided', done);
@@ -97,7 +97,6 @@ class TestService implements TestCase {
         .getSimpleService()
         .value
       ))
-      
       .renders('foo', done);
   }
 
@@ -105,12 +104,12 @@ class TestService implements TestCase {
   @:test.async
   public function testNestedProviderIntegration(done) {
     Node.fragment(
-      UsesSimpleService.node({}), // Should use default
-      Provider.node({
+      UsesSimpleService.of({}), // Should use default
+      Provider.of({
         service: new SimpleService('simple'),
         build: _ -> Node.fragment(
-          UsesSimpleService.node({}), // should use provided service
-          Provider.node({
+          UsesSimpleService.of({}), // should use provided service
+          Provider.of({
             service: new OtherService('other'),
             build: context -> Node.text(
               SimpleService.from(context).value + ' ' // Should be from outer scope

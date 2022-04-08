@@ -4,6 +4,7 @@ import blok.context.Service;
 import blok.context.Provider;
 import blok.ui.Platform;
 
+@:access(blok.ui)
 @service(fallback = new SchedulerService(DefaultScheduler.getInstance()))
 class SchedulerService implements Service {
   public static function provide(build) {

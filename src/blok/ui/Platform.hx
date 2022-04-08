@@ -10,6 +10,10 @@ typedef ScheduledUpdate = {
 }
 
 abstract class Platform {
+  public static function use(build) {
+    return PlatformUser.of({ build: build });
+  }
+
   final scheduler:Scheduler;
   var currentUpdate:Null<ScheduledUpdate> = null;
 
@@ -72,5 +76,13 @@ abstract class Platform {
 
     update.invalidElements.rebuild();
     update.effects.dispatch();
+  }
+}
+
+class PlatformUser extends Component {
+  @prop var build:(platform:Platform)->Widget;
+
+  function render() {
+    return build(platform);
   }
 }

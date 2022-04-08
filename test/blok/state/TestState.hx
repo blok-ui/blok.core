@@ -130,10 +130,8 @@ private class SimpleState implements State {
   }
 }
 
-@service(fallback = FooService.DEFAULT)
+@service(fallback = new FooService('foo'))
 private class FooService implements Service {
-  public static final DEFAULT = new FooService('foo');
-
   public final foo:String;
 
   public function new(foo) {
@@ -142,7 +140,7 @@ private class FooService implements Service {
 }
 
 @service(fallback = new StateWithServices({
-  fooService: FooService.DEFAULT
+  fooService: FooService.from(context)
 }))
 private class StateWithServices implements State {
   @provide var fooService:FooService;

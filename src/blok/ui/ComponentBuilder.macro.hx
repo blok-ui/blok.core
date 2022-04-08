@@ -240,6 +240,7 @@ class ComponentBuilder {
           access: [ AStatic, APublic, AInline ],
           pos: (macro null).pos,
           meta: [],
+          doc: "Create a `blok.ui.ComponentWidget` for this Component.",
           kind: FFun({
             params: createParams,
             args: [

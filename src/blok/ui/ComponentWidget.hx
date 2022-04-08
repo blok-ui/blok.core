@@ -24,10 +24,6 @@ class ComponentWidget<Props:{}> extends Widget {
     return factory(this);
   }
 
-  override function shouldBeUpdated(newWidget:Widget):Bool {
-    return super.shouldBeUpdated(newWidget);
-  }
-
   public function withProperties(props:Props) {
     return new ComponentWidget(
       type,

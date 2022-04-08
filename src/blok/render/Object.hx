@@ -58,6 +58,7 @@ abstract class Object {
     if (parent != null) {
       parent.children.remove(this);
     }
+    parent = null;
   }
 
   abstract public function toString():String;

@@ -5,7 +5,7 @@ import blok.core.UniqueId;
 abstract class Widget {
   public final key:Null<Key>;
 
-  public function new(key) {
+  public function new(?key) {
     this.key = key;
   }
 

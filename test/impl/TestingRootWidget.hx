@@ -31,14 +31,13 @@ class TestingRootWidget extends RootWidget {
 }
 
 class TestingRootElement extends RootElement {
-  var effects:Effects = null;
-
   public function setChild(widget:ObjectWidget, ?next:Effect) {
     var prev:TestingRootWidget = cast this.widget;
     
-    // @todo: The way I'm handling effects is a mess.
-    if (effects == null) effects = new Effects();
-    if (next != null) effects.register(next);
+    if (next != null) {
+      if (effects == null) effects = new Effects();
+      effects.register(next);
+    }
 
     this.widget = new TestingRootWidget(
       prev.object,
@@ -47,15 +46,6 @@ class TestingRootElement extends RootElement {
     );
 
     invalidate();
-  }
-
-  override function performBuildChild() {
-    super.performBuildChild();
-    if (effects != null) {
-      var e = effects;
-      effects = null;
-      platform.scheduleEffects(effects -> effects.register(e.dispatch));
-    }
   }
 
   public function toString() {

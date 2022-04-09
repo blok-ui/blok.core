@@ -24,7 +24,9 @@ abstract class Element implements Disposable implements DisposableHost {
   var status:ElementStatus = Pending;
   var lifecycle:ElementLifecycle = Invalid;
   var parent:Null<Element> = null;
+  var rootElement:Null<RootElement> = null;
   var platform:Null<Platform> = null;
+  var invalidChildren:Null<Array<Element>> = null;
   final disposables:Array<Disposable> = [];
 
   public function new(widget) {
@@ -52,6 +54,7 @@ abstract class Element implements Disposable implements DisposableHost {
     this.parent = parent;
     this.slot = slot;
     platform = this.parent.platform;
+    rootElement = this.parent.rootElement;
     status = Active;
   }
   
@@ -85,6 +88,7 @@ abstract class Element implements Disposable implements DisposableHost {
 
     status = Disposed;
     parent = null;
+    rootElement = null;
     platform = null;
     widget = null;
     slot = null;
@@ -95,7 +99,48 @@ abstract class Element implements Disposable implements DisposableHost {
     Debug.assert(lifecycle == Valid);
 
     lifecycle = Invalid;
-    platform.scheduleForRebuild(this);
+    parent.enqueueChildElementForUpdate(this);
+  }
+
+  public function validate() {
+    Debug.assert(lifecycle != Building);
+
+    switch lifecycle {
+      case Invalid:
+        invalidChildren = null;
+        rebuild();
+      default:
+        if (invalidChildren == null) return;
+        var pending = invalidChildren.copy();
+        invalidChildren = null;
+        for (child in pending) child.validate();
+    }
+  }
+
+  public function enqueueChildElementForUpdate(child:Element) {
+    Debug.assert(status == Active);
+    Debug.assert(lifecycle != Building);
+
+    switch lifecycle {
+      case Invalid: 
+        // Already invalid, the child will get rebuilt anwyay.
+      default:
+        if (invalidChildren == null) {
+          invalidChildren = [];
+        }
+        if (!invalidChildren.contains(child)) {
+          invalidChildren.push(child);
+        }
+        parent.enqueueChildElementForUpdate(this);
+    }
+  }
+
+  public function enqueueEffects() {
+    registerEffects(rootElement.getEffects());
+  }
+
+  public function registerEffects(effects:Effects) {
+    // noop
   }
 
   abstract function performHydrate(cursor:HydrationCursor):Void;

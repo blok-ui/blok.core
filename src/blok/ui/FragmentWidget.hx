@@ -64,6 +64,8 @@ class FragmentElement extends Element {
   }
 
   public function performBuild(previousWidget:Null<Widget>) {
+    enqueueEffects();
+    
     if (previousWidget == null) {
       initializeChildren();
     } else {
@@ -92,6 +94,8 @@ class FragmentElement extends Element {
   }
 
   function performHydrate(cursor:HydrationCursor) {
+    enqueueEffects();
+
     var widgets = (cast widget:FragmentWidget).getChildren();
     var previous:Null<Element> = slot != null ? slot.previous : null;
     var children:Array<Element> = [];

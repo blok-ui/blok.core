@@ -1,5 +1,6 @@
 package impl;
 
+import blok.ui.Effects;
 import blok.core.UniqueId;
 import blok.ui.Widget;
 import blok.ui.ObjectWidget;
@@ -42,20 +43,10 @@ class TextWidget extends ObjectWidget {
 }
 
 class TextElement extends ObjectWithoutChildrenElement {
-  override function mount(parent:Null<Element>, ?slot:Slot) {
-    super.mount(parent, slot);
-    registerRef();
-  }
-
-  override function update(widget:Widget) {
-    super.update(widget);
-    registerRef();
-  }
-
-  inline function registerRef() {
+  override function registerEffects(effects:Effects) {
     var text:TextWidget = cast widget;
-    if (text.ref != null) platform.scheduleEffects(effects -> {
+    if (text.ref != null) {
       effects.register(() -> text.ref(object));
-    });
+    }
   }
 }

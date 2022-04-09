@@ -301,8 +301,8 @@ class ComponentBuilder {
 
       if (effectHooks.length > 0) {
         builder.add(macro class {
-          override function performEffects() {
-            platform.scheduleEffects(effects -> $b{effectHooks});
+          override function registerEffects(effects:blok.ui.Effects) {
+            $b{effectHooks};
           }
         });
       }

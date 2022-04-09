@@ -1,13 +1,7 @@
 package blok.ui;
 
-import blok.core.Debug;
 import blok.core.Scheduler;
 import blok.ui.Effects;
-
-typedef ScheduledUpdate = {
-  public final invalidElements:Children;
-  public final effects:Effects;
-}
 
 abstract class Platform {
   public static function use(build) {
@@ -15,7 +9,6 @@ abstract class Platform {
   }
 
   final scheduler:Scheduler;
-  var currentUpdate:Null<ScheduledUpdate> = null;
 
   public function new(scheduler) {
     this.scheduler = scheduler;
@@ -30,52 +23,20 @@ abstract class Platform {
 
   public function mountRootWidget(widget:RootWidget, ?effect:Effect) {
     var element:RootElement = cast widget.createElement();
-    if (effect != null) scheduleEffects(effects -> effects.register(effect));
+    if (effect != null) element.getEffects().register(effect);
     element.bootstrap();
     return element;
   }
 
   public function hydrateRootWidget(cursor:HydrationCursor, widget:RootWidget, ?effect:Effect) {
     var element:RootElement = cast widget.createElement();
-    if (effect != null) scheduleEffects(effects -> effects.register(effect));
+    if (effect != null) element.getEffects().register(effect);
     element.hydrate(cursor, null);
     return element;
   }
 
-  public function scheduleEffects(cb:(effects:Effects) -> Void) {
-    var update = getUpdate();
-    Debug.assert(update != null);
-    cb(update.effects);
-  }
-
-  public function scheduleForRebuild(element:Element) {
-    var update = getUpdate();
-    Debug.assert(update != null);
-    update.invalidElements.add(element);
-  }
-
-  function getUpdate() {
-    if (currentUpdate == null) enqueueUpdate();
-    return currentUpdate;
-  }
-
-  function enqueueUpdate() {
-    Debug.assert(currentUpdate == null);
-    currentUpdate = {
-      invalidElements: [],
-      effects: new Effects()
-    };
-    scheduler.schedule(performUpdate);
-  }
-
-  function performUpdate() {
-    var update = currentUpdate;
-    currentUpdate = null;
-    
-    Debug.assert(update != null);
-
-    update.invalidElements.rebuild();
-    update.effects.dispatch();
+  public function schedule(cb:()->Void) {
+    scheduler.schedule(cb);
   }
 }
 

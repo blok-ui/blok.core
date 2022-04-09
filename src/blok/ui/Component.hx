@@ -14,10 +14,10 @@ abstract class Component extends Element {
 
   function performBuild(previousWidget:Null<Widget>) {
     if (previousWidget == null) {
+      enqueueEffects();
       performFirstBuild();
-    } else if (previousWidget != widget) {
-      if (widgetHasChanged(widget, previousWidget)) performBuildChild();
-    } else {
+    } else if (widgetHasChanged(widget, previousWidget)) {
+      enqueueEffects();
       performBuildChild();
     }
   }
@@ -51,19 +51,16 @@ abstract class Component extends Element {
   function performBuildChild() {
     performBefore();
     childElement = updateChild(childElement, performRender(), slot);
-    performEffects();
   }
 
   function performHydrate(cursor:HydrationCursor):Void {
+    enqueueEffects();
     performInit();
     performBefore();
     childElement = hydrateElementForWidget(cursor, performRender(), slot);
-    performEffects();
   }
 
   @:noCompletion function performInit() {}
 
   @:noCompletion function performBefore() {}
-
-  @:noCompletion function performEffects() {}
 }

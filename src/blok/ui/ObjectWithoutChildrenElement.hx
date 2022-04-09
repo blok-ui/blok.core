@@ -19,6 +19,12 @@ class ObjectWithoutChildrenElement extends ObjectElement {
     cursor.next();
   }
 
+  override function dispose() {
+    if (object != null) platform.removeObject(object, slot);
+    super.dispose();
+    object = null;
+  }
+
   public function visitChildren(visitor:ElementVisitor) {
     // noop
   }

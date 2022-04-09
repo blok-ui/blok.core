@@ -57,4 +57,8 @@ abstract ObservableResult<Data, Error>(Observable<Result<Data, Error>>)
   public inline function render(build:(result:Result<Data, Error>)->Widget) {
     return this.render(build);
   }
+
+  public inline function peek(handler) {
+    this.peek(handler);
+  }
 }

@@ -3,7 +3,7 @@ package blok.ui;
 import blok.core.Debug;
 import blok.state.Observable;
 
-abstract class RootElement extends ObjectElement {
+class RootElement extends ObjectElement {
   final onChange:Observable<RootElement>;
   var child:Null<Element> = null;
   var isScheduled:Bool = false;

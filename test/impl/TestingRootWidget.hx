@@ -23,7 +23,7 @@ class TestingRootWidget extends RootWidget {
     return type;
   }
 
-  function createElement():Element {
+  override function createElement():Element {
     return new TestingRootElement(this);
   }
 

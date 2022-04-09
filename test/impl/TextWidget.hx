@@ -1,11 +1,8 @@
 package impl;
 
-import blok.ui.Effects;
 import blok.core.UniqueId;
 import blok.ui.Widget;
 import blok.ui.ObjectWidget;
-import blok.ui.Element;
-import blok.ui.Slot;
 import blok.ui.ObjectWithoutChildrenElement;
 
 class TextWidget extends ObjectWidget {
@@ -43,10 +40,10 @@ class TextWidget extends ObjectWidget {
 }
 
 class TextElement extends ObjectWithoutChildrenElement {
-  override function registerEffects(effects:Effects) {
+  override function createObject():Dynamic {
     var text:TextWidget = cast widget;
-    if (text.ref != null) {
-      effects.register(() -> text.ref(object));
-    }
+    var obj = super.createObject();
+    if (text.ref != null) text.ref(obj);
+    return obj;
   }
 }

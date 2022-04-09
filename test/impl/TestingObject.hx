@@ -8,6 +8,7 @@ class TestingObject extends Object {
   public function new(content) {
     this.content = content;
   }
+
   public function toString() {
     return content + children.map(c -> c.toString()).join(' ');
   }

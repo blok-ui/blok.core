@@ -7,7 +7,9 @@ import impl.TestingPlatform;
 
 class WidgetAssert {
   public inline static function mount(result:Widget, ?handler:(result:TestingObject)->Void) {
-    TestingPlatform.mount(result, handler);
+    var root = TestingPlatform.mount(result);
+    if (handler != null) handler(root.getObject());
+    return root;
   }
 
   public static function renders(widget:Widget, expected:String, next:()->Void, ?p:PosInfos) {

@@ -24,9 +24,7 @@ abstract class Element implements Disposable implements DisposableHost {
   var status:ElementStatus = Pending;
   var lifecycle:ElementLifecycle = Invalid;
   var parent:Null<Element> = null;
-  var rootElement:Null<RootElement> = null;
   var platform:Null<Platform> = null;
-  var invalidChildren:Null<Array<Element>> = null;
   final disposables:Array<Disposable> = [];
 
   public function new(widget) {
@@ -45,17 +43,6 @@ abstract class Element implements Disposable implements DisposableHost {
     lifecycle = Building;
     performHydrate(cursor);
     lifecycle = Valid;
-  }
-
-  function performSetup(parent:Null<Element>, ?slot:Slot) {
-    Debug.assert(status == Pending, 'Attempted to mount an already mounted Element');
-    Debug.assert(lifecycle == Invalid);
-
-    this.parent = parent;
-    this.slot = slot;
-    platform = this.parent.platform;
-    rootElement = this.parent.rootElement;
-    status = Active;
   }
   
   public function update(widget:Widget) {
@@ -88,10 +75,19 @@ abstract class Element implements Disposable implements DisposableHost {
 
     status = Disposed;
     parent = null;
-    rootElement = null;
     platform = null;
     widget = null;
     slot = null;
+  }
+
+  function performSetup(parent:Null<Element>, ?slot:Slot) {
+    Debug.assert(status == Pending, 'Attempted to mount an already mounted Element');
+    Debug.assert(lifecycle == Invalid);
+
+    this.parent = parent;
+    this.slot = slot;
+    platform = this.parent.platform;
+    status = Active;
   }
 
   public function invalidate() {
@@ -99,48 +95,7 @@ abstract class Element implements Disposable implements DisposableHost {
     Debug.assert(lifecycle == Valid);
 
     lifecycle = Invalid;
-    parent.enqueueChildElementForUpdate(this);
-  }
-
-  public function validate() {
-    Debug.assert(lifecycle != Building);
-
-    switch lifecycle {
-      case Invalid:
-        invalidChildren = null;
-        rebuild();
-      default:
-        if (invalidChildren == null) return;
-        var pending = invalidChildren.copy();
-        invalidChildren = null;
-        for (child in pending) child.validate();
-    }
-  }
-
-  public function enqueueChildElementForUpdate(child:Element) {
-    Debug.assert(status == Active);
-    Debug.assert(lifecycle != Building);
-
-    switch lifecycle {
-      case Invalid: 
-        // Already invalid, the child will get rebuilt anwyay.
-      default:
-        if (invalidChildren == null) {
-          invalidChildren = [];
-        }
-        if (!invalidChildren.contains(child)) {
-          invalidChildren.push(child);
-        }
-        parent.enqueueChildElementForUpdate(this);
-    }
-  }
-
-  public function enqueueEffects() {
-    registerEffects(rootElement.getEffects());
-  }
-
-  public function registerEffects(effects:Effects) {
-    // noop
+    platform.requestRebuild(this);
   }
 
   abstract function performHydrate(cursor:HydrationCursor):Void;

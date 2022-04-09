@@ -1,5 +1,6 @@
 package blok.ui;
 
+import medic.TestableComponent;
 import impl.TestingObject;
 import impl.TestingRootWidget;
 import impl.TestingPlatform;
@@ -25,11 +26,11 @@ class TestComponent implements TestCase {
   public function testUpdate(done) {
     var tests = [
       (comp:SimpleComponent) -> {
-        comp.ref.equals('foo');
+        comp.ref.toString().equals('foo');
         comp.setContent('bin');
       },
       (comp:SimpleComponent) -> {
-        comp.ref.equals('bin');
+        comp.ref.toString().equals('bin');
         done();
       }
     ];
@@ -84,8 +85,7 @@ class TestComponent implements TestCase {
 
   // @todo: this needs to be way more robust.
   @:test('Hydration works')
-  @:test.async
-  public function testHydration(done) {
+  public function testHydration() {
     var root = new TestingObject('');
     var object = new TestingObject('');
     object.append(new TestingObject('foo'));
@@ -94,15 +94,13 @@ class TestComponent implements TestCase {
     root.append(object);
     root.toString().equals('foo bar');
 
-    TestingPlatform
-      .hydrate(root, Node.wrap(
-        Node.text('foo'),
-        Node.text('bar')
-      ), (obj) -> {
-        (root == obj).isTrue();
-        obj.toString().equals('foo bar');
-        done();
-      });
+    var el = TestingPlatform.hydrate(root, Node.wrap(
+      Node.text('foo'),
+      Node.text('bar')
+    ));
+
+    (root == el.getObject()).isTrue();
+    root.toString().equals('foo bar');
   }
 
   @:test('Keys work')
@@ -123,9 +121,8 @@ class TestComponent implements TestCase {
           var len = 0;
           element.visitChildren(_ -> len++);
           len.equals(0);
-          done();
         }
-      }));
+      }), done);
     }
 
     function test5() {
@@ -140,10 +137,8 @@ class TestComponent implements TestCase {
           oneComp.equals(children[3]);
           twoComp.equals(children[1]);
           threeComp.equals(children[0]);
-          
-          test6();
         }
-      }));
+      }), test6);
     }
     
     function test4() {
@@ -158,10 +153,8 @@ class TestComponent implements TestCase {
           oneComp.equals(children[2]);
           twoComp.equals(children[1]);
           threeComp.equals(children[0]);
-          
-          test5();
         }
-      }));
+      }), test5);
     }
 
     function test3() {
@@ -176,10 +169,8 @@ class TestComponent implements TestCase {
           oneComp.equals(children[2]);
           twoComp.equals(children[0]);
           threeComp.equals(children[1]);
-          
-          test4();
         }
-      }));
+      }), test4);
     }
 
     function test2() {
@@ -194,10 +185,8 @@ class TestComponent implements TestCase {
           oneComp.equals(children[0]);
           twoComp.equals(children[2]);
           threeComp.equals(children[1]);
-
-          test3();
         }
-      }));
+      }), test3);
     }
 
     render(root, ChildrenComponent.of({
@@ -213,10 +202,8 @@ class TestComponent implements TestCase {
         children[0].widget.key.equals(one.key);
         children[1].widget.key.equals(two.key);
         children[2].widget.key.equals(three.key);
-
-        test2();
       }
-    }));
+    }), test2);
   }
 
   function render(root:TestingRootElement, widget:Widget, ?next) {
@@ -227,9 +214,8 @@ class TestComponent implements TestCase {
 class SimpleComponent extends Component {
   @prop public var content:String;
   @prop var test:(comp:SimpleComponent)->Void = null;
-  public var ref:String = null;
+  public var ref:TestingObject = null;
 
-  @effect
   public function maybeRunTest() {
     if (test != null) test(this);
   }
@@ -240,7 +226,12 @@ class SimpleComponent extends Component {
   }
   
   public function render() {
-    return Node.text(content, null, result -> ref = result.toString());
+    return TestableComponent.of({
+      test: _ -> maybeRunTest(),
+      children: [
+        Node.text(content, null, result -> ref = result)
+      ]
+    });
   }
 }
 
@@ -250,7 +241,7 @@ class LazyComponent extends Component {
   @prop var bar:String;
   @prop var test:(comp:LazyComponent)->Void;
 
-  @effect
+  @after
   public function runTest() {
     test(this);
   }
@@ -264,7 +255,7 @@ class ChildrenComponent extends Component {
   @prop var children:Array<Widget>;
   @prop var test:(comp:Element)->Void = null;
 
-  @effect
+  @after
   public function maybeRunTest() {
     if (test != null) test(childElement);
   }

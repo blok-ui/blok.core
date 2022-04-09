@@ -10,8 +10,6 @@ class ObjectWithChildrenElement extends ObjectElement {
   }
 
   function performBuild(previousWidget:Null<Widget>) {
-    enqueueEffects();
-    
     if (previousWidget == null) {
       object = createObject();
       platform.insertObject(object, slot, findAncestorObject);
@@ -23,8 +21,6 @@ class ObjectWithChildrenElement extends ObjectElement {
   }
 
   function performHydrate(cursor:HydrationCursor) {
-    enqueueEffects();
-
     object = cursor.current();
     Debug.assert(object != null);
     updateObject(object);

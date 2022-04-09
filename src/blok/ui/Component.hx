@@ -14,10 +14,10 @@ abstract class Component extends Element {
 
   function performBuild(previousWidget:Null<Widget>) {
     if (previousWidget == null) {
-      enqueueEffects();
       performFirstBuild();
-    } else if (widgetHasChanged(widget, previousWidget)) {
-      enqueueEffects();
+    } else if (previousWidget != widget) {
+      if (widgetHasChanged(widget, previousWidget)) performBuildChild();
+    } else {
       performBuildChild();
     }
   }
@@ -39,10 +39,6 @@ abstract class Component extends Element {
     if (childElement != null) visitor.visit(childElement);
   }
 
-  function performRender() {
-    return render();
-  }
-
   function performFirstBuild() {
     performInit();
     performBuildChild();
@@ -50,17 +46,20 @@ abstract class Component extends Element {
 
   function performBuildChild() {
     performBefore();
-    childElement = updateChild(childElement, performRender(), slot);
+    childElement = updateChild(childElement, render(), slot);
+    performAfter();
   }
 
   function performHydrate(cursor:HydrationCursor):Void {
-    enqueueEffects();
     performInit();
     performBefore();
-    childElement = hydrateElementForWidget(cursor, performRender(), slot);
+    childElement = hydrateElementForWidget(cursor, render(), slot);
+    performAfter();
   }
 
   @:noCompletion function performInit() {}
 
   @:noCompletion function performBefore() {}
+
+  @:noCompletion function performAfter() {}
 }

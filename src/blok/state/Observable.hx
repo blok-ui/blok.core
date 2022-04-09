@@ -1,7 +1,6 @@
 package blok.state;
 
 import blok.core.Disposable;
-import blok.ui.Component;
 import blok.ui.Widget;
 
 typedef ObservableOptions = {
@@ -182,6 +181,24 @@ class Observable<T> implements Disposable {
 
   public function handleNext(listener) {
     return handle(listener, { defer: true });
+  }
+
+  /**
+    Observe the next update and *only* run once. This should feel similar
+    to using Promises.
+  **/
+  public inline function next(listener) {
+    handleNext(value -> {
+      listener(value);
+      return Handled;
+    });
+  }
+
+  /**
+    Look at the current value of the Observable *without* subscribing to updates.
+  **/
+  public inline function peek(listener) {
+    listener(value);
   }
   
   function addObserver(observer:Observer<T>, options:ObservableOptions) {

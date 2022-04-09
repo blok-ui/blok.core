@@ -11,8 +11,4 @@ abstract class RootWidget extends Widget {
   }
 
   abstract public function resolveRootObject():Dynamic;
-
-  public function createElement():Element {
-    return new RootElement(this);
-  }
 }

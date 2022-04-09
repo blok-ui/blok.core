@@ -1,14 +1,17 @@
 package blok.ui;
 
+import blok.core.Debug;
 import blok.core.Scheduler;
-import blok.ui.Effects;
 
+// @todo: Roll this entire thing into the RootElement?
+@:allow(blok.ui)
 abstract class Platform {
   public static function use(build) {
     return PlatformUser.of({ build: build });
   }
 
   final scheduler:Scheduler;
+  var root:RootElement;
 
   public function new(scheduler) {
     this.scheduler = scheduler;
@@ -21,22 +24,36 @@ abstract class Platform {
   abstract public function createObject(widget:ObjectWidget):Dynamic;
   abstract public function createPlaceholderObject(widget:Widget):Dynamic;
 
-  public function mountRootWidget(widget:RootWidget, ?effect:Effect) {
-    var element:RootElement = cast widget.createElement();
-    if (effect != null) element.getEffects().register(effect);
-    element.bootstrap();
-    return element;
+  public function mountRootWidget(widget:RootWidget) {
+    Debug.assert(root == null);
+
+    root = cast widget.createElement();
+    root.bootstrap();
+    return root;
   }
 
-  public function hydrateRootWidget(cursor:HydrationCursor, widget:RootWidget, ?effect:Effect) {
-    var element:RootElement = cast widget.createElement();
-    if (effect != null) element.getEffects().register(effect);
-    element.hydrate(cursor, null);
-    return element;
+  public function hydrateRootWidget(cursor:HydrationCursor, widget:RootWidget) {
+    Debug.assert(root == null);
+    
+    root = cast widget.createElement();
+    root.hydrate(cursor, null);
+    return root;
+  }
+
+  public function getRootElement() {
+    Debug.assert(root != null);
+
+    return root;
   }
 
   public function schedule(cb:()->Void) {
     scheduler.schedule(cb);
+  }
+
+  public function requestRebuild(element:Element) {
+    Debug.assert(root != null);
+
+    root.requestRebuild(element);
   }
 }
 

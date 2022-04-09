@@ -8,9 +8,14 @@ class TestableComponent extends Component {
   @prop var children:Array<Widget>;
   @prop var test:(comp:TestableComponent)->Void = null;
 
-  @effect
+  @after
   public function maybeRunTest() {
-    if (test != null) test(this);
+    if (test != null) {
+      platform
+        .getRootElement()
+        .getObservable()
+        .next(_ -> test(this));
+    }
   }
   
   public function render() {

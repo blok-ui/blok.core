@@ -1,8 +1,10 @@
 package impl;
 
+import blok.ui.Widget;
+import blok.ui.Slot;
+import blok.state.Observable;
 import blok.core.UniqueId;
 import blok.ui.Element;
-import blok.ui.Effects;
 import blok.ui.RootWidget;
 import blok.ui.ObjectWidget;
 import blok.ui.RootElement;
@@ -21,7 +23,7 @@ class TestingRootWidget extends RootWidget {
     return type;
   }
 
-  override function createElement():Element {
+  function createElement():Element {
     return new TestingRootElement(this);
   }
 
@@ -31,19 +33,16 @@ class TestingRootWidget extends RootWidget {
 }
 
 class TestingRootElement extends RootElement {
-  public function setChild(widget:ObjectWidget, ?next:Effect) {
+  public function setChild(widget:ObjectWidget, ?next:()->Void) {
     var prev:TestingRootWidget = cast this.widget;
-    
-    if (next != null) {
-      if (effects == null) effects = new Effects();
-      effects.register(next);
-    }
 
     this.widget = new TestingRootWidget(
       prev.object,
       prev.platform,
       widget
     );
+
+    if (next != null) onChange.next(_ -> next());
 
     invalidate();
   }

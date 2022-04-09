@@ -24,7 +24,7 @@ class ComponentBuilder {
     var initHooks:Array<Expr> = [];
     var disposeHooks:Array<Expr> = [];
     var beforeHooks:Array<Expr> = [];
-    var effectHooks:Array<Expr> = [];
+    var afterHooks:Array<Expr> = [];
     var isLazy:Bool = false;
 
     if (builder.cls.superClass.t.get().module != 'blok.ui.Component') {
@@ -192,16 +192,44 @@ class ComponentBuilder {
     });
 
     builder.addFieldMetaHandler({
-      name: 'effect',
+      name: 'after',
       hook: After,
       options: [],
       build: function (_, builder, field) switch field.kind {
         case FFun(func):
           if (func.args.length > 0) {
+            Context.error('@after methods cannot have any arguments', field.pos);
+          }
+          var name = field.name;
+          afterHooks.push(macro this.$name());
+        default:
+          Context.error('@after must be used on a method', field.pos);
+      }
+    });
+
+    builder.addFieldMetaHandler({
+      name: 'effect',
+      hook: After,
+      options: [],
+      build: function (_, builder, field) switch field.kind {
+        case FFun(func):
+          Context.warning(
+            '@effect is depreciated and will have undesired behavior. It no longer '
+            + 'runs after all rendering is complete, but will run after the Element '
+            + 'is built. Use @after instead.'
+            + '\n'
+            + 'Note: you can hook into the `onChange` observable on a RootElement '
+            + 'to get the same behavior @effect used to have.'
+            + '\n'
+            + 'Important: @effect will be removed in later versions, so migrate to '
+            + 'using @after methods instead.',
+            field.pos
+          );
+          if (func.args.length > 0) {
             Context.error('@effect methods cannot have any arguments', field.pos);
           }
           var name = field.name;
-          effectHooks.push(macro effects.register(this.$name));
+          afterHooks.push(macro this.$name());
         default:
           Context.error('@effect must be used on a method', field.pos);
       }
@@ -299,10 +327,10 @@ class ComponentBuilder {
         });
       }
 
-      if (effectHooks.length > 0) {
+      if (afterHooks.length > 0) {
         builder.add(macro class {
-          override function registerEffects(effects:blok.ui.Effects) {
-            $b{effectHooks};
+          override function performAfter() {
+            $b{afterHooks};
           }
         });
       }

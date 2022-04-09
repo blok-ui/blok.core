@@ -1,17 +1,23 @@
 package blok.ui;
 
 import blok.core.Debug;
+import blok.state.Observable;
 
-class RootElement extends ObjectElement {
+abstract class RootElement extends ObjectElement {
+  final onChange:Observable<RootElement>;
   var child:Null<Element> = null;
-  var effects:Null<Effects> = null;
   var isScheduled:Bool = false;
+  var invalidElements:Null<Array<Element>> = null;
 
   public function new(root:RootWidget) {
     super(root);
     platform = root.platform;
-    rootElement = this;
     parent = null;
+    onChange = new Observable(this);
+  }
+
+  public inline function getObservable() {
+    return onChange;
   }
 
   public function bootstrap() {
@@ -20,16 +26,22 @@ class RootElement extends ObjectElement {
 
   override function mount(parent:Null<Element>, ?slot:Slot) {
     super.mount(parent, slot);
-    dispatchEffects();
+    notify();
+  }
+
+  override function update(widget:Widget) {
+    super.update(widget);
+    notify();
   }
 
   override function hydrate(cursor:HydrationCursor, parent:Null<Element>, ?slot:Slot) {
     super.hydrate(cursor, parent, slot);
-    dispatchEffects();
+    notify();
   }
 
-  override function createObject():Dynamic {
-    return (cast widget:RootWidget).resolveRootObject(); 
+  override function rebuild() {
+    super.rebuild();
+    notify();
   }
 
   override function performSetup(parent:Null<Element>, ?slot:Slot) {
@@ -37,6 +49,53 @@ class RootElement extends ObjectElement {
     Debug.assert(platform != null, 'Root elements should get their platform from their widgets');
     this.slot = slot;
     status = Active;
+  }
+
+  override function createObject():Dynamic {
+    return (cast widget:RootWidget).resolveRootObject(); 
+  }
+
+  public function requestRebuild(child:Element) {
+    if (child == this) {
+      Debug.assert(lifecycle == Invalid);
+      isScheduled = true;
+      invalidElements = null;
+      platform.schedule(() -> {
+        rebuild();
+        isScheduled = false;
+      });
+      return;
+    }
+
+    if (lifecycle == Invalid) return;
+    Debug.assert(lifecycle == Valid);
+
+    if (invalidElements == null) {
+      invalidElements = [];
+      scheduleRebuild();
+    }
+
+    if (invalidElements.contains(child)) return;
+    invalidElements.push(child);
+  }
+
+  function scheduleRebuild() {
+    if (isScheduled) return;
+    isScheduled = true;
+    platform.schedule(performRebuild);
+  }
+
+  function performRebuild() {
+    isScheduled = false;
+    if (invalidElements == null) return;
+    var elements = invalidElements.copy();
+    invalidElements = null;
+    for (el in elements) el.rebuild();
+    notify();
+  }
+
+  function notify() {
+    onChange.notify();
   }
 
   function performBuild(previousWidget:Null<Widget>) {
@@ -62,59 +121,5 @@ class RootElement extends ObjectElement {
   
   function visitChildren(visitor:ElementVisitor) {
     if (child != null) visitor.visit(child);
-  }
-
-  function scheduleRebuild() {
-    if (isScheduled) return;
-    isScheduled = true;
-    platform.schedule(validate);
-  }
-
-  override function invalidate() {
-    Debug.assert(status == Active);
-    Debug.assert(lifecycle == Valid);
-
-    lifecycle = Invalid;
-    scheduleRebuild();
-  }
-
-  override function validate() {
-    Debug.assert(lifecycle != Building);
-    isScheduled = false;
-
-    switch lifecycle {
-      case Invalid:
-        invalidChildren = null;
-        rebuild();
-
-        Debug.assert(lifecycle == Valid);
-        dispatchEffects();
-      case Valid:
-        if (invalidChildren == null) return;
-        var pending = invalidChildren.copy();
-        invalidChildren = null;
-        for (child in pending) child.validate();
-        
-        dispatchEffects();
-      default:
-    }
-  }
-
-  override function enqueueChildElementForUpdate(child:Element) {
-    if (invalidChildren == null) invalidChildren = [];
-    if (!invalidChildren.contains(child)) invalidChildren.push(child);
-    scheduleRebuild();
-  }
-
-  public function getEffects() {
-    if (effects == null) effects = new Effects();
-    return effects;
-  }
-
-  function dispatchEffects() {
-    if (effects == null) return;
-    var lastEffects = effects;
-    effects = null;
-    lastEffects.dispatch();
   }
 }

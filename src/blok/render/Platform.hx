@@ -15,7 +15,7 @@ abstract class Platform extends blok.ui.Platform {
     } else {
       var parent:Object = findParent();
       Debug.assert(parent != null);
-      parent.append(obj);
+      parent.prepend(obj);
     }
   }
 
@@ -31,7 +31,7 @@ abstract class Platform extends blok.ui.Platform {
     if (to.previous == null) {
       var parent:Object = findParent();
       Debug.assert(parent != null);
-      parent.append(object);
+      parent.prepend(object);
       return;
     }
 

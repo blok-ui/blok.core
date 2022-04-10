@@ -91,7 +91,7 @@ class TestComponent implements TestCase {
     object.append(new TestingObject('foo'));
     object.append(new TestingObject('bar'));
     
-    root.append(object);
+    root.prepend(object);
     root.toString().equals('foo bar');
 
     var el = TestingPlatform.hydrate(root, Node.wrap(

@@ -6,6 +6,16 @@ abstract class Object {
   public var parent:Null<Object> = null;
   public var children:Array<Object> = [];
   
+  public function prepend(child:Object) {
+    Debug.assert(child is Object);
+    Debug.assert(child != this);
+
+    if (child.parent != null) child.remove();
+
+    child.parent = this;
+    children.unshift(child);
+  }
+
   public function append(child:Object) {
     Debug.assert(child is Object);
     Debug.assert(child != this);

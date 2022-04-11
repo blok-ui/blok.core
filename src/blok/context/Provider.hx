@@ -66,8 +66,16 @@ final class Provider<T:ServiceProvider> extends Component {
       }
       : parentContext.getChild();
 
+    Debug.assert(context != null);
     addDisposable(context);
-    if (service != null) service.register(context);
+  }
+
+  @before
+  public function registerService() {
+    if (service != null) {
+      Debug.assert(context != null);
+      service.register(context);
+    }
   }
 
   public function getContext() {

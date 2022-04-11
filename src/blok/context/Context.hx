@@ -53,9 +53,17 @@ final class Context implements Disposable implements DisposableHost {
 
   /**
     Set a value in this Context. If the value is `blok.core.Disposable`,
-    it will be disposed when this Context is.
+    it will be disposed when this Context is and will be disposed if 
+    replaced.
   **/
   public function set<T>(name:String, value:T) {
+    if (data.exists(name)) {
+      var previous = data.get(name);
+      if (previous is Disposable) {
+        disposables.remove(previous);
+        (previous:Disposable).dispose();
+      }
+    }
     data.set(name, value);
     if (value is Disposable) {
       addDisposable(cast value);

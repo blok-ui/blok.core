@@ -5,6 +5,7 @@ import blok.core.Debug;
 @:autoBuild(blok.ui.ComponentBuilder.build())
 abstract class Component extends Element {
   var childElement:Null<Element> = null;
+  @:noCompletion var __isHydrating:Bool = false;
 
   abstract function render():Widget;
   
@@ -51,10 +52,16 @@ abstract class Component extends Element {
   }
 
   function performHydrate(cursor:HydrationCursor):Void {
+    __isHydrating = true;
     performInit();
     performBefore();
     childElement = hydrateElementForWidget(cursor, render(), slot);
     performAfter();
+    __isHydrating = false;
+  }
+
+  inline function isHydrating() {
+    return __isHydrating;
   }
 
   @:noCompletion function performInit() {}

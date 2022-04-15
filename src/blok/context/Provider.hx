@@ -65,8 +65,6 @@ final class Provider<T:ServiceProvider> extends Component {
           provider.getContext().getChild();
       }
       : parentContext.getChild();
-
-    Debug.assert(context != null);
     addDisposable(context);
   }
 

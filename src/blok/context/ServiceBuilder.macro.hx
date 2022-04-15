@@ -127,21 +127,21 @@ class ServiceBuilder {
           var path = t.toType().getPathExprFromType();
           var name = f.name;
           var getter = 'get_$name';
-          var backingName = '__computedValue_$name';
+          var resolver = '__resolveFromContext_$name';
 
           f.kind = FProp('get', 'never', t, null);
 
           builder.add(macro class {
-            var $backingName:Null<$t> = null;
+            var $resolver:Null<()->$t> = null;
 
             function $getter() {
-              if (this.$backingName == null) {
+              if (this.$resolver == null) {
                 // Todo: not sure about how to handle this error.
                 throw 'Tried to access the `@use` field ' + $v{name} + ', but no service '
                   + 'was available. Generally, this means that you accessed this field '
                   + 'before this service was registered with a Context.';
               }
-              return this.$backingName;
+              return this.$resolver();
             }
           });
           
@@ -150,7 +150,7 @@ class ServiceBuilder {
           //       can cause problems as we can end up typing it before
           //       macros have a chance to run. Instead, we just do this.
           //       The error message isn't as good, but it does work.
-          useHooks.push(macro @:pos(f.pos) this.$backingName = (${path}:blok.context.ServiceResolver<$t>).from(context));
+          useHooks.push(macro @:pos(f.pos) this.$resolver = () -> (${path}:blok.context.ServiceResolver<$t>).from(context));
         default:
           Context.error('@use may only be used on vars', f.pos);
       }

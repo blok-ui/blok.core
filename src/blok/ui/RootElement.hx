@@ -55,6 +55,12 @@ class RootElement extends ObjectElement {
     return (cast widget:RootWidget).resolveRootObject(); 
   }
 
+  public function scheduleAfterRebuild(cb:()->Void) {
+    var disposable = onChange.next(_ -> cb());
+    if (!isScheduled) scheduleRebuild();
+    return disposable;
+  }
+
   public function requestRebuild(child:Element) {
     if (child == this) {
       Debug.assert(lifecycle == Invalid);
@@ -87,7 +93,12 @@ class RootElement extends ObjectElement {
 
   function performRebuild() {
     isScheduled = false;
-    if (invalidElements == null) return;
+    
+    if (invalidElements == null) {
+      notify();
+      return;
+    }
+
     var elements = invalidElements.copy();
     invalidElements = null;
     for (el in elements) el.rebuild();

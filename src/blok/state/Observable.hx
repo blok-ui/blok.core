@@ -188,7 +188,7 @@ class Observable<T> implements Disposable {
     to using Promises.
   **/
   public inline function next(listener) {
-    handleNext(value -> {
+    return handleNext(value -> {
       listener(value);
       return Handled;
     });

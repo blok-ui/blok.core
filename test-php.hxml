@@ -1,0 +1,6 @@
+test-common.hxml
+
+-D debug
+-php dist/php
+
+-cmd php dist/php/index.php

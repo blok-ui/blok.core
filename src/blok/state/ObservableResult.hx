@@ -4,7 +4,7 @@ import blok.core.Debug;
 import blok.ui.Widget;
 import blok.data.Result;
 
-@:forward(observe, handle, peek, next, observeNext, handleNext)
+@:forward(observe, handle, peek, next, observeNext, handleNext, dispose)
 abstract ObservableResult<Data, Error>(Observable<Result<Data, Error>>) 
   from Observable<Result<Data, Error>> 
 {

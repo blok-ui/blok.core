@@ -57,7 +57,7 @@ class RootElement extends ObjectElement {
 
   public function scheduleAfterRebuild(cb:()->Void) {
     var disposable = onChange.next(_ -> cb());
-    if (!isScheduled) scheduleRebuild();
+    if (!isScheduled) scheduleRebuildInvalidElements();
     return disposable;
   }
 
@@ -78,20 +78,20 @@ class RootElement extends ObjectElement {
 
     if (invalidElements == null) {
       invalidElements = [];
-      scheduleRebuild();
+      scheduleRebuildInvalidElements();
     }
 
     if (invalidElements.contains(child)) return;
     invalidElements.push(child);
   }
 
-  function scheduleRebuild() {
+  function scheduleRebuildInvalidElements() {
     if (isScheduled) return;
     isScheduled = true;
-    platform.schedule(performRebuild);
+    platform.schedule(performRebuildInvalidElements);
   }
 
-  function performRebuild() {
+  function performRebuildInvalidElements() {
     isScheduled = false;
     
     if (invalidElements == null) {

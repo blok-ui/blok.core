@@ -1,5 +1,6 @@
 package blok.context;
 
+import blok.core.Debug;
 import haxe.ds.Map;
 import blok.core.Disposable;
 import blok.core.DisposableHost;
@@ -53,8 +54,8 @@ final class Context implements Disposable implements DisposableHost {
 
   /**
     Set a value in this Context. If the value is `blok.core.Disposable`,
-    it will be disposed when this Context is and will be disposed if 
-    replaced.
+    it will be disposed if this Context is *and* will be disposed if 
+    replaced with a new value.
   **/
   public function set<T>(name:String, value:T) {
     if (data.exists(name)) {
@@ -120,6 +121,7 @@ private class ContextUser extends Component {
       case Some(provider): 
         provider.getContext(); 
     }
+    Debug.assert(context != null);
   }
 
   public function getContext() {

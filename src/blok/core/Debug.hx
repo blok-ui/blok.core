@@ -13,7 +13,11 @@ class Debug {
     }
     
     if (haxe.macro.Context.defined('debug'))
-      return macro @:pos(expr.pos) if (!$expr) throw $message;
+      return macro @:pos(expr.pos) if (!$expr) blok.core.Debug.warn($message);
     return macro null;
+  }
+
+  static public macro function warn(expr:haxe.macro.Expr.ExprOf<String>) {
+    return macro throw $expr; // @todo: This will allow us to update this later
   }
 }

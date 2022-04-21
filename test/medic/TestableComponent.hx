@@ -9,7 +9,7 @@ class TestableComponent extends Component {
   @prop var test:(comp:TestableComponent)->Void = null;
 
   @after
-  public function maybeRunTest() {
+  public function maybeRunTest() { 
     if (test != null) {
       platform
         .getRootElement()

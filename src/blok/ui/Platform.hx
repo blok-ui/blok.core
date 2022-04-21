@@ -3,7 +3,6 @@ package blok.ui;
 import blok.core.Debug;
 import blok.core.Scheduler;
 
-// @todo: Roll this entire thing into the RootElement?
 @:allow(blok.ui)
 abstract class Platform {
   public static function use(build) {

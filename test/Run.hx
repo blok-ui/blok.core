@@ -1,3 +1,4 @@
+import blok.context.TestContext;
 import medic.DefaultReporter;
 import medic.Runner;
 
@@ -15,6 +16,9 @@ function main() {
 
   runner.add(new blok.ui.TestComponent());
   runner.add(new blok.ui.TestFragment());
+
+  runner.add(new blok.provide.TestProvider());
+  runner.add(new blok.provide.TestContext());
 
   runner.add(new blok.context.TestContext());
   runner.add(new blok.context.TestService());

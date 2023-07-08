@@ -1,32 +1,25 @@
 package blok.ui;
 
-class VComponent<Props:{}> implements VNode {
-  public final type:WidgetType;
-  public final key:Null<Key>;
-  public final props:Dynamic;
-  public final children:Null<Array<VNode>> = null;
-  public final factory:(props:Props)->Component;
+import blok.diffing.Key;
 
-  public function new(type, props:Props, factory, key) {
+class VComponent<Props:{}> implements VNode {
+  public final type:UniqueId;
+  public final key:Null<Key>;
+  public final props:Props;
+  public final factory:(node:VNode)->Component;
+
+  public function new(type, props:Props, factory, ?key) {
     this.type = type;
+    this.key = key;
     this.props = props;
     this.factory = factory;
-    this.key = key;
   }
 
-  public function createWidget(?parent, platform, registerEffect):Widget {
-    var component = factory(props);
-    component.initializeWidget(parent, platform, key);
-    component.performUpdate(registerEffect);
-    return component;
+  public function getProps<T:{}>():T {
+    return cast props;
   }
 
-  public function updateWidget(widget:Widget, registerEffect) {
-    var component:Component = cast widget;
-    component.updateComponentProperties(props);
-    if (component.shouldComponentRender()) {
-      component.performUpdate(registerEffect);
-    }
-    return component;
+  public function createComponent():Component {
+    return factory(this);
   }
 }

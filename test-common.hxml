@@ -1,10 +1,13 @@
 -cp src
 -cp test
 
+--debug
+
 -D js-es=6
 # -D analyzer-optimize
--dce full
+# -dce full
 
+-lib kit
 -lib medic
 
 -main Run

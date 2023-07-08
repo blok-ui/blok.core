@@ -1,19 +1,21 @@
-import blok.state.TestState;
-import medic.Runner;
+import blok.ui.*;
 
 function main() {
-  var runner = new Runner();
+  trace(Test.node({ foo: 'foo' }));
+  trace(Placeholder.node());
+}
 
-  runner.add(new blok.data.TestRecord());
+class Test extends AutoComponent {
+  @:constant final bar:String = 'bar';
+  @:signal final foo:String;
+  @:observable final bin:String = 'bin';
+  @:computed final fooBar:String = foo() + bar + bin();
 
-  runner.add(new blok.state.TestObservable());
-  runner.add(new blok.state.TestObservableResult());
-  runner.add(new blok.state.TestState());
-
-  runner.add(new blok.ui.TestComponent());
-
-  runner.add(new blok.context.TestContext());
-  runner.add(new blok.context.TestService());
-
-  runner.run();
+  function render() {
+    return Fragment.node(
+      foo,
+      bin,
+      fooBar
+    );
+  }
 }

@@ -1,21 +1,26 @@
+import js.Browser;
+import blok.html.client.Client.mount;
+import blok.html.Html;
 import blok.ui.*;
 
 function main() {
-  trace(Test.node({ foo: 'foo' }));
-  trace(Placeholder.node());
+  mount(Browser.document.getElementById('root'), Test.node({
+    foo: 'foo'
+  }));
 }
 
-class Test extends AutoComponent {
+class Test extends ObserverComponent {
   @:constant final bar:String = 'bar';
   @:signal final foo:String;
   @:observable final bin:String = 'bin';
   @:computed final fooBar:String = foo() + bar + bin();
 
   function render() {
-    return Fragment.node(
-      foo,
-      bin,
-      fooBar
+    return Html.div({
+      className: 'Test!',
+      onClick: _ -> trace('test')
+    },
+      bar, foo, fooBar
     );
   }
 }

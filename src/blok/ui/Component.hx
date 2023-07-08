@@ -45,7 +45,10 @@ abstract class Component implements Disposable implements DisposableHost {
 
     __parent = parent;
     __slot = slot;
-    __adaptor = parent.getAdaptor();
+    if (__adaptor == null) {
+      assert(parent != null);
+      __adaptor = parent.getAdaptor();
+    }
   }
 
   public function update(node:VNode) {
@@ -64,6 +67,8 @@ abstract class Component implements Disposable implements DisposableHost {
 
   public function invalidate() {
     assert(__status != Building);
+
+    if (__status == Invalid) return;
 
     __status = Invalid;
 
@@ -185,7 +190,7 @@ abstract class Component implements Disposable implements DisposableHost {
 
   function scheduleValidation() {
     var adaptor = getAdaptor();
-    adaptor.schedule(validate);
+    adaptor.schedule(() -> validate());
   }
 
   function __cleanupAfterValidation() {
@@ -213,7 +218,7 @@ abstract class Component implements Disposable implements DisposableHost {
     var children = __invalidChildren.copy();
     __invalidChildren = [];
 
-    for (child in __invalidChildren) child.validate();
+    for (child in children) child.validate();
   }
 
   public function addDisposable(disposable:DisposableItem) {

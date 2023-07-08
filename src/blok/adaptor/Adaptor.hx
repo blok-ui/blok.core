@@ -4,10 +4,7 @@ import blok.ui.*;
 
 interface Adaptor {
   public function schedule(effect:()->Void):Void;
-  public function createContainerNode(attrs:{}):Dynamic;
-  public function createButtonNode(attrs:{}):Dynamic;
-  public function createInputNode(attrs:{}):Dynamic;
-  public function createCustomNode(name:String, attrs:{}):Dynamic;
+  public function createNode(name:String, attrs:{}):Dynamic;
   public function createPlaceholderNode():Dynamic;
   public function createTextNode(text:String):Dynamic;
   public function createCursor(object:Dynamic):Cursor;

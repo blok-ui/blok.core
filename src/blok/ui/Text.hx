@@ -42,7 +42,7 @@ class TextComponent extends Component implements RealNodeHost {
 
   var realNode:Null<Dynamic> = null;
 
-  public function new(node) {
+  function new(node) {
     __node = node;
   }
 

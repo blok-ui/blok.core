@@ -1,0 +1,14 @@
+-cp src
+-cp example
+
+-lib kit
+
+--debug
+--dce full
+
+-D analyzer-optimize
+-D js-es=6
+
+-main counter.Counter
+
+-js dist/assets/app.js

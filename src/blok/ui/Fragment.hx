@@ -12,13 +12,17 @@ class Fragment extends Component {
   var children:Array<Component> = [];
   var marker:Null<Component> = null;
 
-  public function new(node) {
+  private function new(node) {
     __node = node;
   }
 
   function render() {
     var props:{ children:Array<Child> } = __node.getProps();
     return props.children.filter(c -> c != null);
+  }
+
+  override function createSlot(localIndex:Int, previous:Null<Component>):Slot {
+    return new FragmentSlot(__slot?.index ?? 0, localIndex + 1, previous);
   }
 
   function __initialize() {

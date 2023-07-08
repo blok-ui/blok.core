@@ -1,8 +1,8 @@
 package blok.ui;
 
 import blok.macro.ClassBuilder;
-import haxe.macro.Context;
 import haxe.macro.Compiler;
+import haxe.macro.Context;
 import haxe.macro.Expr;
 
 using haxe.macro.Tools;
@@ -46,18 +46,32 @@ function build():Array<Field> {
     blok.signal.Graph.setCurrentOwner(prevOwner);
   } else macro null;
 
+  switch builder.findField('setup') {
+    case Some(_):
+    case None: builder.add(macro class {
+      function setup() {}
+    });
+  }
+
+  switch builder.findField('new') {
+    case Some(field):
+      Context.error('Custom constructors are not ready yet', field.pos);
+    case None:
+      builder.add(macro class {
+        private function new(node) {
+          __node = node;
+          var props:$propType = __node.getProps();
+          @:mergeBlock $b{inits};
+          ${computation};
+        }
+      });
+  }
+
   builder.add(macro class {
     public static final componentType = new kit.UniqueId();
 
     public static function node(props:$propType, ?key) {
       return new blok.ui.VComponent(componentType, props, $i{type.name}.new, key);
-    }
-
-    public function new(node) {
-      __node = node;
-      var props:$propType = __node.getProps();
-      @:mergeBlock $b{inits};
-      ${computation};
     }
 
     function __updateProps() {

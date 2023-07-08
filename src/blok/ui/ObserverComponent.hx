@@ -5,11 +5,12 @@ import blok.signal.Graph;
 import blok.diffing.Differ;
 import blok.debug.Debug;
 
-@:autoBuild(blok.ui.AutoComponentBuilder.build())
-abstract class AutoComponent extends Component {
+@:autoBuild(blok.ui.ObserverComponentBuilder.build())
+abstract class ObserverComponent extends Component {
   var __child:Null<Component> = null;
   var __rendered:Null<Computation<Null<VNode>>> = null;
 
+  abstract function setup():Void;
   abstract function render():VNode;
   abstract function __updateProps():Void;
 
@@ -22,24 +23,26 @@ abstract class AutoComponent extends Component {
     withOwner(this, () -> {
       __rendered = new Computation(() -> switch __status {
         case Disposing | Disposed: 
-          null;
+          Placeholder.node();
         default:
           var node = render();
           if (__status != Building) invalidate();
-          node;
+          node ?? Placeholder.node();
       });
     });
 
-    return __rendered?.peek();
+    return __rendered?.peek() ?? Placeholder.node();
   }
   
   function __initialize():Void {
-    __child = __render()?.createComponent();
+    setup();
+    __child = __render().createComponent();
     __child?.mount(this, __slot);
   }
 
   function __hydrate(cursor:Cursor):Void {
-    __child = __render()?.createComponent();
+    setup();
+    __child = __render().createComponent();
     __child?.hydrate(cursor, this, __slot);
   }
 
@@ -65,12 +68,12 @@ abstract class AutoComponent extends Component {
     var node:Null<Dynamic> = null;
 
     visitChildren(component -> {
-      assert(node == null, 'Element has more than one nodes');
+      assert(node == null, 'Component has more than one nodes');
       node = component.getRealNode();
       true;
     });
 
-    assert(node != null, 'Element does not have an node');
+    assert(node != null, 'Component does not have an node');
 
     return node;
   }

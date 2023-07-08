@@ -1,9 +1,9 @@
 package blok.ui;
 
-class Scope extends AutoComponent {
+class Scope extends ObserverComponent {
   @:observable final child:Child;
 
-  public function render():VNode {
+  function render():VNode {
     return child();
   }
 }

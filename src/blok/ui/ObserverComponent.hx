@@ -35,13 +35,13 @@ abstract class ObserverComponent extends Component {
   }
   
   function __initialize():Void {
-    setup();
+    withOwner(this, setup);
     __child = __render().createComponent();
     __child?.mount(this, __slot);
   }
 
   function __hydrate(cursor:Cursor):Void {
-    setup();
+    withOwner(this, setup);
     __child = __render().createComponent();
     __child?.hydrate(cursor, this, __slot);
   }

@@ -11,6 +11,8 @@ using StringTools;
 inline extern final svgNamespace = 'http://www.w3.org/2000/svg';
 
 class ClientAdaptor implements Adaptor {
+  final scheduler = new Scheduler();
+
   public function new() {}
 
   public function createNode(name:String, initialAttrs:{}):Dynamic {
@@ -143,7 +145,6 @@ class ClientAdaptor implements Adaptor {
   }
 
   public function schedule(effect:() -> Void) {
-    // @todo
-    effect();
+    scheduler.schedule(effect);
   }
 }

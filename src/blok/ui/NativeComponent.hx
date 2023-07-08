@@ -1,5 +1,6 @@
 package blok.ui;
 
+import blok.signal.Graph.withOwner;
 import blok.diffing.Differ.diffChildren;
 import blok.adaptor.RealNodeHost;
 import blok.debug.Debug;
@@ -34,19 +35,21 @@ class NativeComponent extends Component implements RealNodeHost {
       getAdaptor().updateNodeAttribute(getRealNode(), name, value, hydrating);
     }
 
-    var props:{} = __node.getProps();
-    for (field in Reflect.fields(props)) {
-      // @todo: This will break super easily.
-      if (!attributes.exists(field)) {
-        var signal = Reflect.field(props, field);
-        attributes.set(field, signal);
-        if (signal.isInactive()) {
-          applyAttribute(field, signal);
-        } else {
-          Observer.track(() -> applyAttribute(field, signal));
+    withOwner(this, () -> {
+      var props:{} = __node.getProps();
+      for (field in Reflect.fields(props)) {
+        // @todo: This will break super easily.
+        if (!attributes.exists(field)) {
+          var signal = Reflect.field(props, field);
+          attributes.set(field, signal);
+          if (signal.isInactive()) {
+            applyAttribute(field, signal);
+          } else {
+            Observer.track(() -> applyAttribute(field, signal));
+          }
         }
       }
-    }
+    });
   }
 
   function __initialize() {

@@ -2,20 +2,21 @@ package blok.ui;
 
 import blok.adaptor.Adaptor;
 import blok.adaptor.RealNodeHost;
+import blok.signal.Graph;
 
 class RootComponent extends Component implements RealNodeHost {
   public static final componentType = new UniqueId();
 
   public static function node(props:{
     target:Dynamic, 
-    child:Child,
+    child:()->Child,
     adaptor:Adaptor
   }) {
     return new VComponent(componentType, props, RootComponent.new);
   }
 
   final target:Dynamic;
-  final child:Child;
+  final child:()->Child;
 
   var component:Null<Component> = null;
   
@@ -23,7 +24,7 @@ class RootComponent extends Component implements RealNodeHost {
     __node = node;
     (node.getProps():{
       target:Dynamic,
-      child:Child,
+      child:()->Child,
       adaptor:Adaptor
     }).extract({ target: target, child: child, adaptor: adaptor });
     this.target = target;
@@ -31,13 +32,17 @@ class RootComponent extends Component implements RealNodeHost {
     this.__adaptor = adaptor;
   }
 
+  function render() {
+    return withOwnedValue(this, ()-> untrackValue(child));
+  }
+
   function __initialize() {
-    component = child.createComponent();
+    component = render().createComponent();
     component.mount(this, createSlot(0, null));
   }
 
   function __hydrate(cursor:Cursor) {
-    component = child.createComponent();
+    component = render().createComponent();
     component.hydrate(cursor, this, createSlot(0, null));
   }
 

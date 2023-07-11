@@ -2,6 +2,7 @@
 -cp example
 
 -lib kit
+-lib breeze
 
 --debug
 --dce full
@@ -9,6 +10,6 @@
 -D analyzer-optimize
 -D js-es=6
 
--main counter.Counter
+-main Example
 
 -js dist/assets/app.js

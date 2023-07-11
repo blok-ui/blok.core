@@ -26,7 +26,7 @@ abstract class ObserverComponent extends Component {
           Placeholder.node();
         default:
           var node = render();
-          if (__status != Building) invalidate();
+          if (__status != Rendering) invalidate();
           node ?? Placeholder.node();
       });
     });
@@ -35,15 +35,15 @@ abstract class ObserverComponent extends Component {
   }
   
   function __initialize():Void {
-    withOwner(this, setup);
     __child = __render().createComponent();
     __child?.mount(this, __slot);
+    withOwner(this, setup);
   }
 
   function __hydrate(cursor:Cursor):Void {
-    withOwner(this, setup);
     __child = __render().createComponent();
     __child?.hydrate(cursor, this, __slot);
+    withOwner(this, setup);
   }
 
   function __update():Void {
@@ -56,7 +56,6 @@ abstract class ObserverComponent extends Component {
   }
 
   function __dispose():Void {
-    __rendered?.dispose();
     __rendered = null;
   }
 

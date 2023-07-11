@@ -6,10 +6,13 @@ import haxe.macro.Context;
 import haxe.macro.Expr;
 
 using haxe.macro.Tools;
+using blok.macro.MacroTools;
 
+// @todo: Refactor this, try to create something that is easier
+// to share across our various reactive objects
 function build():Array<Field> {
   var builder = ClassBuilder.fromContext();
-  var type = Context.getLocalClass().get();
+  var cls = Context.getLocalClass().get();
   var fieldBuilders:Array<ComponentFieldBuilder> = [];
 
   for (field in builder.findFieldsByMeta(':constant')) {
@@ -18,6 +21,17 @@ function build():Array<Field> {
   
   for (field in builder.findFieldsByMeta(':signal')) {
     fieldBuilders.push(createSignalField(builder, field, false));
+  }
+
+  for (field in builder.findFieldsByMeta(':action')) switch field.kind {
+    case FFun(f):
+      if (f.ret != null && f.ret != macro:Void) {
+        Context.error(':action methods cannot return anything', field.pos);
+      }
+      var expr = f.expr;
+      f.expr = macro blok.signal.Action.run(() -> $expr);
+    default:
+      Context.error(':action fields must be functions', field.pos);
   }
 
   var computed:Array<Expr> = [];
@@ -66,13 +80,29 @@ function build():Array<Field> {
         }
       });
   }
+  
+  var createParams = cls.params.length > 0
+    ? [ for (p in cls.params) { name: p.name, constraints: p.extractTypeParams() } ]
+    : [];
+
+  builder.addField({
+    name: 'node',
+    access: [ AStatic, APublic ],
+    pos: (macro null).pos,
+    meta: [],
+    kind: FFun({
+      params: createParams,
+      args: [
+        { name: 'props', type: macro:$propType },
+        { name: 'key', type: macro:Null<blok.diffing.Key>, opt: true }
+      ],
+      expr: macro return new blok.ui.VComponent(componentType, props, $i{cls.name}.new, key),
+      ret: macro:blok.ui.VNode
+    })
+  });
 
   builder.add(macro class {
     public static final componentType = new kit.UniqueId();
-
-    public static function node(props:$propType, ?key) {
-      return new blok.ui.VComponent(componentType, props, $i{type.name}.new, key);
-    }
 
     function __updateProps() {
       blok.signal.Action.run(() -> {
@@ -106,7 +136,7 @@ private function createConstantField(builder:ClassBuilder, field:Field):Componen
       if (!field.access.contains(AFinal)) {
         if (Compiler.getConfiguration().debug) {
           Context.error(
-            '@:constant fields are must be final.',
+            '@:constant fields must be final.',
             field.pos
           );
         }
@@ -195,7 +225,7 @@ private function createSignalField(builder:ClassBuilder, field:Field, isReadonly
         if (e == null) {
           macro this.$backingName = props.$name;
         } else {
-          macro if (props.$name != null) this.$backingName = props.$name;
+          macro this.$backingName = props.$name ?? $expr;
         },
         switch t {
           case macro:Null<$_>:

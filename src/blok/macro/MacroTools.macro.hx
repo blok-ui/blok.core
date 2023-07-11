@@ -1,6 +1,7 @@
 package blok.macro;
 
 import haxe.macro.Context;
+import haxe.macro.Type;
 import haxe.macro.Expr;
 
 using StringTools;
@@ -55,5 +56,15 @@ function stringifyTypeForClassName(type:haxe.macro.Type):String {
     default: 
       // Fallback to using a hash.
       type.toString().hash();
+  }
+}
+
+function extractTypeParams(tp:TypeParameter) {
+  return switch tp.t {
+    case TInst(kind, _): switch kind.get().kind {
+      case KTypeParameter(constraints): constraints.map(t -> t.toComplexType());
+      default: [];
+    }
+    default: [];
   }
 }

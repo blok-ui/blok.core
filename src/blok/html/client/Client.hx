@@ -4,7 +4,7 @@ import blok.ui.Child;
 import js.html.Element;
 import blok.ui.RootComponent;
 
-function mount(el:Element, child:Child) {
+function mount(el:Element, child:()->Child) {
   var root = RootComponent.node({
     target: el,
     child: child,

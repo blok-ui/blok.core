@@ -6,6 +6,8 @@ import haxe.macro.Expr;
 
 using Lambda;
 
+// @todo: Try to unify this with our ObserverComponentBuilder and
+// StaticComponentBuilder?
 function build() {
   var builder = ClassBuilder.fromContext();
   var fieldBuilders:Array<FieldBuilder> = [];
@@ -162,7 +164,7 @@ private function createComputed(field:Field):Expr {
 }
 
 private function createInit(name:String, e:Null<Expr>) {
-  return if (e == null){
+  return if (e == null) {
     macro this.$name = props.$name;
   } else {
     macro if (props.$name != null) this.$name = props.$name;

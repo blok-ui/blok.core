@@ -4,6 +4,7 @@ import blok.signal.Graph;
 import blok.diffing.Differ;
 import blok.debug.Debug;
 
+@:autoBuild(blok.ui.StaticComponentBuilder.build())
 abstract class StaticComponent extends Component {
   var __child:Null<Component> = null;
 
@@ -12,23 +13,23 @@ abstract class StaticComponent extends Component {
   abstract function __updateProps():Bool;
 
   function __render() {
-    return untrackValue(render) ?? Placeholder.node();
+    return withOwnedValue(this, () -> untrackValue(render) ?? Placeholder.node());
   }
 
   function __initialize() {
-    setup();
+    withOwner(this, () -> untrack(setup));
     __child = __render().createComponent();
     __child.mount(this, __slot);
   }
 
   function __hydrate(cursor:Cursor) {
-    setup();
+    withOwner(this, () -> untrack(setup));
     __child = __render().createComponent();
     __child.hydrate(cursor, this, __slot);
   }
 
   function __update() {
-    if (__updateProps()) {
+    if (withOwnedValue(this, () -> untrackValue(__updateProps))) {
       __child = updateChild(this, __child, __render(), __slot);
     }
   }

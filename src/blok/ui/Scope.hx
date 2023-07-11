@@ -1,9 +1,13 @@
 package blok.ui;
 
 class Scope extends ObserverComponent {
-  @:observable final child:Child;
+  public inline static function wrap(child) {
+    return node({ child: child });
+  }
+
+  @:constant final child:(context:Component)->Child;
 
   function render():VNode {
-    return child();
+    return child(this);
   }
 }

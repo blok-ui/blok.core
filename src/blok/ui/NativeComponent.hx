@@ -1,5 +1,6 @@
 package blok.ui;
 
+import blok.core.Disposable;
 import blok.signal.Graph.withOwner;
 import blok.diffing.Differ.diffChildren;
 import blok.adaptor.RealNodeHost;
@@ -12,8 +13,9 @@ using blok.adaptor.RealNodeHostTools;
 class NativeComponent extends Component implements RealNodeHost {
   final tag:String;
   final type:UniqueId;
-  final attributes:Map<String, ReadonlySignal<Any>> = [];
+  final updaters:Map<String, NativePropertyUpdater<Any>> = [];
 
+  var hydrating:Bool = false;
   var realNode:Null<Dynamic> = null;
   var children:Array<Component> = [];
 
@@ -28,34 +30,36 @@ class NativeComponent extends Component implements RealNodeHost {
     return vn.children ?? [];
   }
 
-  // @todo: Figure out a better way to handle attributes.
-  function setupAttributes(hydrating:Bool = false) {
-    inline function applyAttribute(name:String, signal:ReadonlySignal<Any>) {
-      var value = signal.get();
+  function observeAttributes() {
+    function applyAttribute(name:String, value:Any) {
       getAdaptor().updateNodeAttribute(getRealNode(), name, value, hydrating);
     }
 
-    withOwner(this, () -> {
-      var props:{} = __node.getProps();
-      for (field in Reflect.fields(props)) {
-        // @todo: This will break super easily.
-        if (!attributes.exists(field)) {
-          var signal = Reflect.field(props, field);
-          attributes.set(field, signal);
-          if (signal.isInactive()) {
-            applyAttribute(field, signal);
-          } else {
-            Observer.track(() -> applyAttribute(field, signal));
-          }
-        }
+    var props = __node.getProps();
+    var fields = Reflect.fields(props);
+
+    for (name in updaters.keys()) {
+      if (!fields.contains(name)) {
+        updaters.get(name)?.dispose();
+        updaters.remove(name);
+      }
+    }
+
+    withOwner(this, () -> for (name in fields) {
+      var signal:ReadonlySignal<Any> = Reflect.field(props, name);
+      var updater = updaters.get(name);
+      if (updater == null) {
+        updater = new NativePropertyUpdater(name, signal, applyAttribute, props);
+        updaters.set(name, updater);
+      } else {
+        updater.update(signal, props);
       }
     });
   }
 
   function __initialize() {
     realNode = createRealNode();
-    
-    setupAttributes();
+    observeAttributes();
     
     var nodes = render();
     var previous:Component = null;
@@ -66,14 +70,13 @@ class NativeComponent extends Component implements RealNodeHost {
       previous = child;
       child;
     } ];
-
     getAdaptor().insertNode(realNode, __slot, () -> this.findNearestRealNode());
   }
 
   function __hydrate(cursor:Cursor) {
+    hydrating = true;
     realNode = cursor.current();
-
-    setupAttributes(true);
+    observeAttributes();
 
     var nodes = render();
     var localCursor = getAdaptor().createCursor(realNode);
@@ -87,11 +90,14 @@ class NativeComponent extends Component implements RealNodeHost {
     } ];
     
     assert(localCursor.current() == null);
+    
+    hydrating = false;
+
     cursor.next();
   }
 
   function __update() {
-    setupAttributes();
+    observeAttributes();
     children = diffChildren(this, children, render());
   }
 
@@ -100,7 +106,11 @@ class NativeComponent extends Component implements RealNodeHost {
   }
 
   function __dispose() {
-    attributes.clear();
+    for (_ => updater in updaters) {
+      updater.dispose();
+    }
+    updaters.clear();
+    getAdaptor().removeNode(getRealNode(), __slot);
   }
 
   function __updateSlot(oldSlot:Null<Slot>, newSlot:Null<Slot>) {
@@ -122,5 +132,36 @@ class NativeComponent extends Component implements RealNodeHost {
 
   public function visitChildren(visitor:(child:Component) -> Bool) {
     for (child in children) if (!visitor(child)) return;
+  }
+}
+
+class NativePropertyUpdater<T> implements Disposable {
+  final changeSignal:Signal<ReadonlySignal<T>>;
+  final observer:Observer;
+  var currentProps:{};
+  
+  public function new(
+    name:String,
+    propSignal:ReadonlySignal<T>,
+    setRealAttr, 
+    props
+  ) {
+    this.changeSignal = new Signal(propSignal);
+    this.currentProps = props;
+    this.observer = new Observer(() -> {
+      var value = changeSignal.get().get();
+      if (Reflect.field(currentProps, name) == value) return;
+      setRealAttr(name, value);
+    });
+  }
+
+  public function update(newSignal:ReadonlySignal<T>, newProps:{}) {
+    changeSignal.set(newSignal);
+    currentProps = newProps;
+  }
+
+  public function dispose() {
+    changeSignal.dispose();
+    observer.dispose();
   }
 }

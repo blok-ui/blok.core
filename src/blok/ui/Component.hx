@@ -8,7 +8,7 @@ enum ComponentStatus {
   Pending;
   Valid;
   Invalid;
-  Building;
+  Rendering;
   Disposing;
   Disposed;
 }
@@ -27,7 +27,7 @@ abstract class Component implements Disposable implements DisposableHost {
   public function mount(parent:Null<Component>, slot:Null<Slot>) {
     __init(parent, slot);
 
-    __status = Building;
+    __status = Rendering;
     __initialize();
     __cleanupAfterValidation();
   }
@@ -35,7 +35,7 @@ abstract class Component implements Disposable implements DisposableHost {
   public function hydrate(cursor:Cursor, parent:Null<Component>, slot:Null<Slot>) {
     __init(parent, slot);
 
-    __status = Building;
+    __status = Rendering;
     __hydrate(cursor);
     __cleanupAfterValidation();
   }
@@ -52,21 +52,21 @@ abstract class Component implements Disposable implements DisposableHost {
   }
 
   public function update(node:VNode) {
-    assert(__status != Building);
+    assert(__status != Rendering);
 
     if (__node == node) {
       __cleanupAfterValidation();
       return;
     }
 
-    __status = Building;
+    __status = Rendering;
     __node = node;
     __update();
     __cleanupAfterValidation();
   }
 
   public function invalidate() {
-    assert(__status != Building);
+    assert(__status != Rendering);
 
     if (__status == Invalid) return;
 
@@ -81,14 +81,16 @@ abstract class Component implements Disposable implements DisposableHost {
   }
 
   public function validate() {
+    assert(__status != Rendering, 'Attempted to validate a Component that was already building');
+    assert(__status != Disposing, 'Attempted to validate a Component that was disposing');
+    assert(__status != Disposed, 'Attempted to validate a Component that was disposed');
+
     if (__status != Invalid) {
       validateInvalidChildren();
       return;
     }
 
-    assert(__status != Building);
-
-    __status = Building;
+    __status = Rendering;
     __validate();
     __cleanupAfterValidation();
   }
@@ -226,14 +228,15 @@ abstract class Component implements Disposable implements DisposableHost {
   }
 
   public function dispose() {
-    assert(__status != Building, 'Attempted to dispose a component while it was building');
+    assert(__status != Rendering, 'Attempted to dispose a component while it was building');
     assert(__status != Disposing, 'Attempted to dispose a component that is already disposing');
     assert(__status != Disposed, 'Attempted to dispose a component that was already disposed');
 
     __status = Disposing;
-    __slot = null;
-    __dispose();
+    __invalidChildren = [];
     __disposables.dispose();
+    __dispose();
+    __slot = null;
 
     visitChildren(child -> {
       child.dispose();

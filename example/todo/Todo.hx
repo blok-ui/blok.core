@@ -4,7 +4,6 @@ import Breeze;
 import blok.context.*;
 import blok.data.*;
 import blok.html.*;
-import blok.html.HtmlAttributes;
 import blok.html.client.Client;
 import blok.signal.*;
 import blok.ui.*;
@@ -132,11 +131,22 @@ class TodoContext extends Record implements Context {
 
 class TodoRoot extends Component {
   function render() {
-    return TodoContext.provide(TodoContext.load, todos -> Fragment.node(
-      TodoHeader.node({}),
-      TodoList.node({}),
-      TodoFooter.node({})
-    ));
+    return Html.div({},
+      Html.div({}, TodoContext.provide(TodoContext.load, todos -> Fragment.node(
+        TodoHeader.node({}),
+        TodoList.node({}),
+        TodoFooter.node({})
+      ))).styles(
+        Sizing.width('full'),
+        Border.radius(2),
+        Border.width(.5),
+        Breakpoint.viewport('700px', Sizing.width('700px'))
+      )  
+    ).styles(
+      Flex.display(),
+      Flex.justify('center'),
+      Spacing.pad(10),
+    );
   }
 }
 
@@ -146,19 +156,36 @@ class TodoHeader extends Component {
     return Html.header({
       role: 'header'
     }, 
-      Html.h1({}, 'Todos').styles(
-        Typography.fontSize('lg'),
-        Typography.fontWeight('bold')
+      Html.div({},
+        Html.h1({}, 'Todos').styles(
+          Typography.fontSize('lg'),
+          Typography.fontWeight('bold')
+        ),
+        TodoInput.node({
+          className: 'new-todo',
+          value: '',
+          clearOnComplete: true,
+          onCancel: () -> null,
+          onSubmit: description -> todos.addTodo(description)
+        })
+      ).styles(
+        Flex.display(),
+        Flex.gap(3),
+        Flex.alignItems('center'),
+        Spacing.pad('y', 3),
+        Border.width('bottom', .5)
       ),
-      TodoInput.node({
-        className: 'new-todo',
-        value: '',
-        clearOnComplete: true,
-        onCancel: () -> null,
-        onSubmit: description -> todos.addTodo(description)
-      })
+      Html.ul({}, 
+        VisibilityControl.node({ visibility: All }),
+        VisibilityControl.node({ visibility: Active }),
+        VisibilityControl.node({ visibility: Completed }),
+      ).styles(
+        Flex.display(),
+        Flex.gap(3),
+        Spacing.pad('y', 3),
+        Border.width('bottom', .5)
+      )
     ).styles(
-      Background.color('gray', 200),
       Spacing.pad(3)
     );
   }
@@ -186,17 +213,43 @@ class TodoFooter extends Component {
 
 class VisibilityControl extends Component {
   @:constant final visibility:TodoVisibility;
-  @:constant final url:String;
   
   function render() {
     var todos = TodoContext.from(this);
-    return Html.li({
-      onClick: _ -> todos.visibility.set(visibility)
-    }, Html.a({
-        href: url,
-        className: new Computation(() -> if (visibility == todos.visibility()) 'selected' else null),
-      }, (visibility:String))
+    return Html.li({},
+      Button.node({
+        action: () -> todos.visibility.set(visibility),
+        selected: new Computation(() -> visibility == todos.visibility()),
+        label: visibility
+      }) 
     );
+  }
+}
+
+class Button extends Component {
+  @:constant final label:String;
+  @:constant final action:()->Void;
+  @:observable final selected:Bool = false;
+
+  function render() {
+    return Html.button({
+      onClick: _ -> action()
+    }, label).trackedStyles(new Computation<ClassName>(() -> [
+      Spacing.pad('x', 3),
+      Spacing.pad('y', 1),
+      Border.radius(2),
+      Border.width(.5),
+      Border.color('black', 0),
+      if (selected()) Breeze.compose(
+        Background.color('black', 0),
+        Typography.textColor('white', 0)
+      ) else Breeze.compose(
+        Background.color('white', 0),
+        Modifier.hover(
+          Background.color('gray', 100)
+        )
+      )
+    ]));
   }
 }
 
@@ -246,7 +299,14 @@ class TodoInput extends Component {
           }
         }
       }
-    });
+    }).styles(
+      Spacing.pad('x', 3),
+      Spacing.pad('y', 1),
+      Border.radius(2),
+      Border.color('black', 0),
+      Border.width(.5),
+      Sizing.width('full')
+    );
   }
 }
 
@@ -278,23 +338,21 @@ class TodoItem extends Component {
   ];
 
   function render():VNode {
-    return Html.li({id: 'todo-${todo.id}'},
+    return Html.li({
+      id: 'todo-${todo.id}',
+      onDblClick: _ -> todo.isEditing.set(true),
+    },
       if (!todo.isEditing()) Fragment.node(
         Html.input({
-          type: InputType.Checkbox,
+          type: blok.html.HtmlAttributes.InputType.Checkbox,
           checked: todo.isCompleted,
           onClick: _ -> todo.isCompleted.update(status -> !status)
         }),
-        Html.div({
-          onDblClick: _ -> todo.isEditing.set(true),
-          onClick: e -> {
-            e.preventDefault();
-            e.stopPropagation();
-          }
-        }, todo.description),
-        Html.button({
-          onClick: _ -> TodoContext.from(this).removeTodo(todo)
-        }, 'Remove')
+        Html.div({}, todo.description).styles(Spacing.margin('right', 'auto')),
+        Button.node({
+          action: () -> TodoContext.from(this).removeTodo(todo),
+          label: 'Remove'
+        })
       ) else TodoInput.node({
         className: 'edit',
         isEditing: todo.isEditing,
@@ -309,7 +367,12 @@ class TodoItem extends Component {
     ).trackedStyles(
       className.map(className -> className.with([
         Flex.display(),
-        Flex.gap(3)
+        Flex.gap(3),
+        Flex.alignItems('center'),
+        Spacing.pad('x', 3),
+        Spacing.pad('y', 1),
+        Border.radius(2),
+        Background.color('gray', 200)
       ]))
     );
   }

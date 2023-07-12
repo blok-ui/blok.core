@@ -304,8 +304,7 @@ class TodoInput extends Component {
       Spacing.pad('y', 1),
       Border.radius(2),
       Border.color('black', 0),
-      Border.width(.5),
-      Sizing.width('full')
+      Border.width(.5)
     );
   }
 }
@@ -363,7 +362,7 @@ class TodoItem extends Component {
           todo.description.set(data);
           todo.isEditing.set(false);
         })
-      })
+      }).styles(Sizing.width('full'))
     ).trackedStyles(
       className.map(className -> className.with([
         Flex.display(),

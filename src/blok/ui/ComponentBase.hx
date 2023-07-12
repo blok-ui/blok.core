@@ -59,7 +59,7 @@ abstract class ComponentBase implements Disposable implements DisposableHost {
       __cleanupAfterValidation();
       return;
     }
-
+  
     __status = Rendering;
     __node = node;
     __update();

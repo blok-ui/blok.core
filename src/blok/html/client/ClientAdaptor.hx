@@ -38,7 +38,7 @@ class ClientAdaptor implements Adaptor {
   }
 
   // @todo: Refactor this to be better  
-  public function updateNodeAttribute(object:Dynamic, name:String, value:Dynamic, ?isHydrating:Bool) {
+  public function updateNodeAttribute(object:Dynamic, name:String, oldValue:Null<Dynamic>, value:Dynamic, ?isHydrating:Bool) {
     var el:Element = object;
     var isSvg = el.namespaceURI == svgNamespace;
     
@@ -58,8 +58,21 @@ class ClientAdaptor implements Adaptor {
     }
 
     switch name {
-      case 'className':
-        updateNodeAttribute(el, 'class', value);
+      case 'className' | 'class':
+        var oldNames = Std.string(oldValue ?? '').split(' ').filter(n -> n != null && n != '');
+        var newNames = Std.string(value ?? '').split(' ').filter(n -> n != null && n != '');
+
+        for (name in oldNames) {
+          if (!newNames.contains(name)) {
+            el.classList.remove(name);
+          } else {
+            newNames.remove(name);
+          }
+        }
+
+        if (newNames.length > 0) {
+          el.classList.add(...newNames);
+        }
       case 'xmlns' if (isSvg): // skip
       case 'value' | 'selected' | 'checked' if (!isSvg):
         js.Syntax.code('{0}[{1}] = {2}', el, name, value);

@@ -9,7 +9,7 @@ interface Adaptor {
   public function createTextNode(text:String):Dynamic;
   public function createCursor(object:Dynamic):Cursor;
   public function updateTextNode(object:Dynamic, value:String):Void;
-  public function updateNodeAttribute(object:Dynamic, name:String, value:Dynamic, ?isHydrating:Bool):Void;
+  public function updateNodeAttribute(object:Dynamic, name:String, oldValue:Null<Dynamic>, value:Dynamic, ?isHydrating:Bool):Void;
   public function insertNode(object:Dynamic, slot:Null<Slot>, findParent:() -> Dynamic):Void;
   public function moveNode(object:Dynamic, from:Null<Slot>, to:Null<Slot>, findParent:() -> Dynamic):Void;
   public function removeNode(object:Dynamic, slot:Null<Slot>):Void;

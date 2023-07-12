@@ -31,8 +31,8 @@ class NativeComponent extends ComponentBase implements RealNodeHost {
   }
 
   function observeAttributes() {
-    function applyAttribute(name:String, value:Any) {
-      getAdaptor().updateNodeAttribute(getRealNode(), name, value, hydrating);
+    function applyAttribute(name:String, oldValue:Any, value:Any) {
+      getAdaptor().updateNodeAttribute(getRealNode(), name, oldValue, value, hydrating);
     }
 
     var props = __node.getProps();
@@ -49,10 +49,10 @@ class NativeComponent extends ComponentBase implements RealNodeHost {
       var signal:ReadonlySignal<Any> = Reflect.field(props, name);
       var updater = updaters.get(name);
       if (updater == null) {
-        updater = new NativePropertyUpdater(name, signal, applyAttribute, props);
+        updater = new NativePropertyUpdater(name, signal, applyAttribute);
         updaters.set(name, updater);
       } else {
-        updater.update(signal, props);
+        updater.update(signal);
       }
     });
   }
@@ -138,26 +138,24 @@ class NativeComponent extends ComponentBase implements RealNodeHost {
 class NativePropertyUpdater<T> implements Disposable {
   final changeSignal:Signal<ReadonlySignal<T>>;
   final observer:Observer;
-  var currentProps:{};
+  var currentValue:Null<T> = null;
   
   public function new(
     name:String,
     propSignal:ReadonlySignal<T>,
-    setRealAttr, 
-    props
+    setRealAttr
   ) {
     this.changeSignal = new Signal(propSignal);
-    this.currentProps = props;
     this.observer = new Observer(() -> {
       var value = changeSignal.get().get();
-      if (Reflect.field(currentProps, name) == value) return;
-      setRealAttr(name, value);
+      if (value == currentValue) return;
+      setRealAttr(name, currentValue, value);
+      currentValue = value;
     });
   }
 
-  public function update(newSignal:ReadonlySignal<T>, newProps:{}) {
+  public function update(newSignal:ReadonlySignal<T>) {
     changeSignal.set(newSignal);
-    currentProps = newProps;
   }
 
   public function dispose() {

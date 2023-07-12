@@ -3,10 +3,10 @@ package blok.ui;
 import blok.diffing.Differ;
 
 class Fragment extends ComponentBase {
-  public static final type = new UniqueId();
+  public static final componentType = new UniqueId();
 
   public static function node(...children:Child):VNode {
-    return new VComponent(type, { children: children }, Fragment.new);
+    return new VComponent(componentType, { children: children }, Fragment.new);
   }
 
   var children:Array<ComponentBase> = [];
@@ -93,7 +93,7 @@ class Fragment extends ComponentBase {
   }
 
   public function canBeUpdatedByNode(node:VNode):Bool {
-    return node.type == type;
+    return node.type == componentType;
   }
 
   public function visitChildren(visitor:(child:ComponentBase) -> Bool) {

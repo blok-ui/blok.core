@@ -42,8 +42,16 @@ class Todo extends Record {
   }
 }
 
-@:fallback(TodoContext.load())
+@:fallback(TodoContext.instance())
 class TodoContext extends Record implements Context {
+  static public function instance() {
+    static var context:Null<TodoContext> = null;
+    if (context == null) {
+      context = TodoContext.load();
+    }
+    return context;
+  }
+
   static inline final storageId = 'pine-todo-store';
 
   public static function load():TodoContext {
@@ -132,7 +140,7 @@ class TodoContext extends Record implements Context {
 class TodoRoot extends Component {
   function render() {
     return Html.div({},
-      Html.div({}, TodoContext.provide(TodoContext.load, todos -> Fragment.node(
+      Html.div({}, TodoContext.provide(TodoContext.instance, todos -> Fragment.node(
         TodoHeader.node({}),
         TodoList.node({}),
         TodoFooter.node({})
@@ -159,7 +167,8 @@ class TodoHeader extends Component {
       Html.div({},
         Html.h1({}, 'Todos').styles(
           Typography.fontSize('lg'),
-          Typography.fontWeight('bold')
+          Typography.fontWeight('bold'),
+          Spacing.margin('right', 'auto')
         ),
         TodoInput.node({
           className: 'new-todo',
@@ -167,7 +176,9 @@ class TodoHeader extends Component {
           clearOnComplete: true,
           onCancel: () -> null,
           onSubmit: description -> todos.addTodo(description)
-        })
+        }).styles(
+          Sizing.width('70%')
+        )
       ).styles(
         Flex.display(),
         Flex.gap(3),
@@ -186,7 +197,7 @@ class TodoHeader extends Component {
         Border.width('bottom', .5)
       )
     ).styles(
-      Spacing.pad(3)
+      Spacing.pad('x', 3)
     );
   }
 }
@@ -234,7 +245,7 @@ class Button extends Component {
   function render() {
     return Html.button({
       onClick: _ -> action()
-    }, label).trackedStyles(new Computation<ClassName>(() -> [
+    }, label).observedStyles(new Computation<ClassName>(() -> [
       Spacing.pad('x', 3),
       Spacing.pad('y', 1),
       Border.radius(2),
@@ -246,7 +257,7 @@ class Button extends Component {
       ) else Breeze.compose(
         Background.color('white', 0),
         Modifier.hover(
-          Background.color('gray', 100)
+          Background.color('gray', 200)
         )
       )
     ]));
@@ -349,6 +360,10 @@ class TodoItem extends Component {
         }),
         Html.div({}, todo.description).styles(Spacing.margin('right', 'auto')),
         Button.node({
+          action: () -> todo.isEditing.set(true),
+          label: 'Edit'
+        }),
+        Button.node({
           action: () -> TodoContext.from(this).removeTodo(todo),
           label: 'Remove'
         })
@@ -363,15 +378,15 @@ class TodoItem extends Component {
           todo.isEditing.set(false);
         })
       }).styles(Sizing.width('full'))
-    ).trackedStyles(
+    ).observedStyles(
       className.map(className -> className.with([
         Flex.display(),
         Flex.gap(3),
         Flex.alignItems('center'),
-        Spacing.pad('x', 3),
-        Spacing.pad('y', 1),
-        Border.radius(2),
-        Background.color('gray', 200)
+        Spacing.pad('y', 3),
+        Border.width('bottom', .5),
+        Border.color('gray', 300),
+        Select.child('last', Border.style('bottom', 'none'))
       ]))
     );
   }

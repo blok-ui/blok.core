@@ -138,7 +138,8 @@ class NativeComponent extends ComponentBase implements RealNodeHost {
 class NativePropertyUpdater<T> implements Disposable {
   final changeSignal:Signal<ReadonlySignal<T>>;
   final observer:Observer;
-  var currentValue:Null<T> = null;
+
+  var oldValue:Null<T> = null;
   
   public function new(
     name:String,
@@ -148,9 +149,9 @@ class NativePropertyUpdater<T> implements Disposable {
     this.changeSignal = new Signal(propSignal);
     this.observer = new Observer(() -> {
       var value = changeSignal.get().get();
-      if (value == currentValue) return;
-      setRealAttr(name, currentValue, value);
-      currentValue = value;
+      if (value == oldValue) return;
+      setRealAttr(name, oldValue, value);
+      oldValue = value;
     });
   }
 

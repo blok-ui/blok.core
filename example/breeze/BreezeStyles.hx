@@ -1,5 +1,6 @@
 package breeze;
 
+import blok.debug.Debug.assert;
 import blok.signal.*;
 import blok.ui.*;
 
@@ -18,6 +19,8 @@ class BreezeStyles extends Component {
   }
 
   function render() {
+    assert(child.type != Fragment.componentType, 'BreezeStyles cannot be used on Fragments');
+    
     return child;
   }
 }

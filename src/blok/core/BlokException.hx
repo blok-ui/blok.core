@@ -1,14 +1,14 @@
 package blok.core;
 
 import haxe.Exception;
-import blok.ui.Component;
+import blok.ui.ComponentBase;
 
 using Type;
 
 class BlokException extends Exception {}
 
 class BlokComponentException extends BlokException {
-  public function new(message, component:Component) {
+  public function new(message, component:ComponentBase) {
     super([
       message,
       '',
@@ -20,11 +20,11 @@ class BlokComponentException extends BlokException {
 }
 
 @:nullSafety(Off)
-function getComponentDebugName(component:Component) {
+function getComponentDebugName(component:ComponentBase) {
   return component.getClass().getClassName();
 }
 
-function getComponentDescription(component:Component):String {
+function getComponentDescription(component:ComponentBase):String {
   var name = getComponentDebugName(component);
   var ancestor = component.__parent;
   var stack = [ while (ancestor != null) {

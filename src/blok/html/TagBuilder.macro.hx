@@ -22,15 +22,15 @@ function build(typeName:String) {
       case TagVoid:
         builder.add(macro class {
           private static final $nameType = new kit.UniqueId();
-          public static function $name(props:$props & blok.html.HtmlEvents) {
-            return new blok.html.VNativeBuilder($i{nameType}, $v{name}, props, null, null);
+          public static function $name(?props:$props & blok.html.HtmlEvents, ?key) {
+            return new blok.ui.VNative($i{nameType}, $v{name}, props, null, key);
           }
         });
       default:
         builder.add(macro class {
           private static final $nameType = new kit.UniqueId();
-          public static function $name(props:$props & blok.html.HtmlEvents, ...children:blok.ui.Child) {
-            return new blok.html.VNativeBuilder($i{nameType}, $v{name}, props, children.toArray(), null);
+          public static function $name(?props:$props & blok.html.HtmlEvents & { ?key:blok.diffing.Key }, ...children:blok.ui.Child) {
+            return new blok.ui.VNative($i{nameType}, $v{name}, props, children.toArray(), props.key);
           }
         });
     }

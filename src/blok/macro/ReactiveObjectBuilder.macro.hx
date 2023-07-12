@@ -6,8 +6,7 @@ import haxe.macro.Expr;
 
 using Lambda;
 
-// @todo: Try to unify this with our ObserverComponentBuilder and
-// StaticComponentBuilder?
+// @todo: Try to unify this with our ComponentBuilder?
 function build() {
   var builder = ClassBuilder.fromContext();
   var fieldBuilders:Array<FieldBuilder> = [];

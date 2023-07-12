@@ -8,6 +8,6 @@
 -dce full
 
 -lib kit
--lib medic
+-lib kit.spec
 
 -main Run

@@ -13,7 +13,7 @@ function counter() {
   );
 }
 
-class Counter extends ObserverComponent {
+class Counter extends Component {
   @:signal final count:Int = 0;
 
   function render():VNode {
@@ -28,7 +28,7 @@ class Counter extends ObserverComponent {
         Border.radius(3)
       )
     }, 
-      Html.div({}).wrap('Current count: ', count.map(Std.string)),
+      Html.div({}, 'Current count: ', count.map(Std.string)),
       Html.button({ onClick: _ -> if (count.peek() > 0) count.update(i -> i - 1) }, '-'),
       Html.button({ onClick: _ -> count.update(i -> i + 1) }, '+')
     );

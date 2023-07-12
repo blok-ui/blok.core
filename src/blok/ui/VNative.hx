@@ -21,7 +21,7 @@ class VNative implements VNode {
     return cast props;
   }
 
-  public function createComponent():Component {
+  public function createComponent():ComponentBase {
     return new NativeComponent(this);
   }
 }

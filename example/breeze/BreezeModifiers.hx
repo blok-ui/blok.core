@@ -1,14 +1,21 @@
 package breeze;
 
 import Breeze;
-import blok.html.HtmlAttributes;
-import blok.html.VNativeBuilder;
-import blok.signal.Computation;
+import blok.signal.Signal;
+import blok.ui.Child;
 
-function styles<Props:GlobalAttr>(builder:VNativeBuilder<Props>, ...classes:ClassName) {
-  builder.props.className = switch builder.props.className {
-    case null: Breeze.compose(...classes);
-    case name: new Computation(() -> name() + ' ' + Breeze.compose(...classes));
-  }
-  return builder;
+using breeze.BreezeModifiers;
+
+function styles(child:Child, ...classes:ClassName) {
+  return BreezeStyles.node({
+    styles: ClassName.ofArray(classes),
+    child: child
+  });
+}
+
+function trackedStyles(child:Child, styles:ReadonlySignal<ClassName>) {
+  return BreezeStyles.node({
+    styles: styles, 
+    child: child
+  });
 }

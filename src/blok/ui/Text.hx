@@ -33,7 +33,7 @@ abstract Text(VNode) to VNode from VNode {
   }
 }
 
-class TextComponent extends Component implements RealNodeHost {
+class TextComponent extends ComponentBase implements RealNodeHost {
   public static final componentType = new UniqueId();
 
   public static function node(value:String, ?key:Key) {
@@ -86,5 +86,5 @@ class TextComponent extends Component implements RealNodeHost {
     return node.type == componentType;
   }
 
-  public function visitChildren(visitor:(child:Component) -> Bool) {}
+  public function visitChildren(visitor:(child:ComponentBase) -> Bool) {}
 }

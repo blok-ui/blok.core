@@ -2,15 +2,15 @@ package blok.ui;
 
 import blok.diffing.Differ;
 
-class Fragment extends Component {
+class Fragment extends ComponentBase {
   public static final type = new UniqueId();
 
   public static function node(...children:Child):VNode {
     return new VComponent(type, { children: children }, Fragment.new);
   }
 
-  var children:Array<Component> = [];
-  var marker:Null<Component> = null;
+  var children:Array<ComponentBase> = [];
+  var marker:Null<ComponentBase> = null;
 
   private function new(node) {
     __node = node;
@@ -21,7 +21,7 @@ class Fragment extends Component {
     return props.children.filter(c -> c != null);
   }
 
-  override function createSlot(localIndex:Int, previous:Null<Component>):Slot {
+  override function createSlot(localIndex:Int, previous:Null<ComponentBase>):Slot {
     return new FragmentSlot(__slot?.index ?? 0, localIndex + 1, previous);
   }
 
@@ -31,7 +31,7 @@ class Fragment extends Component {
     
     var previous = marker;
     var nodes = render();
-    var newChildren:Array<Component> = [];
+    var newChildren:Array<ComponentBase> = [];
 
     for (i => node in nodes) {
       var child = node.createComponent();
@@ -49,7 +49,7 @@ class Fragment extends Component {
     
     var previous = marker;
     var nodes = render();
-    var newChildren:Array<Component> = [];
+    var newChildren:Array<ComponentBase> = [];
 
     for (i => node in nodes) {
       var child = node.createComponent();
@@ -96,7 +96,7 @@ class Fragment extends Component {
     return node.type == type;
   }
 
-  public function visitChildren(visitor:(child:Component) -> Bool) {
+  public function visitChildren(visitor:(child:ComponentBase) -> Bool) {
     for (child in children) if (!visitor(child)) return;
   }
 }

@@ -4,11 +4,11 @@ import blok.debug.Debug;
 import blok.ui.*;
 
 function updateChild(
-  parent:Component,
-  child:Null<Component>,
+  parent:ComponentBase,
+  child:Null<ComponentBase>,
   node:Null<VNode>,
   slot:Null<Slot>
-):Null<Component> {
+):Null<ComponentBase> {
   if (node == null) {
     if (child != null) child.dispose();
     return null;
@@ -18,7 +18,7 @@ function updateChild(
     if (child.__node == node) {
       if (child.__slot.indexChanged(slot)) child.updateSlot(slot);
       child;
-    } else if (child.canBeUpdatedByNode(node)) {
+    } else if (canBeUpdatedByNode(child, node)) {
       if (child.__slot.indexChanged(slot)) child.updateSlot(slot);
       child.update(node);
       child;
@@ -32,22 +32,22 @@ function updateChild(
 }
 
 function diffChildren(
-  parent:Component,
-  oldChildren:Array<Component>,
+  parent:ComponentBase,
+  oldChildren:Array<ComponentBase>,
   newNodes:Array<VNode>
-):Array<Component> {
+):Array<ComponentBase> {
   var newHead = 0;
   var oldHead = 0;
   var newTail = newNodes.length - 1;
   var oldTail = oldChildren.length - 1;
-  var previousChild:Null<Component> = null;
-  var newChildren:Array<Null<Component>> = [];
+  var previousChild:Null<ComponentBase> = null;
+  var newChildren:Array<Null<ComponentBase>> = [];
 
   // Scan from the top of the list, syncing until we can't anymore.
   while ((oldHead <= oldTail) && (newHead <= newTail)) {
     var oldChild = oldChildren[oldHead];
     var newNode = newNodes[newHead];
-    if (oldChild == null || !oldChild.canBeUpdatedByNode(newNode)) {
+    if (oldChild == null || !canBeUpdatedByNode(oldChild, newNode)) {
       break;
     }
 
@@ -62,7 +62,7 @@ function diffChildren(
   while ((oldHead <= oldTail) && (newHead <= newTail)) {
     var oldChild = oldChildren[oldTail];
     var newNode = newNodes[newTail];
-    if (oldChild == null || !oldChild.canBeUpdatedByNode(newNode)) {
+    if (oldChild == null || !canBeUpdatedByNode(oldChild, newNode)) {
       break;
     }
     oldTail -= 1;
@@ -71,7 +71,7 @@ function diffChildren(
 
   // Scan the middle.
   var hasOldChildren = oldHead <= oldTail;
-  var oldKeyedChildren:Null<KeyMap<Component>> = null;
+  var oldKeyedChildren:Null<KeyMap<ComponentBase>> = null;
 
   // If we still have old children, go through the array and check
   // if any have keys. If they don't, remove them.
@@ -93,7 +93,7 @@ function diffChildren(
   // Sync/update any new elements. If we have more children than before
   // this is where things will happen.
   while (newHead <= newTail) {
-    var oldChild:Null<Component> = null;
+    var oldChild:Null<ComponentBase> = null;
     var newNode = newNodes[newHead];
 
     // Check if we already have an element with a matching key.
@@ -106,7 +106,7 @@ function diffChildren(
 
         oldChild = oldKeyedChildren.get(key);
         if (oldChild != null) {
-          if (oldChild.canBeUpdatedByNode(newNode)) {
+          if (canBeUpdatedByNode(oldChild, newNode)) {
             // We do -- remove a keyed child from the list so we don't
             // unsync it later.
             oldKeyedChildren.remove(key);
@@ -149,8 +149,8 @@ function diffChildren(
   return cast newChildren;
 }
 
-function hydrateChildren(parent:Component, cursor:Cursor, children:Array<VNode>) {
-  var previous:Null<Component> = null;
+function hydrateChildren(parent:ComponentBase, cursor:Cursor, children:Array<VNode>) {
+  var previous:Null<ComponentBase> = null;
   return [ for (i => node in children) {
     var child = node.createComponent();
     child.hydrate(cursor, parent, parent.createSlot(i, previous));
@@ -159,8 +159,12 @@ function hydrateChildren(parent:Component, cursor:Cursor, children:Array<VNode>)
   } ];
 }
 
-private function createComponentForVNode(parent:Component, node:VNode, ?slot:Slot) {
+private function createComponentForVNode(parent:ComponentBase, node:VNode, ?slot:Slot) {
   var element = node.createComponent();
   element.mount(parent, slot);
   return element;
+}
+
+private function canBeUpdatedByNode(component:ComponentBase, node:VNode) {
+  return component.canBeUpdatedByNode(node) && component.__node.key == node.key;
 }

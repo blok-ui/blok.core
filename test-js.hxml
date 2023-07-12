@@ -2,4 +2,4 @@ test-common.hxml
 
 -js dist/test.js
 
-# -cmd node dist/test
+-cmd node dist/test

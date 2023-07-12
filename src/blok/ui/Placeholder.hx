@@ -5,7 +5,7 @@ import blok.debug.Debug;
 
 using blok.adaptor.RealNodeHostTools;
 
-class Placeholder extends Component implements RealNodeHost {
+class Placeholder extends ComponentBase implements RealNodeHost {
   public static final componentType = new UniqueId();
 
   public static function node(?key):VNode {
@@ -49,5 +49,5 @@ class Placeholder extends Component implements RealNodeHost {
     return node.type == componentType;
   }
 
-  public function visitChildren(visitor:(child:Component) -> Bool) {}
+  public function visitChildren(visitor:(child:ComponentBase) -> Bool) {}
 }

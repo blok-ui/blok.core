@@ -1,23 +1,23 @@
 package blok.ui;
 
-import blok.core.Disposable;
-import blok.signal.Graph.withOwner;
-import blok.diffing.Differ.diffChildren;
 import blok.adaptor.RealNodeHost;
+import blok.core.Disposable;
 import blok.debug.Debug;
+import blok.diffing.Differ;
+import blok.signal.Graph;
 import blok.signal.Observer;
 import blok.signal.Signal;
 
 using blok.adaptor.RealNodeHostTools;
 
-class NativeComponent extends Component implements RealNodeHost {
+class NativeComponent extends ComponentBase implements RealNodeHost {
   final tag:String;
   final type:UniqueId;
   final updaters:Map<String, NativePropertyUpdater<Any>> = [];
 
   var hydrating:Bool = false;
   var realNode:Null<Dynamic> = null;
-  var children:Array<Component> = [];
+  var children:Array<ComponentBase> = [];
 
   public function new(node:VNative) {
     tag = node.tag;
@@ -62,7 +62,7 @@ class NativeComponent extends Component implements RealNodeHost {
     observeAttributes();
     
     var nodes = render();
-    var previous:Component = null;
+    var previous:ComponentBase = null;
   
     children = [ for (i => node in nodes) {
       var child = node.createComponent();
@@ -80,7 +80,7 @@ class NativeComponent extends Component implements RealNodeHost {
 
     var nodes = render();
     var localCursor = getAdaptor().createCursor(realNode);
-    var previous:Component = null;
+    var previous:ComponentBase = null;
   
     children = [ for (i => node in nodes) {
       var child = node.createComponent();
@@ -130,7 +130,7 @@ class NativeComponent extends Component implements RealNodeHost {
     return type == node.type;
   }
 
-  public function visitChildren(visitor:(child:Component) -> Bool) {
+  public function visitChildren(visitor:(child:ComponentBase) -> Bool) {
     for (child in children) if (!visitor(child)) return;
   }
 }

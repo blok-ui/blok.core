@@ -2,7 +2,7 @@ package blok.context;
 
 import blok.ui.*;
 
-class Provider<T:Context> extends StaticComponent {
+class Provider<T:Context> extends Component {
   @:constant final create:()->T;
   @:constant final child:(value:T)->Child;
 

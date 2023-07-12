@@ -130,7 +130,7 @@ class TodoContext extends Record implements Context {
   }
 }
 
-class TodoRoot extends StaticComponent {
+class TodoRoot extends Component {
   function render() {
     return TodoContext.provide(TodoContext.load, todos -> Fragment.node(
       TodoHeader.node({}),
@@ -140,19 +140,16 @@ class TodoRoot extends StaticComponent {
   }
 }
 
-class TodoHeader extends StaticComponent {
+class TodoHeader extends Component {
   function render():VNode {
     var todos = TodoContext.from(this);
     return Html.header({
       role: 'header'
-    }).styles(
-      Background.color('gray', 200),
-      Spacing.pad(3)
-    ).wrap(
-      Html.h1({}).styles(
+    }, 
+      Html.h1({}, 'Todos').styles(
         Typography.fontSize('lg'),
         Typography.fontWeight('bold')
-      ).wrap('Todos'),
+      ),
       TodoInput.node({
         className: 'new-todo',
         value: '',
@@ -160,31 +157,34 @@ class TodoHeader extends StaticComponent {
         onCancel: () -> null,
         onSubmit: description -> todos.addTodo(description)
       })
+    ).styles(
+      Background.color('gray', 200),
+      Spacing.pad(3)
     );
   }
 }
 
-class TodoFooter extends StaticComponent {
+class TodoFooter extends Component {
   function render() {
     var todos = TodoContext.from(this);
     return Html.footer({
       style: todos.total.map(total -> if (total == 0) 'display: none' else null),
-    }).styles(
-      Background.color('black', 0),
-      Typography.textColor('white', 0),
-      Spacing.pad(3)
-    ).wrap(
+    },
       Html.span({},
         Html.strong({}, todos.remaining.map(remaining -> switch remaining {
           case 1: '1 item left';
           default: '${remaining} items left';
         }))
       )
-    ).into();
+    ).styles(
+      Background.color('black', 0),
+      Typography.textColor('white', 0),
+      Spacing.pad(3)
+    );
   }
 }
 
-class VisibilityControl extends StaticComponent {
+class VisibilityControl extends Component {
   @:constant final visibility:TodoVisibility;
   @:constant final url:String;
   
@@ -196,11 +196,11 @@ class VisibilityControl extends StaticComponent {
         href: url,
         className: new Computation(() -> if (visibility == todos.visibility()) 'selected' else null),
       }, (visibility:String))
-    ).into();
+    );
   }
 }
 
-class TodoInput extends ObserverComponent {
+class TodoInput extends Component {
   @:constant final className:String;
   @:constant final clearOnComplete:Bool;
   @:constant final onSubmit:(data:String) -> Void;
@@ -250,41 +250,35 @@ class TodoInput extends ObserverComponent {
   }
 }
 
-class TodoList extends StaticComponent {
+class TodoList extends Component {
   function render():VNode {
     var todos = TodoContext.from(this);
     return Html.section({
       className: 'main',
       ariaHidden: todos.total.map(total -> total == 0),
       style: todos.total.map(total -> total == 0 ? 'visibility:hidden' : null)
-    }).wrap(
-      Html.ul({}).styles(
+    },
+      Html.ul({}, Scope.wrap(_ -> Fragment.node(...[ for (todo in todos.visibleTodos()) 
+        TodoItem.node({ todo: todo }, todo.id)
+      ]))).styles(
         Flex.display(),
         Flex.gap(3),
         Flex.direction('column'),
         Spacing.pad(3)
-      ).track(_ -> Fragment.node(...[ for (todo in todos.visibleTodos()) 
-        TodoItem.node({ todo: todo }, todo.id)
-      ]))
+      )
     );
   }
 }
 
-class TodoItem extends ObserverComponent {
+class TodoItem extends Component {
   @:constant final todo:Todo;
-  @:computed final className:String = [
+  @:computed final className:ClassName = [
     if (todo.isCompleted()) 'completed' else null,
     if (todo.isEditing()) 'editing' else null
-  ].filter(c -> c != null).join(' ');
+  ];
 
   function render():VNode {
-    return Html.li({
-      id: 'todo-${todo.id}',
-      className: className
-    }).styles(
-      Flex.display(),
-      Flex.gap(3)
-    ).wrap(
+    return Html.li({id: 'todo-${todo.id}'},
       if (!todo.isEditing()) Fragment.node(
         Html.input({
           type: InputType.Checkbox,
@@ -312,6 +306,11 @@ class TodoItem extends ObserverComponent {
           todo.isEditing.set(false);
         })
       })
+    ).trackedStyles(
+      className.map(className -> className.with([
+        Flex.display(),
+        Flex.gap(3)
+      ]))
     );
   }
 }

@@ -1,6 +1,6 @@
 package blok.ui;
 
-class Scope extends ObserverComponent {
+class Scope extends Component {
   public inline static function wrap(child) {
     return node({ child: child });
   }

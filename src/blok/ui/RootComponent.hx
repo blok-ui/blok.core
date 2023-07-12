@@ -4,7 +4,7 @@ import blok.adaptor.Adaptor;
 import blok.adaptor.RealNodeHost;
 import blok.signal.Graph;
 
-class RootComponent extends Component implements RealNodeHost {
+class RootComponent extends ComponentBase implements RealNodeHost {
   public static final componentType = new UniqueId();
 
   public static function node(props:{
@@ -18,7 +18,7 @@ class RootComponent extends Component implements RealNodeHost {
   final target:Dynamic;
   final child:()->Child;
 
-  var component:Null<Component> = null;
+  var component:Null<ComponentBase> = null;
   
   function new(node) {
     __node = node;
@@ -64,7 +64,7 @@ class RootComponent extends Component implements RealNodeHost {
     return false;
   }
 
-  public function visitChildren(visitor:(child:Component) -> Bool) {
+  public function visitChildren(visitor:(child:ComponentBase) -> Bool) {
     if (component != null) visitor(component);
   }
 }

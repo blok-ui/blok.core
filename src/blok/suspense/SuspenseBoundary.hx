@@ -17,6 +17,7 @@ enum SuspenseBoundaryStatus {
 typedef SuspenseBoundaryProps = {
   public final child:Child;
   public final fallback:()->Child;
+  public final ?bubbleSuspension:Bool;
   public final ?onComplete:()->Void;
   public final ?onSuspended:()->Void;
 } 
@@ -25,6 +26,10 @@ typedef SuspenseBoundaryProps = {
 // it might render nothing sometimes, but I can't get that to replicate
 // with the limited tests I have. 
 class SuspenseBoundary extends ComponentBase implements Boundary {
+  public static function maybeFrom(context:ComponentBase) {
+    return context.findAncestorOfType(SuspenseBoundary);
+  }
+
   public static final componentType:UniqueId = new UniqueId();
   
   public static function node(props:SuspenseBoundaryProps, ?key) {
@@ -41,6 +46,7 @@ class SuspenseBoundary extends ComponentBase implements Boundary {
   var hiddenSlot:Null<Slot> = null;
   var realChild:Null<ComponentBase> = null;
   var currentChild:Null<ComponentBase> = null;
+  var bubbleSuspension:Bool = true;
 
   function new(node) {
     __node = node;
@@ -49,6 +55,7 @@ class SuspenseBoundary extends ComponentBase implements Boundary {
     this.fallback = props.fallback;
     this.onComplete = props.onComplete;
     this.onSuspended = props.onSuspended;
+    this.bubbleSuspension = props.bubbleSuspension ?? true;
   }
 
   function updateProps() {
@@ -57,6 +64,7 @@ class SuspenseBoundary extends ComponentBase implements Boundary {
     this.fallback = props.fallback;
     this.onComplete = props.onComplete;
     this.onSuspended = props.onSuspended;
+    this.bubbleSuspension = props.bubbleSuspension ?? true;
   }
 
   function setActiveChild() {
@@ -85,51 +93,55 @@ class SuspenseBoundary extends ComponentBase implements Boundary {
   }
 
   public function handle(component:ComponentBase, object:Any) {
-    if (object is SuspenseException) {
-      if (hydrating) error('SuspenseBoundary suspended during hydration.');
-
-      var suspense:SuspenseException = object;
-
-      suspenseStatus = switch suspenseStatus {
-        case Suspended(remaining): 
-          Suspended(remaining + 1);
-        case Ok: 
-          if (onSuspended != null) onSuspended();
-          Suspended(1);
-      }
-      
-      suspense.task.handle(result -> switch result {
-        case Ok(_):
-          switch __status {
-            case Disposing | Disposed: return;
-            default:
-          }
-          suspenseStatus = switch suspenseStatus {
-            case Suspended(remaining):
-              remaining -= 1;
-              if (remaining == 0) {
-                Ok;
-              } else {
-                Suspended(remaining);
-              }
-            case Ok: Ok;
-          }
-          if (suspenseStatus == Ok) {
-            setActiveChild();
-            if (onComplete != null) onComplete();
-          }
-        case Error(error):
-          switch __status {
-            case Disposing | Disposed: return;
-            default:
-          }
-          this.tryToHandleWithBoundary(error);
-      });
-  
+    if (!(object is SuspenseException)) {
+      this.tryToHandleWithBoundary(object);
       return;
     }
 
-    this.tryToHandleWithBoundary(object);
+    if (hydrating) error('SuspenseBoundary suspended during hydration.');
+
+    var suspense:SuspenseException = object;
+
+    suspenseStatus = switch suspenseStatus {
+      case Suspended(remaining): 
+        Suspended(remaining + 1);
+      case Ok: 
+        if (onSuspended != null) onSuspended();
+        Suspended(1);
+    }
+    
+    suspense.task.handle(result -> switch result {
+      case Ok(_):
+        switch __status {
+          case Disposing | Disposed: return;
+          default:
+        }
+        suspenseStatus = switch suspenseStatus {
+          case Suspended(remaining):
+            remaining -= 1;
+            if (remaining == 0) {
+              Ok;
+            } else {
+              Suspended(remaining);
+            }
+          case Ok: Ok;
+        }
+        if (suspenseStatus == Ok) {
+          setActiveChild();
+          if (onComplete != null) onComplete();
+        }
+      case Error(error):
+        switch __status {
+          case Disposing | Disposed: return;
+          default:
+        }
+        this.tryToHandleWithBoundary(error);
+    });
+
+    if (bubbleSuspension) switch SuspenseBoundary.maybeFrom(this) {
+      case Some(boundary): boundary.handle(component, object);
+      case None:
+    }
   }
 
   function __initialize() {

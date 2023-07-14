@@ -256,6 +256,7 @@ class Button extends Component {
         Typography.textColor('white', 0)
       ) else Breeze.compose(
         Background.color('white', 0),
+        Typography.textColor('black', 0),
         Modifier.hover(
           Background.color('gray', 200)
         )
@@ -343,13 +344,14 @@ class TodoList extends Component {
 class TodoItem extends Component {
   @:constant final todo:Todo;
   @:computed final className:ClassName = [
-    if (todo.isCompleted()) 'completed' else null,
-    if (todo.isEditing()) 'editing' else null
+    if (todo.isCompleted() && !todo.isEditing()) Typography.textColor('gray', 500) else null,
+    // if (todo.isEditing()) 'editing' else null
   ];
 
   function render():VNode {
     return Html.li({
       id: 'todo-${todo.id}',
+      className: className,
       onDblClick: _ -> todo.isEditing.set(true),
     },
       if (!todo.isEditing()) Fragment.node(
@@ -378,16 +380,14 @@ class TodoItem extends Component {
           todo.isEditing.set(false);
         })
       }).styles(Sizing.width('full'))
-    ).observedStyles(
-      className.map(className -> className.with([
-        Flex.display(),
-        Flex.gap(3),
-        Flex.alignItems('center'),
-        Spacing.pad('y', 3),
-        Border.width('bottom', .5),
-        Border.color('gray', 300),
-        Select.child('last', Border.style('bottom', 'none'))
-      ]))
+    ).styles(
+      Flex.display(),
+      Flex.gap(3),
+      Flex.alignItems('center'),
+      Spacing.pad('y', 3),
+      Border.width('bottom', .5),
+      Border.color('gray', 300),
+      Select.child('last', Border.style('bottom', 'none'))
     );
   }
 }

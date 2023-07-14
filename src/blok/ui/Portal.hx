@@ -38,7 +38,6 @@ class Portal extends ComponentBase {
       child: child,
       adaptor: getAdaptor()
     }).createComponent();
-    root.mount(this, null);
   }
 
   function updateProps() {
@@ -51,10 +50,14 @@ class Portal extends ComponentBase {
     marker = Placeholder.node().createComponent();
     marker.mount(this, __slot);
     setupPortalRoot();
+    root.mount(this, null);
   }
 
   function __hydrate(cursor:Cursor) {
-    __initialize();
+    marker = Placeholder.node().createComponent();
+    marker.mount(this, __slot);
+    setupPortalRoot();
+    root.hydrate(getAdaptor().createCursor(target), this, null);
   }
 
   function __update() {

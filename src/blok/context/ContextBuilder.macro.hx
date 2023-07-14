@@ -65,11 +65,25 @@ function build() {
       args: [
         { name: 'context', type: macro:Component }
       ],
-      expr: macro @:pos(fallback.pos) return context.findAncestor(ancestor -> switch Std.downcast(ancestor, blok.context.Provider) {
+      expr: macro @:pos(fallback.pos) return maybeFrom(context).or(() -> $fallback)
+    }),
+    pos: (macro null).pos
+  });
+
+  builder.addField({
+    name: 'maybeFrom',
+    access: [ APublic, AStatic ],
+    meta: [],
+    kind: FFun({
+      params: createParams,
+      ret: macro:kit.Maybe<$ret>,
+      args: [
+        { name: 'context', type: macro:Component }
+      ],
+      expr: macro return context.findAncestor(ancestor -> switch Std.downcast(ancestor, blok.context.Provider) {
         case null: false;
         case provider: provider.match(__contextId);
       }).flatMap(provider -> (cast provider:blok.context.Provider<$ret>).getContext())
-        .or(() -> $fallback)
     }),
     pos: (macro null).pos
   });

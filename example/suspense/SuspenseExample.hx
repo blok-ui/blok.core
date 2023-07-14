@@ -25,6 +25,12 @@ class SuspenseExample extends Component {
             fallback: () -> Html.p({}, 'Loading...')
           }),
           SuspenseBoundary.node({
+            onSuspended: () -> {
+              trace('Suspending...');
+            },
+            onComplete: () -> {
+              trace('Done!');
+            },
             child: Fragment.node(
               SuspenseItem.node({ delay: 1000 }),
               SuspenseItem.node({ delay: 2000 }),
@@ -44,6 +50,7 @@ class SuspenseExample extends Component {
 
 class SuspenseItem extends Component {
   @:constant final delay:Int;
+  // @todo: This is a pretty awkward way to author resources...
   @:computed final res:Resource<String> = new Resource(() -> new Task(activate -> {
     Timer.delay(() -> activate(Ok('Loaded: ${delay}')), delay);
   }));

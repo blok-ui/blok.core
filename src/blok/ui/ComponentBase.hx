@@ -1,8 +1,8 @@
 package blok.ui;
 
-import blok.debug.Debug;
 import blok.adaptor.*;
 import blok.core.*;
+import blok.debug.Debug;
 
 enum ComponentStatus {
   Pending;

@@ -1,13 +1,12 @@
 package blok.ui;
 
-import haxe.macro.Type.ClassType;
 import blok.macro.ClassBuilder;
 import haxe.macro.Compiler;
 import haxe.macro.Context;
 import haxe.macro.Expr;
 
-using haxe.macro.Tools;
 using blok.macro.MacroTools;
+using haxe.macro.Tools;
 
 // @todo: Refactor this, try to create something that is easier
 // to share across our various reactive objects.
@@ -163,7 +162,7 @@ private function createConstantField(builder:ClassBuilder, field:Field):Componen
         init: if (e == null) {
           macro this.$backingName = props.$name;
         } else {
-          macro if (props.$name != null) this.$backingName = props.$name;
+          macro this.$backingName = props.$name ?? $e;
         },
         update: macro this.$backingName.set(props.$name),
         prop: createProp(field.name, t, e != null, Context.currentPos())

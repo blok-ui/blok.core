@@ -1,9 +1,9 @@
 package blok.suspense;
 
-import blok.signal.Observer;
-import blok.signal.Computation;
 import blok.core.*;
+import blok.signal.Computation;
 import blok.signal.Graph;
+import blok.signal.Observer;
 import blok.signal.Signal;
 
 // @todo: This is super awkward to use with Blok's VNode based

@@ -1,8 +1,8 @@
 package blok.macro;
 
 import haxe.macro.Context;
-import haxe.macro.Type;
 import haxe.macro.Expr;
+import haxe.macro.Type;
 
 using StringTools;
 using haxe.macro.Tools;

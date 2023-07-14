@@ -63,7 +63,7 @@ function build() {
       params: createParams,
       ret: ret,
       args: [
-        { name: 'context', type: macro:Component }
+        { name: 'context', type: macro:blok.ui.ComponentBase }
       ],
       expr: macro @:pos(fallback.pos) return maybeFrom(context).or(() -> $fallback)
     }),
@@ -78,7 +78,7 @@ function build() {
       params: createParams,
       ret: macro:kit.Maybe<$ret>,
       args: [
-        { name: 'context', type: macro:Component }
+        { name: 'context', type: macro:blok.ui.ComponentBase }
       ],
       expr: macro return context.findAncestor(ancestor -> switch Std.downcast(ancestor, blok.context.Provider) {
         case null: false;

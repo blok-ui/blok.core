@@ -24,10 +24,6 @@ class Observer implements ConsumerNode {
     return new Observer(handler);
   }
 
-  public static function transient(handler):Observer {
-    return new TransientObserver(handler);
-  }
-
   public static inline function untrack(handler) {
     blok.signal.Graph.untrack(handler);
   }
@@ -57,7 +53,7 @@ class Observer implements ConsumerNode {
   public function invalidate() {
     switch status {
       case Validating:
-        throw new BlokException('Cycle detected');
+        error('Cycle detected');
       case Invalid | Inactive:
       case Valid | Pending:
         status = Invalid;
@@ -68,7 +64,7 @@ class Observer implements ConsumerNode {
   public function validate() {
     switch status {
       case Validating:
-        throw new BlokException('Cycle detected');
+        error('Cycle detected');
       case Inactive | Valid:
         return;
       case Invalid if (!pollProducers()):
@@ -133,12 +129,5 @@ class Observer implements ConsumerNode {
     disposables.dispose();
     status = Inactive;
     unbindAll();
-  }
-}
-
-// @todo: Maybe implement this in some other way?
-private class TransientObserver extends Observer {
-  public function new(handler:(cancel:()->Void)->Void) {
-    super(() -> handler(this.dispose));
   }
 }

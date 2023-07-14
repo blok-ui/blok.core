@@ -1,7 +1,7 @@
 package blok.core;
 
-import haxe.Exception;
 import blok.ui.ComponentBase;
+import haxe.Exception;
 
 using Type;
 

@@ -4,8 +4,8 @@ import haxe.macro.Compiler;
 import haxe.macro.Context;
 import haxe.macro.Expr;
 
-using haxe.macro.Tools;
 using haxe.macro.ExprTools;
+using haxe.macro.Tools;
 
 function warn(e) {
   if (Compiler.getConfiguration().debug) {

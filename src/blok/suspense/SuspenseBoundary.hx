@@ -1,10 +1,9 @@
 package blok.suspense;
 
-import blok.debug.Debug.error;
-import blok.debug.Debug.assert;
-import blok.diffing.Differ;
 import blok.adaptor.Cursor;
 import blok.boundary.Boundary;
+import blok.debug.Debug;
+import blok.diffing.Differ;
 import blok.ui.*;
 
 using blok.boundary.BoundaryTools;

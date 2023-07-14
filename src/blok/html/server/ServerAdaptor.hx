@@ -1,7 +1,7 @@
 package blok.html.server;
 
-import blok.debug.Debug;
 import blok.adaptor.*;
+import blok.debug.Debug;
 import blok.node.*;
 import blok.ui.*;
 

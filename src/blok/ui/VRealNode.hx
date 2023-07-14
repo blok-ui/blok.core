@@ -2,7 +2,7 @@ package blok.ui;
 
 import blok.diffing.Key;
 
-class VNative implements VNode {
+class VRealNode implements VNode {
   public final type:UniqueId;
   public final key:Null<Key>;
   public final tag:String;
@@ -22,6 +22,6 @@ class VNative implements VNode {
   }
 
   public function createComponent():ComponentBase {
-    return new NativeComponent(this);
+    return new RealNodeComponent(this);
   }
 }

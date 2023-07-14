@@ -1,10 +1,10 @@
 package blok.html.client;
 
+import blok.adaptor.*;
+import blok.debug.Debug;
+import blok.ui.*;
 import js.Browser;
 import js.html.Element;
-import blok.debug.Debug;
-import blok.adaptor.*;
-import blok.ui.*;
 
 using StringTools;
 

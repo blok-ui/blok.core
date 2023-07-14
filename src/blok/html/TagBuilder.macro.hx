@@ -23,14 +23,14 @@ function build(typeName:String) {
         builder.add(macro class {
           private static final $nameType = new kit.UniqueId();
           public static function $name(props:$props & blok.html.HtmlEvents, ?key) {
-            return new blok.ui.VNative($i{nameType}, $v{name}, props, null, key);
+            return new blok.ui.VRealNode($i{nameType}, $v{name}, props, null, key);
           }
         });
       default:
         builder.add(macro class {
           private static final $nameType = new kit.UniqueId();
           public static function $name(props:$props & blok.html.HtmlEvents & { ?key:blok.diffing.Key }, ...children:blok.ui.Child) {
-            return new blok.ui.VNative($i{nameType}, $v{name}, props, children.toArray(), props.key);
+            return new blok.ui.VRealNode($i{nameType}, $v{name}, props, children.toArray(), props.key);
           }
         });
     }

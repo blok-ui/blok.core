@@ -1,7 +1,7 @@
 package blok.html.server;
 
-import haxe.DynamicAccess;
 import blok.node.*;
+import haxe.DynamicAccess;
 
 class Element extends Node {
 	static final VOID_ELEMENTS = [

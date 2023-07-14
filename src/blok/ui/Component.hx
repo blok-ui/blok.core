@@ -1,10 +1,10 @@
 package blok.ui;
 
+import blok.adaptor.Cursor;
+import blok.debug.Debug;
+import blok.diffing.Differ;
 import blok.signal.Computation;
 import blok.signal.Graph;
-import blok.diffing.Differ;
-import blok.debug.Debug;
-import blok.adaptor.Cursor;
 
 using blok.boundary.BoundaryTools;
 

@@ -10,7 +10,7 @@ import blok.signal.Signal;
 
 using blok.adaptor.RealNodeHostTools;
 
-class NativeComponent extends ComponentBase implements RealNodeHost {
+class RealNodeComponent extends ComponentBase implements RealNodeHost {
   final tag:String;
   final type:UniqueId;
   final updaters:Map<String, NativePropertyUpdater<Any>> = [];
@@ -19,14 +19,14 @@ class NativeComponent extends ComponentBase implements RealNodeHost {
   var realNode:Null<Dynamic> = null;
   var children:Array<ComponentBase> = [];
 
-  public function new(node:VNative) {
+  public function new(node:VRealNode) {
     tag = node.tag;
     type = node.type;
     __node = node;
   }
 
   function render() {
-    var vn:VNative = cast __node;
+    var vn:VRealNode = cast __node;
     return vn.children ?? [];
   }
 

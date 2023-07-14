@@ -1,7 +1,7 @@
 package blok.ui;
 
-import blok.debug.Debug;
 import blok.adaptor.Cursor;
+import blok.debug.Debug;
 
 typedef PortalProps = {
   public final target:Dynamic;

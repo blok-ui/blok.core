@@ -25,6 +25,10 @@ class ClientAdaptor implements Adaptor {
     return Browser.document.createTextNode(value);
   }
 
+  public function createContainerNode(props:{}):Dynamic {
+    return createNode('div', props);
+  }
+
   public function createPlaceholderNode():Dynamic {
     return createTextNode('');
   }

@@ -1,6 +1,7 @@
 package blok.ui;
 
 import blok.diffing.Differ;
+import blok.adaptor.*;
 
 class Fragment extends ComponentBase {
   public static final componentType = new UniqueId();

@@ -1,7 +1,6 @@
 package blok.ui;
 
-import blok.adaptor.Adaptor;
-import blok.adaptor.RealNodeHost;
+import blok.adaptor.*;
 import blok.signal.Graph;
 
 class RootComponent extends ComponentBase implements RealNodeHost {

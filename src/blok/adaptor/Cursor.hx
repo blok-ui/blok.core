@@ -1,4 +1,4 @@
-package blok.ui;
+package blok.adaptor;
 
 interface Cursor {
   public function current():Null<Dynamic>;

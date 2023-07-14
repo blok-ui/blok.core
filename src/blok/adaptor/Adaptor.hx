@@ -7,6 +7,7 @@ interface Adaptor {
   public function createNode(name:String, attrs:{}):Dynamic;
   public function createPlaceholderNode():Dynamic;
   public function createTextNode(text:String):Dynamic;
+  public function createContainerNode(attrs:{}):Dynamic;
   public function createCursor(object:Dynamic):Cursor;
   public function updateTextNode(object:Dynamic, value:String):Void;
   public function updateNodeAttribute(object:Dynamic, name:String, oldValue:Null<Dynamic>, value:Dynamic, ?isHydrating:Bool):Void;

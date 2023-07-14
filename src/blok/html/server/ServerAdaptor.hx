@@ -24,6 +24,10 @@ class ServerAdaptor implements Adaptor {
     return new TextNode(value, options?.prefixTextWithMarker ?? true);
   }
 
+  public function createContainerNode(props:{}):Dynamic {
+    return createNode('div', props);
+  }
+
   public function createPlaceholderNode():Dynamic {
     return new TextNode('');
   }

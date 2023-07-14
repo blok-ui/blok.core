@@ -89,7 +89,7 @@ function build():Array<Field> {
   builder.addField({
     name: 'node',
     access: [ AStatic, APublic ],
-    pos: (macro null).pos,
+    pos: cls.pos,
     meta: [],
     kind: FFun({
       params: createParams,
@@ -112,7 +112,7 @@ function build():Array<Field> {
       });
     }
     
-    public function canBeUpdatedByNode(node:VNode):Bool {
+    public function canBeUpdatedByNode(node:blok.ui.VNode):Bool {
       return node.type == componentType;
     }
   });

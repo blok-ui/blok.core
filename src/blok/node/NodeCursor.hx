@@ -1,7 +1,7 @@
 package blok.node;
 
 import blok.debug.Debug;
-import blok.ui.Cursor;
+import blok.adaptor.Cursor;
 
 class NodeCursor implements Cursor {
   var node:Null<Node>;

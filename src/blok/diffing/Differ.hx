@@ -1,5 +1,6 @@
 package blok.diffing;
 
+import blok.adaptor.Cursor;
 import blok.debug.Debug;
 import blok.ui.*;
 

@@ -1,7 +1,7 @@
 package blok.ui;
 
 import blok.debug.Debug;
-import blok.adaptor.Adaptor;
+import blok.adaptor.*;
 import blok.core.*;
 
 enum ComponentStatus {
@@ -29,7 +29,10 @@ abstract class ComponentBase implements Disposable implements DisposableHost {
     __init(parent, slot);
 
     __status = Rendering;
-    __initialize();
+    try __initialize() catch (e) {
+      __cleanupAfterValidation();
+      throw e;  
+    };
     __cleanupAfterValidation();
   }
 
@@ -37,7 +40,10 @@ abstract class ComponentBase implements Disposable implements DisposableHost {
     __init(parent, slot);
 
     __status = Rendering;
-    __hydrate(cursor);
+    try __hydrate(cursor) catch (e) {
+      __cleanupAfterValidation();
+      throw e;  
+    };
     __cleanupAfterValidation();
   }
 
@@ -67,8 +73,6 @@ abstract class ComponentBase implements Disposable implements DisposableHost {
   }
 
   public function invalidate() {
-    assert(__status != Rendering);
-
     if (__status == Invalid) return;
 
     __status = Invalid;

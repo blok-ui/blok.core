@@ -4,6 +4,9 @@ import blok.signal.Computation;
 import blok.signal.Graph;
 import blok.diffing.Differ;
 import blok.debug.Debug;
+import blok.adaptor.Cursor;
+
+using blok.boundary.BoundaryTools;
 
 @:autoBuild(blok.ui.ComponentBuilder.build())
 abstract class Component extends ComponentBase {
@@ -25,7 +28,10 @@ abstract class Component extends ComponentBase {
         case Disposing | Disposed: 
           Placeholder.node();
         default:
-          var node = render();
+          var node = try render() catch (e:Any) {
+            this.tryToHandleWithBoundary(e);
+            null;
+          }
           if (__status != Rendering) invalidate();
           node ?? Placeholder.node();
       });

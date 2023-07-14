@@ -1,10 +1,10 @@
 package blok.ui;
 
+import blok.diffing.Key;
+
 interface VNode {
-  public final type:WidgetType;
+  public final type:UniqueId;
   public final key:Null<Key>;
-  public final props:Dynamic;
-  public final children:Null<Array<VNode>>;
-  public function createWidget(?parent:Widget, platform:Platform, effects:Effect):Widget;
-  public function updateWidget(widget:Widget, effects:Effect):Widget;
+  public function getProps<T:{}>():T;
+  public function createComponent():ComponentBase;
 }

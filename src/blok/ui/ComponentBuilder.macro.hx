@@ -162,7 +162,7 @@ private function createConstantField(builder:ClassBuilder, field:Field):Componen
         init: if (e == null) {
           macro this.$backingName = props.$name;
         } else {
-          macro this.$backingName = props.$name ?? $e;
+          macro @:pos(e.pos) this.$backingName = props.$name ?? $e;
         },
         update: macro this.$backingName.set(props.$name),
         prop: createProp(field.name, t, e != null, Context.currentPos())

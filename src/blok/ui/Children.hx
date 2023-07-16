@@ -13,4 +13,12 @@ abstract Children(Array<Child>) from Array<Child> to Array<Child> {
   @:from public inline static function ofString(content:String):Children {
     return [ Text.node(content) ];
   }
+
+  @:to public inline function toArray():Array<Child> {
+    return this;
+  }
+
+  @:to public inline function toChild():Child {
+    return Fragment.node(...this);
+  }
 }

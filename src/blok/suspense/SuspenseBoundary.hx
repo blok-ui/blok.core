@@ -21,9 +21,7 @@ typedef SuspenseBoundaryProps = {
   public final ?onSuspended:()->Void;
 } 
 
-// @todo: I'm not convinced this thing actually always works -- I think
-// it might render nothing sometimes, but I can't get that to replicate
-// with the limited tests I have. 
+// @todo: I'm not convinced this thing actually always works.
 class SuspenseBoundary extends ComponentBase implements Boundary {
   public static function maybeFrom(context:ComponentBase) {
     return context.findAncestorOfType(SuspenseBoundary);
@@ -108,7 +106,12 @@ class SuspenseBoundary extends ComponentBase implements Boundary {
         if (onSuspended != null) onSuspended();
         Suspended(1);
     }
+
+    setActiveChild();
     
+    // @todo: We need to track the component this Task comes from:
+    // if the component cancels this task we shouldn't be suspended
+    // on it anymore.
     suspense.task.handle(result -> switch result {
       case Ok(_):
         switch __status {
@@ -123,7 +126,8 @@ class SuspenseBoundary extends ComponentBase implements Boundary {
             } else {
               Suspended(remaining);
             }
-          case Ok: Ok;
+          case Ok: 
+            Ok;
         }
         if (suspenseStatus == Ok) {
           setActiveChild();

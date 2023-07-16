@@ -141,7 +141,7 @@ class ClientAdaptor implements Adaptor {
       return;
     }
 
-    if (from != null && !from.indexChanged(to)) {
+    if (from != null && !from.changed(to)) {
       return;
     }
 

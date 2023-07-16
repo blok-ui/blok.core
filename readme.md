@@ -9,11 +9,3 @@ Using Blok
 ----------
 
 > Coming soon.
-
-Blok is designed to be flexible, so there are plans for more platforms.
-
-Blok also provides some useful base components (like Accordions, simple Animation, Dropdowns and more) which are available here:
-
-| Repository | Provides |
-|------------|----------|
-| [blok.foundation](https://github.com/blok-ui/blok.foundation) | Basic, unstyled components. |

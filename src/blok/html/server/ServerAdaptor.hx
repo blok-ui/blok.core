@@ -87,7 +87,7 @@ class ServerAdaptor implements Adaptor {
     var obj:Node = object;
     assert(to != null);
 
-    if (from != null && !from.indexChanged(to)) {
+    if (from != null && !from.changed(to)) {
       return;
     }
 

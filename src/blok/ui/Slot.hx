@@ -9,7 +9,7 @@ class Slot {
     this.previous = previous;
   }
 
-  public function indexChanged(other:Slot) {
-    return index != other.index;
+  public function changed(other:Slot) {
+    return index != other.index || previous != other.previous;
   }
 }

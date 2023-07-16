@@ -17,10 +17,10 @@ function updateChild(
 
   return if (child != null) {
     if (child.__node == node) {
-      if (child.__slot.indexChanged(slot)) child.updateSlot(slot);
+      if (child.__slot.changed(slot)) child.updateSlot(slot);
       child;
     } else if (canBeUpdatedByNode(child, node)) {
-      if (child.__slot.indexChanged(slot)) child.updateSlot(slot);
+      if (child.__slot.changed(slot)) child.updateSlot(slot);
       child.update(node);
       child;
     } else {

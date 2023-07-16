@@ -31,6 +31,7 @@ class SuspenseExample extends Component {
             onComplete: () -> {
               trace('Done!');
             },
+            // child: Html.div({},
             child: Fragment.node(
               SuspenseItem.node({ delay: 1000 }),
               SuspenseItem.node({ delay: 2000 }),

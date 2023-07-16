@@ -128,6 +128,8 @@ private typedef ComponentFieldBuilder = {
 
 private function createConstantField(builder:ClassBuilder, field:Field):ComponentFieldBuilder {
   return switch field.kind {
+    case FVar(t, e) if (t == null):
+      Context.error('Expected a type', field.pos);
     case FVar(t, e):
       var name = field.name;
       var backingName = '__backing_$name';
@@ -186,6 +188,8 @@ private function createSignalField(builder:ClassBuilder, field:Field, isReadonly
   }
 
   return switch field.kind {
+    case FVar(t, e) if (t == null):
+      Context.error('Expected a type', field.pos);
     case FVar(t, e) if (!isReadonly):
       var type = switch t {
         case macro:Null<$t>: macro:blok.signal.Signal<Null<$t>>;

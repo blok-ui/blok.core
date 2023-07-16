@@ -76,8 +76,8 @@ class Fragment extends ComponentBase {
   }
 
   function __updateSlot(oldSlot:Null<Slot>, newSlot:Null<Slot>) {
-    if (marker != null && newSlot != null) {
-      marker.updateSlot(createSlot(-1, newSlot.previous));
+    if (marker != null) {
+      marker.updateSlot(createSlot(-1, newSlot?.previous));
       var previous = marker;
       for (i => child in children) {
         child.updateSlot(createSlot(i, previous));
@@ -110,13 +110,20 @@ class FragmentSlot extends Slot {
     this.localIndex = localIndex;
   }
 
-  override function indexChanged(other:Slot):Bool {
-    if (other.index != index)
-      return true;
-    if (other is FragmentSlot) {
-      var otherFragment:FragmentSlot = cast other;
-      return localIndex != otherFragment.localIndex;
-    }
-    return false;
+  override function changed(other:Slot):Bool {
+    // Note: this is just for now -- need to figure out
+    // a better way to make sure we don't move nodes around 
+    // pointlessly, but if we don't do this Fragments won't
+    // work with Suspense.
+    return other != this;
+
+    // if (super.changed(other)) {
+    //   return true;
+    // }
+    // if (other is FragmentSlot) {
+    //   var otherFragment:FragmentSlot = cast other;
+    //   return localIndex != otherFragment.localIndex;
+    // }
+    // return false;
   }
 }

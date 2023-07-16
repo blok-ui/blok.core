@@ -14,7 +14,7 @@ abstract class Component extends ComponentBase {
   var __rendered:Null<Computation<Null<VNode>>> = null;
 
   abstract function setup():Void;
-  abstract function render():VNode;
+  abstract function render():Child;
   abstract function __updateProps():Void;
 
   function __render():VNode {

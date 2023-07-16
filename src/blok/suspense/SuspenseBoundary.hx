@@ -57,11 +57,35 @@ class SuspenseBoundary extends ComponentBase implements Boundary {
 
   function updateProps() {
     var props:SuspenseBoundaryProps = __node.getProps();
-    this.child = props.child;
-    this.fallback = props.fallback;
-    this.onComplete = props.onComplete;
-    this.onSuspended = props.onSuspended;
-    this.bubbleSuspension = props.bubbleSuspension ?? true;
+    var changed:Int = 0;
+
+    if (child != props.child) {
+      child = props.child;
+      changed++;
+    }
+
+    if (fallback != props.fallback) {
+      fallback = props.fallback;
+      changed++;
+    }
+
+    if (onComplete != props.onComplete) {
+      onComplete = props.onComplete;
+      changed++;
+    }
+
+    if (onSuspended != props.onSuspended) {
+      onSuspended = props.onSuspended;
+      changed++;
+    }
+
+    var newSuspension = props.bubbleSuspension ?? true;
+    if (bubbleSuspension != newSuspension) {
+      bubbleSuspension = newSuspension;
+      changed++;
+    }
+
+    return changed > 0;
   }
 
   function setActiveChild() {
@@ -71,10 +95,11 @@ class SuspenseBoundary extends ComponentBase implements Boundary {
         realChild.updateSlot(hiddenSlot);
         currentChild = fallback().createComponent();
         currentChild.mount(this, __slot);
-      case Ok:
-        if (currentChild != realChild) currentChild?.dispose();
+      case Ok if (currentChild != realChild):
+        currentChild?.dispose();
         currentChild = realChild;
         realChild.updateSlot(__slot);
+      case Ok:
     }
   }
 
@@ -166,14 +191,16 @@ class SuspenseBoundary extends ComponentBase implements Boundary {
   }
 
   function __update() {
-    updateProps();
-    if (currentChild != realChild) currentChild.dispose();
-    currentChild = realChild = updateChild(this, realChild, child, __slot);
+    if (!updateProps()) return;
+
+    currentChild.dispose();
+    currentChild = realChild = child.createComponent();
+    realChild.mount(this, __slot);
     setActiveChild();
   }
 
   function __validate() {
-    currentChild = realChild = updateChild(this, realChild, child, __slot);
+    // Is this enough??
     setActiveChild();
   }
 
@@ -181,7 +208,8 @@ class SuspenseBoundary extends ComponentBase implements Boundary {
     hiddenRoot?.dispose();
     hiddenRoot = null;
     hiddenSlot = null;
-    currentChild?.dispose();
+    realChild.dispose();
+    if (currentChild != realChild) currentChild?.dispose();
     currentChild = null;
   }
 

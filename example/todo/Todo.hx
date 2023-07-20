@@ -140,7 +140,7 @@ class TodoContext extends Record implements Context {
 class TodoRoot extends Component {
   function render() {
     return Html.div({},
-      Html.div({}, TodoContext.provide(TodoContext.instance, todos -> Fragment.node(
+      Html.div({}, TodoContext.provide(TodoContext.instance, _ -> Fragment.node(
         TodoHeader.node({}),
         TodoList.node({}),
         TodoFooter.node({})

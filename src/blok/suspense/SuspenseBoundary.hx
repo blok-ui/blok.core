@@ -3,7 +3,6 @@ package blok.suspense;
 import blok.adaptor.Cursor;
 import blok.boundary.Boundary;
 import blok.debug.Debug;
-import blok.diffing.Differ;
 import blok.ui.*;
 
 using blok.boundary.BoundaryTools;
@@ -16,7 +15,12 @@ enum SuspenseBoundaryStatus {
 typedef SuspenseBoundaryProps = {
   public final child:Child;
   public final fallback:()->Child;
-  public final ?bubbleSuspension:Bool;
+
+  /**
+    If this SuspenseBoundary has a SuspenseBoundary ancestor,
+    suspend using that ancestor instead. Defaults to `false`.
+  **/
+  public final ?overridable:Bool;
   public final ?onComplete:()->Void;
   public final ?onSuspended:()->Void;
 } 
@@ -33,26 +37,27 @@ class SuspenseBoundary extends ComponentBase implements Boundary {
     return new VComponent(componentType, props, SuspenseBoundary.new, key);
   }
 
+  
   var child:Child;
   var fallback:()->Child;
-  var onComplete:Null<()->Void>;
-  var onSuspended:Null<()->Void>;
   var hydrating:Bool = false;
   var suspenseStatus:SuspenseBoundaryStatus = Ok;
   var hiddenRoot:Null<ComponentBase> = null;
   var hiddenSlot:Null<Slot> = null;
   var realChild:Null<ComponentBase> = null;
   var currentChild:Null<ComponentBase> = null;
-  var bubbleSuspension:Bool = true;
+  var onComplete:Null<()->Void>;
+  var onSuspended:Null<()->Void>;
+  var overridable:Bool;
 
   function new(node) {
     __node = node;
     var props:SuspenseBoundaryProps = __node.getProps();
     this.child = props.child;
     this.fallback = props.fallback;
+    this.overridable = props.overridable ?? false;
     this.onComplete = props.onComplete;
     this.onSuspended = props.onSuspended;
-    this.bubbleSuspension = props.bubbleSuspension ?? true;
   }
 
   function updateProps() {
@@ -79,9 +84,9 @@ class SuspenseBoundary extends ComponentBase implements Boundary {
       changed++;
     }
 
-    var newSuspension = props.bubbleSuspension ?? true;
-    if (bubbleSuspension != newSuspension) {
-      bubbleSuspension = newSuspension;
+    var newSuspension = props.overridable ?? true;
+    if (overridable != newSuspension) {
+      overridable = newSuspension;
       changed++;
     }
 
@@ -122,13 +127,20 @@ class SuspenseBoundary extends ComponentBase implements Boundary {
 
     if (hydrating) error('SuspenseBoundary suspended during hydration.');
 
+    if (overridable) switch SuspenseBoundary.maybeFrom(this) {
+      case Some(boundary): 
+        boundary.handle(component, object);
+        return;
+      case None:
+    }
+
     var suspense:SuspenseException = object;
 
     suspenseStatus = switch suspenseStatus {
       case Suspended(remaining): 
         Suspended(remaining + 1);
       case Ok: 
-        if (onSuspended != null) onSuspended();
+        triggerOnSuspended();
         Suspended(1);
     }
 
@@ -136,7 +148,7 @@ class SuspenseBoundary extends ComponentBase implements Boundary {
     
     // @todo: We need to track the component this Task comes from:
     // if the component cancels this task we shouldn't be suspended
-    // on it anymore.
+    // on it anymore. Not sure about the best way to do that.
     suspense.task.handle(result -> switch result {
       case Ok(_):
         switch __status {
@@ -156,7 +168,7 @@ class SuspenseBoundary extends ComponentBase implements Boundary {
         }
         if (suspenseStatus == Ok) {
           setActiveChild();
-          if (onComplete != null) onComplete();
+          getAdaptor().schedule(triggerOnComplete);
         }
       case Error(error):
         switch __status {
@@ -165,9 +177,20 @@ class SuspenseBoundary extends ComponentBase implements Boundary {
         }
         this.tryToHandleWithBoundary(error);
     });
+  }
 
-    if (bubbleSuspension) switch SuspenseBoundary.maybeFrom(this) {
-      case Some(boundary): boundary.handle(component, object);
+  function triggerOnComplete() {
+    if (onComplete != null) onComplete();
+    switch SuspenseBoundaryContext.maybeFrom(this) {
+      case Some(context): context.remove(this);
+      case None:
+    }
+  }
+
+  function triggerOnSuspended() {
+    if (onSuspended != null) onSuspended();
+    switch SuspenseBoundaryContext.maybeFrom(this) {
+      case Some(context): context.add(this);
       case None:
     }
   }
@@ -205,6 +228,10 @@ class SuspenseBoundary extends ComponentBase implements Boundary {
   }
 
   function __dispose() {
+    switch SuspenseBoundaryContext.maybeFrom(this) {
+      case Some(context): context.remove(this);
+      case None:
+    }
     hiddenRoot?.dispose();
     hiddenRoot = null;
     hiddenSlot = null;

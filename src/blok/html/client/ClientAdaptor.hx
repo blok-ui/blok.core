@@ -3,6 +3,7 @@ package blok.html.client;
 import blok.adaptor.*;
 import blok.debug.Debug;
 import blok.ui.*;
+import blok.core.*;
 import js.Browser;
 import js.html.Element;
 

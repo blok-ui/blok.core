@@ -13,4 +13,3 @@
 @:noUsing typedef ReadonlySignal<T> = blok.signal.Signal.ReadonlySignal<T>;
 @:noUsing typedef Computation<T> = blok.signal.Computation<T>;
 @:noUsing typedef Observer = blok.signal.Observer;
-

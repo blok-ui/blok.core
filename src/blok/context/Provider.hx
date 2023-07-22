@@ -4,11 +4,12 @@ import blok.ui.*;
 
 class Provider<T:Context> extends Component {
   public static function compose(contexts:Array<()->Context>, child:(context:ComponentBase)->Child) {
-    var context = contexts.shift();
-    var component:VNode = Provider.provide(context, _ -> Scope.wrap(child));
+    var contextFactory = contexts.shift();
+    var component:VNode = Provider.provide(contextFactory, _ -> Scope.wrap(child));
     while (contexts.length > 0) {
-      context = contexts.shift();
-      component = Provider.provide(context, _ -> component);
+      var wrapped = component;
+      contextFactory = contexts.shift();
+      component = Provider.provide(contextFactory, _ -> wrapped);
     }
     return component;
   }

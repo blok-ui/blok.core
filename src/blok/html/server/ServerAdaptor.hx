@@ -3,6 +3,7 @@ package blok.html.server;
 import blok.adaptor.*;
 import blok.debug.Debug;
 import blok.node.*;
+import blok.core.*;
 import blok.ui.*;
 
 typedef ServerAdaptorOptions = {
@@ -10,6 +11,7 @@ typedef ServerAdaptorOptions = {
 };
 
 class ServerAdaptor implements Adaptor {
+  final scheduler = new Scheduler();
   final options:ServerAdaptorOptions;
 
   public function new(?options) {
@@ -64,28 +66,35 @@ class ServerAdaptor implements Adaptor {
   }
 
   public function insertNode(object:Dynamic, slot:Null<Slot>, findParent:() -> Dynamic) {
-    var obj:Node = object;
+    var node:Node = object;
     if (slot != null && slot.previous != null) {
       var relative:Node = slot.previous.getRealNode();
       var parent = relative.parent;
       if (parent != null) {
         var index = parent.children.indexOf(relative);
-        parent.insert(index + 1, obj);
+        parent.insert(index + 1, node);
       } else {
         var parent:Node = findParent();
         assert(parent != null);
-        parent.prepend(obj);
+        parent.prepend(node);
       }
     } else {
       var parent:Node = findParent();
       assert(parent != null);
-      parent.prepend(obj);
+      parent.prepend(node);
     }
   }
 
   public function moveNode(object:Dynamic, from:Null<Slot>, to:Null<Slot>, findParent:() -> Dynamic) {
-    var obj:Node = object;
+    var node:Node = object;
     assert(to != null);
+
+    if (to == null) {
+      if (from != null) {
+        removeNode(object, from);
+      }
+      return;
+    }
 
     if (from != null && !from.changed(to)) {
       return;
@@ -94,7 +103,7 @@ class ServerAdaptor implements Adaptor {
     if (to.previous == null) {
       var parent:Node = findParent();
       assert(parent != null);
-      parent.prepend(object);
+      parent.prepend(node);
       return;
     }
 
@@ -105,15 +114,15 @@ class ServerAdaptor implements Adaptor {
 
     var index = parent.children.indexOf(relative);
 
-    parent.insert(index + 1, obj);
+    parent.insert(index + 1, node);
   }
 
   public function removeNode(object:Dynamic, slot:Null<Slot>) {
-    var obj:Node = object;
-    obj.remove();
+    var node:Node = object;
+    node.remove();
   }
 
 	public function schedule(effect:() -> Void) {
-    effect();
+    scheduler.schedule(effect);
   }
 }

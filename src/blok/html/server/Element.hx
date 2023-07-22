@@ -87,15 +87,15 @@ class Element extends Node {
 
 // @todo: Probably should just use a RegExp here but whatever.
 function kebabCase(str:String) {
-var out = '';
-var i = 0;
-while (i < str.length) {
-	var c = str.charAt(i++);
-	if (c > 'A' && c < 'Z') {
-		out += '-' + c.toLowerCase();
-	} else {
-		out += c;
-	}
-}
-return out;
+  var out = '';
+  var i = 0;
+  while (i < str.length) {
+    var c = str.charAt(i++);
+    if (c > 'A' && c < 'Z') {
+      out += '-' + c.toLowerCase();
+    } else {
+      out += c;
+    }
+  }
+  return out;
 }

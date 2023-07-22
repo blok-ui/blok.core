@@ -1,4 +1,4 @@
-package blok.html.client;
+package blok.core;
 
 class Scheduler {
   #if js
@@ -20,12 +20,16 @@ class Scheduler {
   }
 
   function later(exec:()->Void) {
-    #if js
+    #if (js && nodejs)
+    js.Node.process.nextTick(exec);
+    #elseif js
     if (hasRaf)
       js.Syntax.code('window.requestAnimationFrame({0})', _ -> exec());
     else
-    #end
+      haxe.Timer.delay(() -> exec(), 10);
+    #else
     haxe.Timer.delay(() -> exec(), 10);
+    #end
   }
   
   function doUpdate() {

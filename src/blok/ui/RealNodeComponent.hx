@@ -79,7 +79,7 @@ class RealNodeComponent extends ComponentBase implements RealNodeHost {
     observeAttributes();
 
     var nodes = render();
-    var localCursor = getAdaptor().createCursor(realNode);
+    var localCursor = cursor.currentChildren();
     var previous:ComponentBase = null;
   
     children = [ for (i => node in nodes) {

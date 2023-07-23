@@ -1,5 +1,6 @@
 package blok.ui;
 
+import blok.debug.Debug;
 import blok.adaptor.*;
 import blok.signal.Graph;
 
@@ -42,7 +43,8 @@ class RootComponent extends ComponentBase implements RealNodeHost {
 
   function __hydrate(cursor:Cursor) {
     component = render().createComponent();
-    component.hydrate(cursor, this, createSlot(0, null));
+    component.hydrate(cursor.currentChildren(), this, createSlot(0, null));
+    cursor.next();
   }
 
   function __update() {}

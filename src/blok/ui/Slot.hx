@@ -10,6 +10,6 @@ class Slot {
   }
 
   public function changed(other:Slot) {
-    return index != other.index || previous != other.previous;
+    return index != other.index;
   }
 }

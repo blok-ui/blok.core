@@ -285,6 +285,11 @@ private function createJsonSerializer(field:Field, isConstant:Bool):JsonSerializ
       }
       
       switch t {
+        case macro:Dynamic:
+          {
+            serializer: macro $access,
+            deserializer: macro Reflect.field(data, $v{name})
+          };
         case macro:Null<$t> if (isModel(t)):
           var path = switch t {
             case TPath(p): p.pack.concat([ p.name ]);

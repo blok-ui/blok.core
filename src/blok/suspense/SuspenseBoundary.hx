@@ -1,5 +1,6 @@
 package blok.suspense;
 
+import blok.diffing.Differ.updateChild;
 import blok.adaptor.Cursor;
 import blok.boundary.Boundary;
 import blok.debug.Debug;
@@ -93,7 +94,7 @@ class SuspenseBoundary extends ComponentBase implements Boundary {
     return changed > 0;
   }
 
-  function setActiveChild() {
+function setActiveChild() {
     switch suspenseStatus {
       case Suspended(_) if (currentChild != realChild):
       case Suspended(_):
@@ -215,10 +216,7 @@ class SuspenseBoundary extends ComponentBase implements Boundary {
 
   function __update() {
     if (!updateProps()) return;
-
-    currentChild.dispose();
-    currentChild = realChild = child.createComponent();
-    realChild.mount(this, __slot);
+    currentChild = realChild = updateChild(this, currentChild, child, __slot);
     setActiveChild();
   }
 

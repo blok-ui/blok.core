@@ -26,24 +26,15 @@ enum abstract TodoVisibility(String) from String to String {
   var Active;
 }
 
-class Todo extends Record {
+class Todo extends Model {
   @:constant public final id:Int;
   @:signal public final description:String;
   @:signal public final isCompleted:Bool;
   @:signal public final isEditing:Bool = false;
-  
-  public function toJson() {
-    return {
-      id: id,
-      description: description(),
-      isCompleted: isCompleted(),
-      isEditing: isEditing()
-    };
-  }
 }
 
 @:fallback(TodoContext.instance())
-class TodoContext extends Record implements Context {
+class TodoContext extends Model implements Context {
   static public function instance() {
     static var context:Null<TodoContext> = null;
     if (context == null) {
@@ -67,19 +58,6 @@ class TodoContext extends Record implements Context {
     });
 
     return context;
-  }
-  
-  public static function fromJson(data:Dynamic) {
-    return new TodoContext({
-      uid: data.field('uid'),
-      todos: (data.field('todos'):Array<Dynamic>).map(data -> new Todo({
-        id: data.id,
-        description: data.description,
-        isCompleted: data.isCompleted,
-        isEditing: data.isEditing,
-      })),
-      visibility: data.field('visibility')
-    });
   }
 
   @:signal public final uid:Int = 0;
@@ -126,14 +104,6 @@ class TodoContext extends Record implements Context {
       }
       return true;
     }));
-  }
-
-  public function toJson() {
-    return {
-      uid: uid(),
-      todos: todos().map(todo -> todo.toJson()),
-      visibility: visibility()
-    };
   }
 }
 

@@ -7,7 +7,7 @@
 
 @:noUsing typedef Context = blok.context.Context;
 
-@:noUsing typedef Record = blok.data.Record;
+@:noUsing typedef Model = blok.data.Model;
 
 @:noUsing typedef Signal<T> = blok.signal.Signal<T>;
 @:noUsing typedef ReadonlySignal<T> = blok.signal.Signal.ReadonlySignal<T>;

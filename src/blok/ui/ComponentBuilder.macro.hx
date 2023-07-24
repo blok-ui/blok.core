@@ -9,7 +9,8 @@ using blok.macro.MacroTools;
 using haxe.macro.Tools;
 
 // @todo: Refactor this, try to create something that is easier
-// to share across our various reactive objects.
+// to share across our various reactive objects. Ideally we'll
+// merge it with ReactiveObjectBuilder?
 function build():Array<Field> {
   var builder = ClassBuilder.fromContext();
   var cls = Context.getLocalClass().get();
@@ -68,8 +69,35 @@ function build():Array<Field> {
   }
 
   switch builder.findField('new') {
-    case Some(field):
-      Context.error('Custom constructors are not ready yet', field.pos);
+    case Some(field): switch field.kind {
+      case FFun(f):
+        if (f.args.length > 0) {
+          Context.error(
+            'You cannot pass arguments to this constructor -- it can only '
+            + 'be used to run code at initialization.',
+            field.pos
+          );
+        }
+        
+        if (field.access.contains(APublic)) {
+          Context.error(
+            'Component constructors must be private (remove the `public` keyword)',
+            field.pos
+          );
+        }
+
+        f.args = [ { name: 'node' } ];
+        var expr = f.expr;
+        f.expr = macro {
+          __node = node;
+          var props:$propType = __node.getProps();
+          @:mergeBlock $b{inits};
+          $computation;
+          blok.signal.Observer.untrack(() -> $expr);
+        }
+      default: 
+        throw 'assert';
+    }
     case None:
       builder.add(macro class {
         private function new(node) {

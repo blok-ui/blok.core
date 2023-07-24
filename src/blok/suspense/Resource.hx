@@ -106,7 +106,7 @@ class LazyResourceObject<T, E = kit.Error> implements ResourceObject<T, E> {
     this.fetch = fetch;
     
     Observer.track(() -> {
-      data.set(Loading);
+      var handled = false;
       switch currentFetch() {
         case None:
           link?.cancel();
@@ -114,10 +114,15 @@ class LazyResourceObject<T, E = kit.Error> implements ResourceObject<T, E> {
         case Some(task):
           link?.cancel();
           link = task.handle(result -> switch result {
-            case Ok(value): data.set(Loaded(value));
-            case Error(error): data.set(Error(error));
+            case Ok(value): 
+              handled = true;
+              data.set(Loaded(value));
+            case Error(error): 
+              handled = true;
+              data.set(Error(error));
           });
       }
+      if (!handled) data.set(Loading);
     });
 
     setCurrentOwner(prevOwner);
@@ -132,9 +137,9 @@ class LazyResourceObject<T, E = kit.Error> implements ResourceObject<T, E> {
     }
 
     return switch data() {
-      case Loaded(value): 
+      case Loaded(value):
         value;
-      case Loading: 
+      case Loading:
         throw new SuspenseException(currentFetch.peek().unwrap());
       case Error(e): 
         throw e;

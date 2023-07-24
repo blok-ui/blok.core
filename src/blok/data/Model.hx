@@ -2,8 +2,8 @@ package blok.data;
 
 import blok.core.*;
 
-@:autoBuild(blok.macro.ReactiveObjectBuilder.build())
-abstract class Record implements Disposable implements DisposableHost {
+@:autoBuild(blok.data.ModelBuilder.build())
+abstract class Model implements Disposable implements DisposableHost {
   final disposables:DisposableCollection = new DisposableCollection();
 
   public function addDisposable(disposable:DisposableItem):Void {

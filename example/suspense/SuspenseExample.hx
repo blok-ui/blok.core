@@ -58,13 +58,25 @@ class SuspenseExample extends Component {
 }
 
 class SuspenseItem extends Component {
-  @:constant final delay:Int;
-  // @todo: This is a pretty awkward way to author resources...
-  @:computed final res:Resource<String> = new Resource(() -> new Task(activate -> {
-    Timer.delay(() -> activate(Ok('Loaded: ${delay}')), delay);
-  }));
+  @:signal final delay:Int;
+  
+  var res:Resource<String>;
+
+  function new() {
+    this.res = new Resource(() -> {
+      var delay = delay();
+      new Task(activate -> {
+        Timer.delay(() -> activate(Ok('Loaded: ${delay}')), delay);
+      });
+    });
+  }
 
   function render() {
-    return Html.div({}, res().get());
+    return Html.div({}, 
+      res(),
+      Html.button({
+        onClick: _ -> delay.update(delay -> delay + 1)
+      }, 'Reload')
+    );
   }
 }

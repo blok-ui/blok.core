@@ -19,7 +19,9 @@ class SuspenseBoundaryContext implements Context {
 
   public function add(boundary:SuspenseBoundary) {
     if (suspendedBoundaries.contains(boundary)) return;
-    if (suspendedBoundaries.length == 0) onSuspended.dispatch();
+    if (suspendedBoundaries.length == 0) {
+      onSuspended.dispatch();
+    }
     suspendedBoundaries.push(boundary);
   }
 

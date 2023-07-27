@@ -85,7 +85,7 @@ class SuspenseBoundary extends ComponentBase implements Boundary {
       changed++;
     }
 
-    var newSuspension = props.overridable ?? true;
+    var newSuspension = props.overridable ?? false;
     if (overridable != newSuspension) {
       overridable = newSuspension;
       changed++;
@@ -94,7 +94,7 @@ class SuspenseBoundary extends ComponentBase implements Boundary {
     return changed > 0;
   }
 
-function setActiveChild() {
+  function setActiveChild() {
     switch suspenseStatus {
       case Suspended(_) if (currentChild != realChild):
       case Suspended(_):
@@ -106,6 +106,7 @@ function setActiveChild() {
         currentChild = realChild;
         realChild.updateSlot(__slot);
       case Ok:
+        realChild.updateSlot(__slot);
     }
   }
 
@@ -117,7 +118,7 @@ function setActiveChild() {
     }).createComponent();
     
     hiddenRoot.mount(null, null);
-    hiddenSlot = createSlot(0, hiddenRoot.findChildOfType(Placeholder).unwrap());
+    hiddenSlot = createSlot(1, hiddenRoot.findChildOfType(Placeholder).unwrap());
   }
 
   public function handle(component:ComponentBase, object:Any) {
@@ -129,7 +130,7 @@ function setActiveChild() {
     if (hydrating) error('SuspenseBoundary suspended during hydration.');
 
     if (overridable) switch SuspenseBoundary.maybeFrom(this) {
-      case Some(boundary): 
+      case Some(boundary):
         boundary.handle(component, object);
         return;
       case None:
@@ -138,9 +139,9 @@ function setActiveChild() {
     var suspense:SuspenseException = object;
 
     suspenseStatus = switch suspenseStatus {
-      case Suspended(remaining): 
+      case Suspended(remaining):
         Suspended(remaining + 1);
-      case Ok: 
+      case Ok:
         triggerOnSuspended();
         Suspended(1);
     }
@@ -150,6 +151,9 @@ function setActiveChild() {
     // @todo: We need to track the component this Task comes from:
     // if the component cancels this task we shouldn't be suspended
     // on it anymore. Not sure about the best way to do that.
+    //
+    // Also we should keep track of our links and cancel them as 
+    // needed.
     suspense.task.handle(result -> switch result {
       case Ok(_):
         switch __status {
@@ -180,18 +184,18 @@ function setActiveChild() {
     });
   }
 
-  function triggerOnComplete() {
-    if (onComplete != null) onComplete();
-    switch SuspenseBoundaryContext.maybeFrom(this) {
-      case Some(context): context.remove(this);
-      case None:
-    }
-  }
-
   function triggerOnSuspended() {
     if (onSuspended != null) onSuspended();
     switch SuspenseBoundaryContext.maybeFrom(this) {
       case Some(context): context.add(this);
+      case None:
+    }
+  }
+
+  function triggerOnComplete() {
+    if (onComplete != null) onComplete();
+    switch SuspenseBoundaryContext.maybeFrom(this) {
+      case Some(context): context.remove(this);
       case None:
     }
   }
@@ -216,12 +220,11 @@ function setActiveChild() {
 
   function __update() {
     if (!updateProps()) return;
-    currentChild = realChild = updateChild(this, currentChild, child, __slot);
+    realChild.update(child);
     setActiveChild();
   }
 
   function __validate() {
-    // Is this enough??
     setActiveChild();
   }
 

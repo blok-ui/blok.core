@@ -142,11 +142,15 @@ class ClientAdaptor implements Adaptor {
       return;
     }
 
-    if (from != null && !from.changed(to)) {
-      return;
-    }
+    // // @todo: I don't think we need this: it's checked anyway
+    // // during diffing and we want to ignore it if we're manually changing
+    // // slots.
+    // if (from != null && !from.changed(to)) {
+    //   return;
+    // }
 
     if (to.previous == null) {
+      assert(to.index == 0);
       var parent:js.html.Element = findParent();
       assert(parent != null);
       parent.prepend(el);

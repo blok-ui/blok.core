@@ -144,14 +144,14 @@ class SuspenseBoundary extends ComponentBase implements Boundary {
       case Suspended(links):
         link = links.find(link -> link.component == component);
         if (link == null) {
-          link = new SuspenseLink(component);
+          link = new SuspenseLink(component, this);
           component.addDisposable(link);
           links.push(link);
         }
         Suspended(links);
       case Ok:
         triggerOnSuspended();
-        link = new SuspenseLink(component);
+        link = new SuspenseLink(component, this);
         component.addDisposable(link);
         Suspended([ link ]);
     }
@@ -165,22 +165,7 @@ class SuspenseBoundary extends ComponentBase implements Boundary {
           case Disposing | Disposed: return;
           default:
         }
-        suspenseStatus = switch suspenseStatus {
-          case Suspended(links):
-            links.remove(link);
-            component.removeDisposable(link);
-            if (links.length == 0) {
-              Ok;
-            } else {
-              Suspended(links);
-            }
-          case Ok: 
-            Ok;
-        }
-        if (suspenseStatus == Ok) {
-          setActiveChild();
-          getAdaptor().schedule(triggerOnComplete);
-        }
+        removeSuspenseLink(link);
       case Error(error):
         switch __status {
           case Disposing | Disposed: return;
@@ -188,6 +173,25 @@ class SuspenseBoundary extends ComponentBase implements Boundary {
         }
         this.tryToHandleWithBoundary(error);
     }));
+  }
+
+  function removeSuspenseLink(link:SuspenseLink) {
+    suspenseStatus = switch suspenseStatus {
+      case Suspended(links):
+        links.remove(link);
+        link.component.removeDisposable(link);
+        if (links.length == 0) {
+          Ok;
+        } else {
+          Suspended(links);
+        }
+      case Ok: 
+        Ok;
+    }
+    if (suspenseStatus == Ok) {
+      setActiveChild();
+      getAdaptor().schedule(triggerOnComplete);
+    }
   }
 
   function triggerOnSuspended() {
@@ -265,13 +269,16 @@ class SuspenseBoundary extends ComponentBase implements Boundary {
   }
 }
 
+@:access(blok.suspense)
 class SuspenseLink implements Disposable {
   public final component:ComponentBase;
+  final suspense:SuspenseBoundary;
   
   var link:Null<Cancellable> = null;
 
-  public function new(component) {
+  public function new(component, suspense) {
     this.component = component;
+    this.suspense = suspense;
   }
 
   public function set(newLink:Cancellable) {
@@ -282,5 +289,6 @@ class SuspenseLink implements Disposable {
   public function dispose() {
     link?.cancel();
     link = null;
+    suspense.removeSuspenseLink(this);
   }
 }

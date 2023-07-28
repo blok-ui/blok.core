@@ -232,6 +232,10 @@ abstract class ComponentBase implements Disposable implements DisposableHost {
     __disposables.addDisposable(disposable);
   }
 
+  public function removeDisposable(disposable:DisposableItem) {
+    __disposables.removeDisposable(disposable);
+  }
+
   public function dispose() {
     assert(__status != Rendering, 'Attempted to dispose a component while it was building');
     assert(__status != Disposing, 'Attempted to dispose a component that is already disposing');

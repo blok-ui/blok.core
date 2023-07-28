@@ -1,16 +1,17 @@
 package blok.suspense;
 
-import blok.diffing.Differ.updateChild;
 import blok.adaptor.Cursor;
 import blok.boundary.Boundary;
+import blok.core.Disposable;
 import blok.debug.Debug;
 import blok.ui.*;
 
+using Lambda;
 using blok.boundary.BoundaryTools;
 
 enum SuspenseBoundaryStatus {
   Ok;
-  Suspended(remaining:Int);
+  Suspended(links:Array<SuspenseLink>);
 }
 
 typedef SuspenseBoundaryProps = {
@@ -137,36 +138,41 @@ class SuspenseBoundary extends ComponentBase implements Boundary {
     }
 
     var suspense:SuspenseException = object;
+    var link:Null<SuspenseLink> = null;
 
     suspenseStatus = switch suspenseStatus {
-      case Suspended(remaining):
-        Suspended(remaining + 1);
+      case Suspended(links):
+        link = links.find(link -> link.component == component);
+        if (link == null) {
+          link = new SuspenseLink(component);
+          component.addDisposable(link);
+          links.push(link);
+        }
+        Suspended(links);
       case Ok:
         triggerOnSuspended();
-        Suspended(1);
+        link = new SuspenseLink(component);
+        component.addDisposable(link);
+        Suspended([ link ]);
     }
 
     setActiveChild();
-    
-    // @todo: We need to track the component this Task comes from:
-    // if the component cancels this task we shouldn't be suspended
-    // on it anymore. Not sure about the best way to do that.
-    //
-    // Also we should keep track of our links and cancel them as 
-    // needed.
-    suspense.task.handle(result -> switch result {
+    assert(link != null);
+
+    link.set(suspense.task.handle(result -> switch result {
       case Ok(_):
         switch __status {
           case Disposing | Disposed: return;
           default:
         }
         suspenseStatus = switch suspenseStatus {
-          case Suspended(remaining):
-            remaining -= 1;
-            if (remaining == 0) {
+          case Suspended(links):
+            links.remove(link);
+            component.removeDisposable(link);
+            if (links.length == 0) {
               Ok;
             } else {
-              Suspended(remaining);
+              Suspended(links);
             }
           case Ok: 
             Ok;
@@ -181,7 +187,7 @@ class SuspenseBoundary extends ComponentBase implements Boundary {
           default:
         }
         this.tryToHandleWithBoundary(error);
-    });
+    }));
   }
 
   function triggerOnSuspended() {
@@ -256,5 +262,25 @@ class SuspenseBoundary extends ComponentBase implements Boundary {
 
   public function visitChildren(visitor:(child:ComponentBase) -> Bool) {
     if (currentChild != null) visitor(currentChild);
+  }
+}
+
+class SuspenseLink implements Disposable {
+  public final component:ComponentBase;
+  
+  var link:Null<Cancellable> = null;
+
+  public function new(component) {
+    this.component = component;
+  }
+
+  public function set(newLink:Cancellable) {
+    link?.cancel();
+    link = newLink;
+  }
+
+  public function dispose() {
+    link?.cancel();
+    link = null;
   }
 }

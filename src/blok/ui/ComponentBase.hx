@@ -4,13 +4,18 @@ import blok.adaptor.*;
 import blok.core.*;
 import blok.debug.Debug;
 
-enum ComponentStatus {
-  Pending;
-  Valid;
-  Invalid;
-  Rendering;
-  Disposing;
-  Disposed;
+enum abstract ComponentStatus(Int) {
+  final Pending;
+  final Valid;
+  final Invalid;
+  final Rendering;
+  final Disposing;
+  final Disposed;
+}
+
+enum abstract ComponentRenderMode(Int) {
+  final Normal;
+  final Hydrating;
 }
 
 // @todo: I'd love to come up with a better name than `ComponentBase`.
@@ -22,6 +27,7 @@ abstract class ComponentBase implements Disposable implements DisposableHost {
   var __parent:Null<ComponentBase> = null;
   var __adaptor:Null<Adaptor> = null;
   var __invalidChildren:Array<ComponentBase> = [];
+  var __renderMode:ComponentRenderMode = Normal;
 
   final __disposables:DisposableCollection = new DisposableCollection();
 
@@ -29,6 +35,7 @@ abstract class ComponentBase implements Disposable implements DisposableHost {
     __init(parent, slot);
 
     __status = Rendering;
+    __renderMode = Normal;
     try __initialize() catch (e) {
       __cleanupAfterValidation();
       throw e;  
@@ -40,6 +47,7 @@ abstract class ComponentBase implements Disposable implements DisposableHost {
     __init(parent, slot);
 
     __status = Rendering;
+    __renderMode = Hydrating;
     try __hydrate(cursor) catch (e) {
       __cleanupAfterValidation();
       throw e;  
@@ -67,6 +75,7 @@ abstract class ComponentBase implements Disposable implements DisposableHost {
     }
   
     __status = Rendering;
+    __renderMode = Normal;
     __node = node;
     __update();
     __cleanupAfterValidation();
@@ -96,6 +105,7 @@ abstract class ComponentBase implements Disposable implements DisposableHost {
     }
 
     __status = Rendering;
+    __renderMode = Normal;
     __validate();
     __cleanupAfterValidation();
   }
@@ -201,6 +211,7 @@ abstract class ComponentBase implements Disposable implements DisposableHost {
   }
 
   function __cleanupAfterValidation() {
+    __renderMode = Normal;
     if (__invalidChildren.length > 0) __invalidChildren = [];
     if (__status != Invalid) __status = Valid;
   }

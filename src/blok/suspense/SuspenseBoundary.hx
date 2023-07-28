@@ -38,7 +38,6 @@ class SuspenseBoundary extends ComponentBase implements Boundary {
   public static function node(props:SuspenseBoundaryProps, ?key) {
     return new VComponent(componentType, props, SuspenseBoundary.new, key);
   }
-
   
   var child:Child;
   var fallback:()->Child;

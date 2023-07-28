@@ -13,9 +13,8 @@ using blok.adaptor.RealNodeHostTools;
 class RealNodeComponent extends ComponentBase implements RealNodeHost {
   final tag:String;
   final type:UniqueId;
-  final updaters:Map<String, NativePropertyUpdater<Any>> = [];
+  final updaters:Map<String, RealNodePropertyUpdater<Any>> = [];
 
-  var hydrating:Bool = false;
   var realNode:Null<Dynamic> = null;
   var children:Array<ComponentBase> = [];
 
@@ -32,7 +31,7 @@ class RealNodeComponent extends ComponentBase implements RealNodeHost {
 
   function observeAttributes() {
     function applyAttribute(name:String, oldValue:Any, value:Any) {
-      getAdaptor().updateNodeAttribute(getRealNode(), name, oldValue, value, hydrating);
+      getAdaptor().updateNodeAttribute(getRealNode(), name, oldValue, value, __renderMode == Hydrating);
     }
 
     var props = __node.getProps();
@@ -49,7 +48,7 @@ class RealNodeComponent extends ComponentBase implements RealNodeHost {
       var signal:ReadonlySignal<Any> = Reflect.field(props, name);
       var updater = updaters.get(name);
       if (updater == null) {
-        updater = new NativePropertyUpdater(name, signal, applyAttribute);
+        updater = new RealNodePropertyUpdater(name, signal, applyAttribute);
         updaters.set(name, updater);
       } else {
         updater.update(signal);
@@ -74,7 +73,6 @@ class RealNodeComponent extends ComponentBase implements RealNodeHost {
   }
 
   function __hydrate(cursor:Cursor) {
-    hydrating = true;
     realNode = cursor.current();
     observeAttributes();
 
@@ -90,8 +88,6 @@ class RealNodeComponent extends ComponentBase implements RealNodeHost {
     } ];
     
     assert(localCursor.current() == null);
-    
-    hydrating = false;
 
     cursor.next();
   }
@@ -135,7 +131,7 @@ class RealNodeComponent extends ComponentBase implements RealNodeHost {
   }
 }
 
-class NativePropertyUpdater<T> implements Disposable {
+class RealNodePropertyUpdater<T> implements Disposable {
   final changeSignal:Signal<ReadonlySignal<T>>;
   final observer:Observer;
 

@@ -5,9 +5,14 @@ import blok.ui.*;
 
 using blok.boundary.BoundaryTools;
 
+enum ErrorBoundaryStatus {
+  Ok;
+  Caught(component:ComponentBase, e:Exception);
+}
+
 class ErrorBoundary extends Component implements Boundary {
   @:constant final child:Child;
-  @:constant final fallback:(component:ComponentBase, e:Exception, recover:()->Void)->Child;
+  @:constant final fallback:(component:ComponentBase, e:Exception)->Child;
   @:signal final status:ErrorBoundaryStatus = Ok;
 
   public function handle(component:ComponentBase, object:Any) {
@@ -18,19 +23,10 @@ class ErrorBoundary extends Component implements Boundary {
     this.tryToHandleWithBoundary(object);
   }
 
-  function recover() {
-    status.set(Ok);
-  }
-
   function render() {
     return switch status() {
       case Ok: child;
-      case Caught(c, e): fallback(c, e, recover);
+      case Caught(c, e): fallback(c, e);
     }
   }
-}
-
-enum ErrorBoundaryStatus {
-  Ok;
-  Caught(component:ComponentBase, e:Exception);
 }

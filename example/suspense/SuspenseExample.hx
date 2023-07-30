@@ -49,7 +49,7 @@ class SuspenseExample extends Component {
           )
         )
       ),
-      fallback: (component, e, recover) -> Html.div({},
+      fallback: (component, e) -> Html.div({},
         Html.h1({}, 'Error!'),
         Html.p({}, e.message)  
       )

@@ -223,6 +223,7 @@ private function createSignalField(builder:ClassBuilder, field:Field, isReadonly
         case macro:Null<$t>: macro:blok.signal.Signal<Null<$t>>;
         default: macro:blok.signal.Signal<$t>;
       }
+      var isOptional = e != null;
       
       field.kind = FVar(type, switch e {
         case macro null: macro new blok.signal.Signal(null);
@@ -232,7 +233,11 @@ private function createSignalField(builder:ClassBuilder, field:Field, isReadonly
       {
         name: name,
         init: createInit(field.name, e),
-        update: macro this.$name.set(props.$name),
+        update: if (isOptional) {
+          macro if (props.$name != null) this.$name.set(props.$name);
+        } else {
+          macro this.$name.set(props.$name);
+        },
         prop: createProp(field.name, t, e != null, Context.currentPos())
       };
     case FVar(t, e) if (isReadonly):
@@ -241,6 +246,7 @@ private function createSignalField(builder:ClassBuilder, field:Field, isReadonly
         case macro:Null<$t>: macro:blok.signal.Signal.ReadonlySignal<Null<$t>>;
         default: macro:blok.signal.Signal.ReadonlySignal<$t>;
       }
+      var isOptional = e != null;
       var expr = switch e {
         case null: macro null; // Won't actually be used.
         case macro null: macro new blok.signal.Signal.ReadonlySignal(null);
@@ -270,7 +276,11 @@ private function createSignalField(builder:ClassBuilder, field:Field, isReadonly
       {
         name: name,
         init: macro @:mergeBlock $b{init},
-        update: macro this.$backingName.set(props.$name),
+        update: if (isOptional) {
+          macro if (props.$name != null) this.$backingName.set(props.$name);
+        } else {
+          macro this.$backingName.set(props.$name);
+        },
         prop: createProp(field.name, type, e != null, Context.currentPos())
       }
     default:
@@ -301,7 +311,7 @@ private function createComputed(field:Field):Expr {
 }
 
 private function createInit(name:String, e:Null<Expr>) {
-  return if (e == null){
+  return if (e == null) {
     macro this.$name = props.$name;
   } else {
     macro if (props.$name != null) this.$name = props.$name;

@@ -18,6 +18,16 @@ class Element extends Node {
   }
 
   public function setAttribute(name:String, value:Dynamic) {
+    if (name == 'dataset') {
+      var dataset = Reflect.field(attributes, 'dataset');
+      if (dataset == null) {
+        dataset = {};
+      }
+      for (key => value in (value:Map<String, String>)) {
+        if (value != null) Reflect.setField(attributes, 'data-$key', value);
+      }
+      return;
+    }
     Reflect.setField(attributes, name, value);    
   }
 

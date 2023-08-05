@@ -6,7 +6,6 @@ import haxe.macro.Expr;
 import haxe.macro.Type;
 
 using Lambda;
-// using blok.macro.MacroTools;
 using haxe.macro.Tools;
 
 function build(typeName:String) {

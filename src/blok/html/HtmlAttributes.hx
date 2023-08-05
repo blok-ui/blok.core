@@ -243,7 +243,7 @@ enum abstract MetaHttpEquiv(String) to String from String {
 }
 
 typedef LinkAttr = GlobalAttr & {
-  var rel:LinkRel;
+  var rel:ReadonlySignal<LinkRel>;
   var ?crossorigin:ReadonlySignal<LinkCrossOrigin>;
   var ?href:ReadonlySignal<String>;
   var ?hreflang:ReadonlySignal<String>;

@@ -42,7 +42,7 @@ class SignalObject<T> implements ProducerNode {
         owner.addDisposable(this);
       case None:
         // This should be fine for Signals -- if there is
-        // no Owner, we can assume that this is a Global signal.
+        // no Owner, we can assume that this is a global signal.
     }
   }
 

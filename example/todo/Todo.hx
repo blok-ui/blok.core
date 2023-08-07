@@ -4,7 +4,6 @@ import Breeze;
 import blok.context.*;
 import blok.data.*;
 import blok.html.*;
-import blok.html.client.Client;
 import blok.signal.*;
 import blok.ui.*;
 import haxe.Json;
@@ -14,7 +13,7 @@ using Reflect;
 using breeze.BreezeModifiers;
 
 function todos() {
-  mount(
+  Client.mount(
     Browser.document.getElementById('todo-root'),
     () -> TodoRoot.node({})
   );

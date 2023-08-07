@@ -4,7 +4,6 @@ import Blok.Fragment;
 import haxe.Timer;
 import blok.boundary.*;
 import blok.html.*;
-import blok.html.client.Client;
 import blok.suspense.*;
 import blok.ui.*;
 import js.Browser;
@@ -12,7 +11,7 @@ import js.Browser;
 using Kit;
 
 function suspense() {
-  mount(Browser.document.getElementById('suspense-root'), () -> SuspenseExample.node({}));
+  Client.mount(Browser.document.getElementById('suspense-root'), () -> SuspenseExample.node({}));
 }
 
 class SuspenseExample extends Component {

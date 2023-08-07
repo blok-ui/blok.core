@@ -144,7 +144,12 @@ class RealNodePropertyUpdater<T> implements Disposable {
   ) {
     this.changeSignal = new Signal(propSignal);
     this.observer = new Observer(() -> {
-      var value = changeSignal.get().get();
+      var signal = changeSignal.get();
+      
+      assert(signal != null, 'The attribute $name was not properly set up');
+      
+      var value = signal.get();
+      
       if (value == oldValue) return;
       setRealAttr(name, oldValue, value);
       oldValue = value;

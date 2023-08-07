@@ -1,6 +1,7 @@
-package blok.html.client;
+package blok.html;
 
 import blok.ui.*;
+import blok.html.client.ClientAdaptor;
 import js.html.Element;
 
 function mount(el:Element, child:()->Child) {

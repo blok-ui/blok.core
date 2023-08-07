@@ -1,7 +1,8 @@
-package blok.html.server;
+package blok.html;
 
 import blok.node.*;
 import blok.ui.*;
+import blok.html.server.ServerAdaptor;
 
 function mount(node:Node, child:()->Child) {
   var root = RootComponent.node({

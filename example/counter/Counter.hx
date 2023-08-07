@@ -1,13 +1,12 @@
 package counter;
 
 import Breeze;
-import blok.html.Html;
-import blok.html.client.Client;
+import blok.html.*;
 import blok.ui.*;
 import js.Browser;
 
 function counter() {
-  mount(
+  Client.mount(
     Browser.document.getElementById('counter-root'),
     () -> Counter.node({})
   );

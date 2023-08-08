@@ -47,6 +47,10 @@ class RealNodeComponent extends ComponentBase implements RealNodeHost {
     withOwner(this, () -> for (name in fields) {
       var signal:ReadonlySignal<Any> = Reflect.field(props, name);
       var updater = updaters.get(name);
+
+      // @todo: Investigate this null case a bit more.
+      if (signal == null) signal = new Signal(null);
+
       if (updater == null) {
         updater = new RealNodePropertyUpdater(name, signal, applyAttribute);
         updaters.set(name, updater);
@@ -132,26 +136,28 @@ class RealNodeComponent extends ComponentBase implements RealNodeHost {
 }
 
 class RealNodePropertyUpdater<T> implements Disposable {
+  final name:String;
   final changeSignal:Signal<ReadonlySignal<T>>;
   final observer:Observer;
+  final setAttribute:(name:String, oldValue:T, newValue:T)->Void;
 
   var oldValue:Null<T> = null;
   
   public function new(
     name:String,
     propSignal:ReadonlySignal<T>,
-    setRealAttr
+    setAttribute
   ) {
+    this.name = name;
     this.changeSignal = new Signal(propSignal);
+    this.setAttribute = setAttribute;
     this.observer = new Observer(() -> {
-      var signal = changeSignal.get();
-      
-      assert(signal != null, 'The attribute $name was not properly set up');
-      
-      var value = signal.get();
+      var signal = changeSignal();
+      var value = signal();
       
       if (value == oldValue) return;
-      setRealAttr(name, oldValue, value);
+
+      setAttribute(name, oldValue, value);
       oldValue = value;
     });
   }
@@ -163,5 +169,7 @@ class RealNodePropertyUpdater<T> implements Disposable {
   public function dispose() {
     changeSignal.dispose();
     observer.dispose();
+    // @todo: Not 100% on needing this:
+    setAttribute(name, oldValue, null);
   }
 }

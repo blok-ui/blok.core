@@ -26,7 +26,7 @@ class RealNodeComponent extends ComponentBase implements RealNodeHost {
 
   function render() {
     var vn:VRealNode = cast __node;
-    return vn.children ?? [];
+    return vn.children?.filter(n -> n != null) ?? [];
   }
 
   function observeAttributes() {

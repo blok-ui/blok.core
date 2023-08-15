@@ -6,6 +6,7 @@
 @:noUsing typedef Fragment = blok.ui.Fragment;
 @:noUsing typedef Scope = blok.ui.Scope;
 @:noUsing typedef Text = blok.ui.Text;
+@:noUsing typedef Show = blok.ui.Show;
 
 @:noUsing typedef Context = blok.context.Context;
 

@@ -20,14 +20,14 @@ function build(typeName:String) {
     switch tag.kind {
       case TagVoid:
         builder.add(macro class {
-          private static final $nameType = new kit.UniqueId();
+          private static final $nameType = blok.html.TagCollection.getTypeForTag($v{name});
           public static function $name(props:$props & blok.html.HtmlEvents, ?key) {
             return new blok.ui.VRealNode($i{nameType}, $v{name}, props, null, key);
           }
         });
       default:
         builder.add(macro class {
-          private static final $nameType = new kit.UniqueId();
+          private static final $nameType = blok.html.TagCollection.getTypeForTag($v{name});
           public static function $name(props:$props & blok.html.HtmlEvents & { ?key:blok.diffing.Key }, ...children:blok.ui.Child) {
             return new blok.ui.VRealNode($i{nameType}, $v{name}, props, children.toArray(), props.key);
           }

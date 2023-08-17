@@ -8,12 +8,13 @@ import haxe.macro.Type;
 using Lambda;
 using haxe.macro.Tools;
 
-function build(typeName:String) {
+function build(typeName:String, ?isSvg:Bool) {
   var tags = getTags(typeName);
   var builder = ClassBuilder.fromContext();
 
   for (tag in tags) {
     var name = tag.name;
+    var tagName = isSvg ? 'svg:${name}' : name;
     var nameType = '__componentType_$name';
     var props = tag.type.toComplexType();
 
@@ -22,14 +23,14 @@ function build(typeName:String) {
         builder.add(macro class {
           private static final $nameType = blok.html.TagCollection.getTypeForTag($v{name});
           public static function $name(props:$props & blok.html.HtmlEvents, ?key) {
-            return new blok.ui.VRealNode($i{nameType}, $v{name}, props, null, key);
+            return new blok.ui.VRealNode($i{nameType}, $v{tagName}, props, null, key);
           }
         });
       default:
         builder.add(macro class {
           private static final $nameType = blok.html.TagCollection.getTypeForTag($v{name});
           public static function $name(props:$props & blok.html.HtmlEvents & { ?key:blok.diffing.Key }, ...children:blok.ui.Child) {
-            return new blok.ui.VRealNode($i{nameType}, $v{name}, props, children.toArray(), props.key);
+            return new blok.ui.VRealNode($i{nameType}, $v{tagName}, props, children.toArray(), props.key);
           }
         });
     }

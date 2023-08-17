@@ -1,12 +1,12 @@
 package blok.html;
 
-final Tags:Map<String, UniqueId> = [];
+private final tags:Map<String, UniqueId> = [];
 
 function getTypeForTag(tag:String) {
-  var id = Tags.get(tag);
+  var id = tags.get(tag);
   if (id == null) {
     id = new UniqueId();
-    Tags.set(tag, id);
+    tags.set(tag, id);
   }
   return id;
 }

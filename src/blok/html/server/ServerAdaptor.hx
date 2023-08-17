@@ -6,6 +6,8 @@ import blok.node.*;
 import blok.core.*;
 import blok.ui.*;
 
+using StringTools;
+
 typedef ServerAdaptorOptions = {
   ?prefixTextWithMarker:Bool
 };
@@ -19,6 +21,7 @@ class ServerAdaptor implements Adaptor {
   }
 
 	public function createNode(name:String, attrs:{}):Dynamic {
+    if (name.startsWith('svg:')) name = name.substr(4);
 		return new Element(name, attrs);
 	}
 

@@ -170,6 +170,10 @@ class RealNodePropertyUpdater<T> implements Disposable {
     changeSignal.dispose();
     observer.dispose();
     // @todo: Not 100% on needing this:
+    // @todo: This seems to be setting the attribute to null,
+    // not removing it (as intended). This can cause weird 
+    // things, like triggering a request to the url "null"
+    // when used on elements with `src` or `href`. This is bad.
     setAttribute(name, oldValue, null);
   }
 }

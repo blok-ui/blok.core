@@ -35,6 +35,35 @@ function build():Array<Field> {
       Context.error(':action fields must be functions', field.pos);
   }
 
+  for (field in builder.findFieldsByMeta(':resource')) switch field.kind {
+    case FFun(f):
+      if (f.ret == null) Context.error(':resource methods cannot infer return types', field.pos);
+      
+      var name = field.name;
+      var resourceName = '__resource_$name';
+      var t = switch f.ret.toType().follow().toComplexType() {
+        case macro:kit.Task<$t, $_>: t;
+        default: Context.error('Must return a kit.Task', field.pos);
+      }
+      var expr = f.expr;
+
+      builder.add(macro class {
+        var $resourceName:Null<blok.suspense.Resource<$t>> = null;
+      });
+      
+      f.ret = t;
+      f.expr = macro {
+        if (this.$resourceName == null) {
+          this.$resourceName = new blok.suspense.Resource(() -> $expr);
+          addDisposable(this.$resourceName);
+        }
+        blok.debug.Debug.assert(this.$resourceName != null, $v{'The resource method "' + name + '" was not initialized correctly'});
+        return this.$resourceName.get();
+      }
+    default:
+      Context.error(':resource fields must be functions', field.pos);
+  }
+
   var computed:Array<Expr> = [];
   var inits = fieldBuilders.map(p -> p.init);
   

@@ -59,20 +59,16 @@ class SuspenseExample extends Component {
 class SuspenseItem extends Component {
   @:signal final delay:Int;
   
-  var res:Resource<String>;
-
-  function new() {
-    this.res = new Resource(() -> {
-      var delay = delay();
-      new Task(activate -> {
-        Timer.delay(() -> activate(Ok('Loaded: ${delay}')), delay);
-      });
+  @:resource function str():Task<String> {
+    var delay = delay();
+    new Task(activate -> {
+      Timer.delay(() -> activate(Ok('Loaded: ${delay}')), delay);
     });
   }
 
   function render() {
-    return Html.div({}, 
-      res(),
+    return Html.div({},
+      str(),
       Html.button({
         onClick: _ -> delay.update(delay -> delay + 1)
       }, 'Reload')

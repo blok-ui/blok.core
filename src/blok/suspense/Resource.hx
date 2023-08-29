@@ -1,7 +1,6 @@
 package blok.suspense;
 
 import blok.core.*;
-import blok.signal.Computation;
 import blok.signal.Graph;
 import blok.signal.Observer;
 import blok.signal.Signal;
@@ -10,7 +9,11 @@ import blok.signal.Signal;
 // system. We may need some kind of hooks-like system, or we'll 
 // have to get it from context somehow.
 @:forward
-abstract Resource<T, E = kit.Error>(ResourceObject<T, E>) from ResourceObject<T, E> {
+abstract Resource<T, E = kit.Error>(ResourceObject<T, E>) 
+  from ResourceObject<T, E>
+  to Disposable
+  to DisposableItem
+{
   @:from
   public static function ofTask<T, E>(task:Task<T, E>):Resource<T, E> {
     return new DefaultResourceObject(() -> task);
@@ -77,6 +80,12 @@ class DefaultResourceObject<T, E = kit.Error> implements ResourceObject<T, E> {
     });
 
     setCurrentOwner(prevOwner);
+
+    // // @todo: Not sure if this is a good idea?
+    // switch prevOwner {
+    //   case Some(owner): owner.addDisposable(this);
+    //   case None:
+    // }
   }
 
   public function get():T {

@@ -1,5 +1,7 @@
 package blok.core;
 
+using Lambda;
+
 final class DisposableCollection implements Disposable implements DisposableHost {
   var isDisposed:Bool = false;
   final disposables:List<Disposable> = new List();
@@ -11,6 +13,7 @@ final class DisposableCollection implements Disposable implements DisposableHost
       disposable.dispose();
       return;
     }
+    if (disposables.has(disposable)) return;
     disposables.add(disposable);
   }
 

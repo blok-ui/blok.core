@@ -43,7 +43,7 @@ class ClientAdaptor implements Adaptor {
   }
 
   // @todo: Refactor this to be better  
-  public function updateNodeAttribute(object:Dynamic, name:String, oldValue:Null<Dynamic>, value:Dynamic, ?isHydrating:Bool) {
+  public function updateNodeAttribute(object:Dynamic, name:String, oldValue:Null<Dynamic>, value:Null<Dynamic>, ?isHydrating:Bool) {
     var el:Element = object;
     var isSvg = el.namespaceURI == svgNamespace;
     
@@ -81,7 +81,8 @@ class ClientAdaptor implements Adaptor {
       case 'xmlns' if (isSvg): // skip
       case 'value' | 'selected' | 'checked' if (!isSvg):
         js.Syntax.code('{0}[{1}] = {2}', el, name, value);
-      case _ if (!isSvg && js.Syntax.code('{0} in {1}', name, el)):
+      // @todo: not sure if this line is a good idea.
+      case _ if (!isSvg && value != null && js.Syntax.code('{0} in {1}', name, el)):
         js.Syntax.code('{0}[{1}] = {2}', el, name, value);
       case 'dataset':
         var map:Map<String, String> = value;

@@ -64,7 +64,7 @@ class ServerAdaptor implements Adaptor {
           for (name in newNames) el.classList.add(name);
         }
       default:
-        el.setAttribute(name, value);
+        el.setAttribute(getHtmlName(name), value);
     }
   }
 
@@ -128,4 +128,12 @@ class ServerAdaptor implements Adaptor {
 	public function schedule(effect:() -> Void) {
     scheduler.schedule(effect);
   }
+}
+
+// @todo: Figure out how to use the @:html attributes for this instead.
+function getHtmlName(name:String) {
+  if (name.startsWith('aria')) {
+    return 'aria-' + name.substr(4).toLowerCase();
+  }
+  return name;
 }

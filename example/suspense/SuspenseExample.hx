@@ -58,8 +58,7 @@ class SuspenseExample extends Component {
 
 class SuspenseItem extends Component {
   @:signal final delay:Int;
-  
-  @:resource function str():Task<String> {
+  @:resource final str:String = {
     var delay = delay();
     new Task(activate -> {
       Timer.delay(() -> activate(Ok('Loaded: ${delay}')), delay);

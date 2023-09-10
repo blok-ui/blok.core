@@ -36,32 +36,32 @@ function build():Array<Field> {
   }
 
   for (field in builder.findFieldsByMeta(':resource')) switch field.kind {
-    case FFun(f):
-      if (f.ret == null) Context.error(':resource methods cannot infer return types', field.pos);
-      
+    case FVar(t, e):
+      if (t == null) Context.error(':resource fields cannot infer return types', field.pos);
+      if (e == null) Context.error(':resource fields require an expression', field.pos);
+      if (!field.access.contains(AFinal)) Context.error(':resource fields must be final', field.pos);
+
       var name = field.name;
       var resourceName = '__resource_$name';
-      var t = switch f.ret.toType().follow().toComplexType() {
-        case macro:kit.Task<$t, $_>: t;
-        default: Context.error('Must return a kit.Task', field.pos);
-      }
-      var expr = f.expr;
+      var getter = 'get_$name';
 
+      field.kind = FProp('get', 'never', macro:blok.suspense.Resource<$t>);
+
+      // @todo: This completely breaks completion.
       builder.add(macro class {
         var $resourceName:Null<blok.suspense.Resource<$t>> = null;
-      });
-      
-      f.ret = t;
-      f.expr = macro {
-        if (this.$resourceName == null) {
-          this.$resourceName = new blok.suspense.Resource(() -> $expr);
-          addDisposable(this.$resourceName);
+    
+        function $getter() {
+          if (this.$resourceName == null) {
+            @:pos(e.pos) this.$resourceName = new blok.suspense.Resource(() -> $e);
+            addDisposable(this.$resourceName);
+          }
+          blok.debug.Debug.assert(this.$resourceName != null, $v{'The resource method "' + name + '" was not initialized correctly'});
+          return this.$resourceName;
         }
-        blok.debug.Debug.assert(this.$resourceName != null, $v{'The resource method "' + name + '" was not initialized correctly'});
-        return this.$resourceName.get();
-      }
+      });
     default:
-      Context.error(':resource fields must be functions', field.pos);
+      Context.error(':resource fields cannot be methods', field.pos);
   }
 
   var computed:Array<Expr> = [];

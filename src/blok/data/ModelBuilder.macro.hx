@@ -33,7 +33,7 @@ function build() {
   var propType:ComplexType = TAnonymous(props);
 
   for (field in builder.findFieldsByMeta(':computed')) {
-    computed.push(createComputed(field));
+    computed.push(createComputed(builder, field));
   }
 
   var computation:Expr = if (computed.length > 0) macro {
@@ -208,7 +208,7 @@ private function createSignalField(field:Field, isReadonly:Bool):FieldBuilder {
   }
 }
 
-private function createComputed(field:Field):Expr {
+private function createComputed(builder:ClassBuilder, field:Field):Expr {
   return switch field.kind {
     case FVar(t, e):
       if (t == null) {
@@ -221,10 +221,36 @@ private function createComputed(field:Field):Expr {
         Context.error('@:computed fields must be final', field.pos);
       }
 
-      field.kind = FVar(macro:blok.signal.Computation<$t>, null);
       var name = field.name;
+      var getterName = 'get_$name';
+      var backingName = '__backing_$name';
+      var createName = '__create_$name';
 
-      return macro this.$name = new blok.signal.Computation(() -> $e);
+      field.name = createName;
+      field.meta.push({ name: ':noCompletion', params: [], pos: (macro null).pos });
+      field.kind = FFun({
+        args: [],
+        ret: macro:blok.signal.Computation<$t>,
+        expr: macro return new blok.signal.Computation<$t>(() -> $e)
+      });
+
+      builder.addField({
+        name: name,
+        access: field.access,
+        kind: FProp('get', 'never', macro:blok.signal.Computation<$t>),
+        pos: (macro null).pos
+      });
+
+      builder.add(macro class {
+        var $backingName:Null<blok.signal.Computation<$t>> = null;
+
+        inline function $getterName():blok.signal.Computation<$t> {
+          blok.debug.Debug.assert(this.$backingName != null);
+          return this.$backingName;
+        }
+      });
+
+      return macro this.$backingName = this.$createName();
     default:
       Context.error('Invalid field', field.pos);
   }

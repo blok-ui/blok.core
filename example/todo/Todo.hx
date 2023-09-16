@@ -313,8 +313,7 @@ class TodoList extends Component {
 class TodoItem extends Component {
   @:constant final todo:Todo;
   @:computed final className:ClassName = [
-    if (todo.isCompleted() && !todo.isEditing()) Typography.textColor('gray', 500) else null,
-    // if (todo.isEditing()) 'editing' else null
+    if (todo.isCompleted() && !todo.isEditing()) Typography.textColor('gray', 500) else null
   ];
 
   function render():VNode {

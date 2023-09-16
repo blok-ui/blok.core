@@ -1,5 +1,6 @@
 package blok.ui;
 
+import sys.io.File;
 import blok.macro.ClassBuilder;
 import haxe.macro.Compiler;
 import haxe.macro.Context;
@@ -35,33 +36,8 @@ function build():Array<Field> {
       Context.error(':action fields must be functions', field.pos);
   }
 
-  for (field in builder.findFieldsByMeta(':resource')) switch field.kind {
-    case FVar(t, e):
-      if (t == null) Context.error(':resource fields cannot infer return types', field.pos);
-      if (e == null) Context.error(':resource fields require an expression', field.pos);
-      if (!field.access.contains(AFinal)) Context.error(':resource fields must be final', field.pos);
-
-      var name = field.name;
-      var resourceName = '__resource_$name';
-      var getter = 'get_$name';
-
-      field.kind = FProp('get', 'never', macro:blok.suspense.Resource<$t>);
-
-      // @todo: This completely breaks completion.
-      builder.add(macro class {
-        var $resourceName:Null<blok.suspense.Resource<$t>> = null;
-    
-        function $getter() {
-          if (this.$resourceName == null) {
-            @:pos(e.pos) this.$resourceName = new blok.suspense.Resource(() -> $e);
-            addDisposable(this.$resourceName);
-          }
-          blok.debug.Debug.assert(this.$resourceName != null, $v{'The resource method "' + name + '" was not initialized correctly'});
-          return this.$resourceName;
-        }
-      });
-    default:
-      Context.error(':resource fields cannot be methods', field.pos);
+  for (field in builder.findFieldsByMeta(':resource')) {
+    createResource(builder, field);
   }
 
   var computed:Array<Expr> = [];
@@ -78,7 +54,7 @@ function build():Array<Field> {
   var propType:ComplexType = TAnonymous(props);
   
   for (field in builder.findFieldsByMeta(':computed')) {
-    computed.push(createComputed(field));
+    computed.push(createComputed(builder, field));
   }
 
   var computation:Expr = if (computed.length > 0) macro {
@@ -321,7 +297,7 @@ private function createSignalField(builder:ClassBuilder, field:Field, isReadonly
   }
 }
 
-private function createComputed(field:Field):Expr {
+private function createComputed(builder:ClassBuilder, field:Field):Expr {
   return switch field.kind {
     case FVar(t, e):
       if (t == null) {
@@ -334,12 +310,81 @@ private function createComputed(field:Field):Expr {
         Context.error('@:computed fields must be final', field.pos);
       }
 
-      field.kind = FVar(macro:blok.signal.Computation<$t>, null);
       var name = field.name;
+      var getterName = 'get_$name';
+      var backingName = '__backing_$name';
+      var createName = '__create_$name';
 
-      return macro this.$name = new blok.signal.Computation<$t>(() -> $e);
+      field.name = createName;
+      field.meta.push({ name: ':noCompletion', params: [], pos: (macro null).pos });
+      field.kind = FFun({
+        args: [],
+        ret: macro:blok.signal.Computation<$t>,
+        expr: macro return new blok.signal.Computation<$t>(() -> $e)
+      });
+
+      builder.addField({
+        name: name,
+        access: field.access,
+        kind: FProp('get', 'never', macro:blok.signal.Computation<$t>),
+        pos: (macro null).pos
+      });
+
+      builder.add(macro class {
+        var $backingName:Null<blok.signal.Computation<$t>> = null;
+
+        @:noCompletion
+        inline function $getterName():blok.signal.Computation<$t> {
+          blok.debug.Debug.assert(this.$backingName != null);
+          return this.$backingName;
+        }
+      });
+
+      return macro this.$backingName = this.$createName();
     default:
       Context.error('Invalid field', field.pos);
+  }
+}
+
+private function createResource(builder:ClassBuilder, field:Field) {
+  switch field.kind {
+    case FVar(t, e):
+      if (t == null) Context.error(':resource fields cannot infer return types', field.pos);
+      if (e == null) Context.error(':resource fields require an expression', field.pos);
+      if (!field.access.contains(AFinal)) Context.error(':resource fields must be final', field.pos);
+
+      var name = field.name;
+      var getterName = 'get_$name';
+      var backingName = '__backing_$name';
+      var createName = '__create_$name';
+
+      field.name = createName;
+      field.meta.push({ name: ':noCompletion', params: [], pos: (macro null).pos });
+      field.kind = FFun({
+        args: [],
+        ret: macro:blok.suspense.Resource<$t>,
+        expr: macro return new blok.suspense.Resource<$t>(() -> $e)
+      });
+
+      builder.addField({
+        name: name,
+        access: field.access,
+        kind: FProp('get', 'never', macro:blok.suspense.Resource<$t>),
+        pos: (macro null).pos
+      });
+
+      builder.add(macro class {
+        var $backingName:Null<blok.suspense.Resource<$t>> = null;
+
+        function $getterName():blok.suspense.Resource<$t> {
+          if (this.$backingName == null) {
+            this.$backingName = this.$createName(); 
+          }
+          return this.$backingName;
+        }
+      });
+    default:
+      Context.error(':resource fields cannot be methods', field.pos);
   }
 }
 

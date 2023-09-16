@@ -5,9 +5,6 @@ import blok.signal.Graph;
 import blok.signal.Observer;
 import blok.signal.Signal;
 
-// @todo: This is super awkward to use with Blok's VNode based
-// system. We may need some kind of hooks-like system, or we'll 
-// have to get it from context somehow.
 @:forward
 abstract Resource<T, E = kit.Error>(ResourceObject<T, E>) 
   from ResourceObject<T, E>

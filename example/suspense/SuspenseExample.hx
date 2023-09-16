@@ -9,6 +9,7 @@ import blok.ui.*;
 import js.Browser;
 
 using Kit;
+using Breeze;
 
 function suspense() {
   Client.mount(Browser.document.getElementById('suspense-root'), () -> SuspenseExample.node({}));
@@ -18,18 +19,45 @@ class SuspenseExample extends Component {
   function render() {
     return ErrorBoundary.node({
       child: Fragment.node(
-        Html.h1({}, 'Suspense Example'),
-        Html.div({},
+        Html.div({
+          className: Breeze.compose(
+            Background.color('red', 500),
+            Typography.textColor('white', 0),
+            Typography.fontWeight('bold'),
+            Sizing.height(50),
+            Spacing.pad(3),
+            Spacing.margin(10), 
+            Border.radius(3),
+            Flex.display(),
+            Flex.direction('row'),
+            Flex.gap(3),
+            Spacing.pad(3)
+          )
+        },
           SuspenseBoundaryContext.provide(
             () -> new SuspenseBoundaryContext({
               onComplete: () -> trace('Will trigger when all suspended children are complete')
             }),
             _ -> Fragment.node(
-              SuspenseBoundary.node({
+              Html.div({
+                className: Breeze.compose(
+                  Flex.display(),
+                  Flex.direction('column'),
+                  Flex.gap(3),
+                  Sizing.width('50%')
+                )
+              }, SuspenseBoundary.node({
                 child: SuspenseItem.node({ delay: 1000 }),
                 fallback: () -> Html.p({}, 'Loading...')
-              }),
-              SuspenseBoundary.node({
+              })),
+              Html.div({
+                className: Breeze.compose(
+                  Flex.display(),
+                  Flex.direction('column'),
+                  Flex.gap(3),
+                  Sizing.width('50%')
+                )
+              }, SuspenseBoundary.node({
                 onSuspended: () -> {
                   trace('Suspending...');
                 },
@@ -43,7 +71,7 @@ class SuspenseExample extends Component {
                   SuspenseItem.node({ delay: 3000 }),
                 ),
                 fallback: () -> Html.p({}, 'Loading...')
-              })
+              }))
             )
           )
         )
@@ -69,6 +97,14 @@ class SuspenseItem extends Component {
     return Html.div({},
       str(),
       Html.button({
+        className: Breeze.compose(
+          Background.color('white', 0),
+          Typography.textColor('red', 500),
+          Typography.fontWeight('bold'),
+          Spacing.pad(3),
+          Spacing.margin('left', 3), 
+          Border.radius(3),
+        ),
         onClick: _ -> delay.update(delay -> delay + 1)
       }, 'Reload')
     );

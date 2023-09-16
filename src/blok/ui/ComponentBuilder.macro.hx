@@ -1,6 +1,5 @@
 package blok.ui;
 
-import sys.io.File;
 import blok.macro.ClassBuilder;
 import haxe.macro.Compiler;
 import haxe.macro.Context;

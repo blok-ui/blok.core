@@ -217,7 +217,15 @@ abstract class ComponentBase implements Disposable implements DisposableHost {
   }
 
   function scheduleChildForValidation(child:ComponentBase) {
-    if (__status == Invalid) return;
+    // @todo: This __status == Invalid check breaks in some situations
+    // and causes components not to update. For now, we're commenting it
+    // out, although we should investigate it further. It may be fine.
+    //
+    // The main issue seems to be with Suspense components (or more 
+    // specifically, their suspended child components) that have
+    // their slots updated before validating. Not sure why this is.
+    // if (__status == Invalid) return;
+
     if (__invalidChildren.contains(child)) return;
     
     __invalidChildren.push(child);

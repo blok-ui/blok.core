@@ -19,6 +19,7 @@ abstract class Component extends ComponentBase {
 
   function __render():VNode {
     if (__rendered != null) {
+      removeDisposable(__rendered);
       __rendered.dispose();
       __rendered = null;
     }
@@ -54,7 +55,11 @@ abstract class Component extends ComponentBase {
 
   function __update():Void {
     __updateProps();
-    __child = updateChild(this, __child, __rendered?.peek(), __slot);
+    // @todo: This solves a problem where sometimes the component fails
+    // to render correctly, but it's not ideal. We'd much rather use
+    // `__rendered?.peek()`. Investigate this more.
+    __child = updateChild(this, __child, __render(), __slot);
+    // __child = updateChild(this, __child, __rendered?.peek(), __slot);
   }
 
   function __validate():Void {

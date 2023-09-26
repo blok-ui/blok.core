@@ -164,7 +164,7 @@ class SuspenseBoundary extends ComponentBase implements Boundary {
           case Disposing | Disposed: return;
           default:
         }
-        removeSuspenseLink(link);
+        resolveAndRemoveSuspenseLink(link);
       case Error(error):
         switch __status {
           case Disposing | Disposed: return;
@@ -174,7 +174,7 @@ class SuspenseBoundary extends ComponentBase implements Boundary {
     }));
   }
 
-  function removeSuspenseLink(link:SuspenseLink) {
+  function resolveAndRemoveSuspenseLink(link:SuspenseLink) {
     suspenseStatus = switch suspenseStatus {
       case Suspended(links):
         links.remove(link);
@@ -288,6 +288,6 @@ class SuspenseLink implements Disposable {
   public function dispose() {
     link?.cancel();
     link = null;
-    suspense.removeSuspenseLink(this);
+    suspense.resolveAndRemoveSuspenseLink(this);
   }
 }

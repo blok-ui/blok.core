@@ -10,7 +10,6 @@ import haxe.Json;
 import js.Browser;
 
 using Reflect;
-using breeze.BreezeModifiers;
 
 function todos() {
   Client.mount(
@@ -108,21 +107,25 @@ class TodoContext extends Model implements Context {
 
 class TodoRoot extends Component {
   function render() {
-    return Html.div({},
-      Html.div({}, TodoContext.provide(TodoContext.instance, _ -> Fragment.node(
+    return Html.div({
+      className: Breeze.compose(
+        Flex.display(),
+        Flex.justify('center'),
+        Spacing.pad(10),
+      )
+    },
+      Html.div({
+        className: Breeze.compose(
+          Sizing.width('full'),
+          Border.radius(2),
+          Border.width(.5),
+          Breakpoint.viewport('700px', Sizing.width('700px'))
+        )
+      }, TodoContext.provide(TodoContext.instance, _ -> Fragment.node(
         TodoHeader.node({}),
         TodoList.node({}),
         TodoFooter.node({})
-      ))).styles(
-        Sizing.width('full'),
-        Border.radius(2),
-        Border.width(.5),
-        Breakpoint.viewport('700px', Sizing.width('700px'))
-      )  
-    ).styles(
-      Flex.display(),
-      Flex.justify('center'),
-      Spacing.pad(10),
+      )))
     );
   }
 }
@@ -131,42 +134,50 @@ class TodoHeader extends Component {
   function render():VNode {
     var todos = TodoContext.from(this);
     return Html.header({
+      className: Breeze.compose(
+        Spacing.pad('x', 3)
+      ),
       role: 'header'
     }, 
-      Html.div({},
-        Html.h1({}, 'Todos').styles(
-          Typography.fontSize('lg'),
-          Typography.fontWeight('bold'),
-          Spacing.margin('right', 'auto')
-        ),
+      Html.div({
+        className: Breeze.compose(
+          Flex.display(),
+          Flex.gap(3),
+          Flex.alignItems('center'),
+          Spacing.pad('y', 3),
+          Border.width('bottom', .5)
+        )
+      },
+        Html.h1({
+          className: Breeze.compose(
+            Typography.fontSize('lg'),
+            Typography.fontWeight('bold'),
+            Spacing.margin('right', 'auto')
+          )
+        }, 'Todos'),
         TodoInput.node({
-          className: 'new-todo',
+          className: Breeze.compose(
+            'new-todo',
+            Sizing.width('70%')
+          ),
           value: '',
           clearOnComplete: true,
           onCancel: () -> null,
           onSubmit: description -> todos.addTodo(description)
-        }).styles(
-          Sizing.width('70%')
-        )
-      ).styles(
-        Flex.display(),
-        Flex.gap(3),
-        Flex.alignItems('center'),
-        Spacing.pad('y', 3),
-        Border.width('bottom', .5)
+        })
       ),
-      Html.ul({}, 
+      Html.ul({
+        className: Breeze.compose(
+          Flex.display(),
+          Flex.gap(3),
+          Spacing.pad('y', 3),
+          Border.width('bottom', .5)
+        )
+      }, 
         VisibilityControl.node({ visibility: All }),
         VisibilityControl.node({ visibility: Active }),
         VisibilityControl.node({ visibility: Completed }),
-      ).styles(
-        Flex.display(),
-        Flex.gap(3),
-        Spacing.pad('y', 3),
-        Border.width('bottom', .5)
       )
-    ).styles(
-      Spacing.pad('x', 3)
     );
   }
 }
@@ -175,6 +186,11 @@ class TodoFooter extends Component {
   function render() {
     var todos = TodoContext.from(this);
     return Html.footer({
+      className: Breeze.compose(
+        Background.color('black', 0),
+        Typography.textColor('white', 0),
+        Spacing.pad(3)
+      ),
       style: todos.total.map(total -> if (total == 0) 'display: none' else null),
     },
       Html.span({},
@@ -183,10 +199,6 @@ class TodoFooter extends Component {
           default: '${remaining} items left';
         }))
       )
-    ).styles(
-      Background.color('black', 0),
-      Typography.textColor('white', 0),
-      Spacing.pad(3)
     );
   }
 }
@@ -213,24 +225,25 @@ class Button extends Component {
 
   function render() {
     return Html.button({
-      onClick: _ -> action()
-    }, label).observedStyles(new Computation<ClassName>(() -> [
-      Spacing.pad('x', 3),
-      Spacing.pad('y', 1),
-      Border.radius(2),
-      Border.width(.5),
-      Border.color('black', 0),
-      if (selected()) Breeze.compose(
-        Background.color('black', 0),
-        Typography.textColor('white', 0)
-      ) else Breeze.compose(
-        Background.color('white', 0),
-        Typography.textColor('black', 0),
-        Modifier.hover(
-          Background.color('gray', 200)
+      className: new Computation<ClassName>(() -> [
+        Spacing.pad('x', 3),
+        Spacing.pad('y', 1),
+        Border.radius(2),
+        Border.width(.5),
+        Border.color('black', 0),
+        if (selected()) Breeze.compose(
+          Background.color('black', 0),
+          Typography.textColor('white', 0)
+        ) else Breeze.compose(
+          Background.color('white', 0),
+          Typography.textColor('black', 0),
+          Modifier.hover(
+            Background.color('gray', 200)
+          )
         )
-      )
-    ]));
+      ]),
+      onClick: _ -> action()
+    }, label);
   }
 }
 
@@ -252,7 +265,14 @@ class TodoInput extends Component {
 
   function render():VNode {
     return Html.input({
-      className: className,
+      className: Breeze.compose(
+        className,
+        Spacing.pad('x', 3),
+        Spacing.pad('y', 1),
+        Border.radius(2),
+        Border.color('black', 0),
+        Border.width(.5)
+      ),
       placeholder: 'What needs doing?',
       autofocus: true,
       value: value,
@@ -280,13 +300,7 @@ class TodoInput extends Component {
           }
         }
       }
-    }).styles(
-      Spacing.pad('x', 3),
-      Spacing.pad('y', 1),
-      Border.radius(2),
-      Border.color('black', 0),
-      Border.width(.5)
-    );
+    });
   }
 }
 
@@ -298,14 +312,16 @@ class TodoList extends Component {
       ariaHidden: todos.total.map(total -> total == 0),
       style: todos.total.map(total -> total == 0 ? 'visibility:hidden' : null)
     },
-      Html.ul({}, Scope.wrap(_ -> Fragment.node(...[ for (todo in todos.visibleTodos()) 
+      Html.ul({
+        className: Breeze.compose(
+          Flex.display(),
+          Flex.gap(3),
+          Flex.direction('column'),
+          Spacing.pad(3)
+        )
+      }, Scope.wrap(_ -> Fragment.node(...[ for (todo in todos.visibleTodos()) 
         TodoItem.node({ todo: todo }, todo.id)
-      ]))).styles(
-        Flex.display(),
-        Flex.gap(3),
-        Flex.direction('column'),
-        Spacing.pad(3)
-      )
+      ])))
     );
   }
 }
@@ -319,7 +335,16 @@ class TodoItem extends Component {
   function render():VNode {
     return Html.li({
       id: 'todo-${todo.id}',
-      className: className,
+      className: className.map(className -> Breeze.compose(
+        className,
+        Flex.display(),
+        Flex.gap(3),
+        Flex.alignItems('center'),
+        Spacing.pad('y', 3),
+        Border.width('bottom', .5),
+        Border.color('gray', 300),
+        Select.child('last', Border.style('bottom', 'none'))
+      )),
       onDblClick: _ -> todo.isEditing.set(true),
     },
       if (!todo.isEditing()) Fragment.node(
@@ -328,7 +353,9 @@ class TodoItem extends Component {
           checked: todo.isCompleted,
           onClick: _ -> todo.isCompleted.update(status -> !status)
         }),
-        Html.div({}, todo.description).styles(Spacing.margin('right', 'auto')),
+        Html.div({
+          className: Spacing.margin('right', 'auto')
+        }, todo.description),
         Button.node({
           action: () -> todo.isEditing.set(true),
           label: 'Edit'
@@ -338,7 +365,10 @@ class TodoItem extends Component {
           label: 'Remove'
         })
       ) else TodoInput.node({
-        className: 'edit',
+        className: Breeze.compose(
+          'edit',
+          Sizing.width('full')
+        ),
         isEditing: todo.isEditing,
         value: todo.description.peek(),
         clearOnComplete: false,
@@ -347,15 +377,7 @@ class TodoItem extends Component {
           todo.description.set(data);
           todo.isEditing.set(false);
         })
-      }).styles(Sizing.width('full'))
-    ).styles(
-      Flex.display(),
-      Flex.gap(3),
-      Flex.alignItems('center'),
-      Spacing.pad('y', 3),
-      Border.width('bottom', .5),
-      Border.color('gray', 300),
-      Select.child('last', Border.style('bottom', 'none'))
+      })
     );
   }
 }

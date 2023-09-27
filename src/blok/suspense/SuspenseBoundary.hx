@@ -16,6 +16,10 @@ enum SuspenseBoundaryStatus {
 
 typedef SuspenseBoundaryProps = {
   public final child:Child;
+
+  /**
+    Fallback to display while the component is suspended.
+  **/
   public final fallback:()->Child;
 
   /**
@@ -23,11 +27,21 @@ typedef SuspenseBoundaryProps = {
     suspend using that ancestor instead. Defaults to `false`.
   **/
   public final ?overridable:Bool;
+
+  /**
+    A callback the fires when *all* suspensions inside
+    this Boundary are completed.
+  **/
   public final ?onComplete:()->Void;
+
+  /**
+    Called when the Boundary is suspended. If more suspensions
+    occur while the SuspenseBoundary is already suspended, this
+    callback will *not* be called again.
+  **/
   public final ?onSuspended:()->Void;
 } 
 
-// @todo: I'm not convinced this thing actually always works.
 class SuspenseBoundary extends ComponentBase implements Boundary {
   public static function maybeFrom(context:ComponentBase) {
     return context.findAncestorOfType(SuspenseBoundary);

@@ -5,9 +5,9 @@ import haxe.macro.Expr;
 
 using haxe.macro.Tools;
 
-// @todo: This is a very simple way to turn XML into Blok VNodes.
-// It might get replaced with a real DSL later.
+// @todo: Replace this with the View macro. 
 
+@:deprecated('Use blok.html.View instead for a fully-featured API.')
 function parseExpr(expr:Expr) {
   return switch expr.expr {
     case EConst(CString(s, _)):
@@ -18,6 +18,7 @@ function parseExpr(expr:Expr) {
   }
 }
 
+@:deprecated('Use blok.html.View instead for a fully-featured API.')
 function parse(str:String, pos:Position):Expr {
   var node = Xml.parse(str);
   var components = generate(node, false, pos);

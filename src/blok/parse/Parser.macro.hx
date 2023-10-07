@@ -208,7 +208,10 @@ class Parser {
     if (match("'")) {
       var str = extractDelimitedString("'", "'", true);
       // Note: this is to allow for interpolation in single-quoted strings.
-      var expr = stringToExpression(str);
+      var expr = stringToExpression({
+        value: "'" + str.value + "'",
+        pos: str.pos
+      });
       return AExpr(expr);
     }
 

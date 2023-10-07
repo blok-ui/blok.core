@@ -55,7 +55,7 @@ private typedef TagInfo = {
 
 @:persistent private final tagInfos:Map<String, Array<TagInfo>> = [];
 
-private function getTags(typeName:String):Array<TagInfo> {
+function getTags(typeName:String):Array<TagInfo> {
   if (tagInfos.exists(typeName)) return tagInfos.get(typeName);
 
   var type = Context.getType(typeName);

@@ -10,6 +10,7 @@ import blok.signal.Signal;
 
 using blok.adaptor.RealNodeHostTools;
 
+// @todo: Rename `BuiltinComponent`.
 class RealNodeComponent extends ComponentBase implements RealNodeHost {
   final tag:String;
   final type:UniqueId;

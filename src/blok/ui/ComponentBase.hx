@@ -18,7 +18,6 @@ enum abstract ComponentRenderMode(Int) {
   final Hydrating;
 }
 
-// @todo: I'd love to come up with a better name than `ComponentBase`.
 @:allow(blok)
 abstract class ComponentBase implements Disposable implements DisposableHost {
   var __node:VNode;

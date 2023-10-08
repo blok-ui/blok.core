@@ -87,11 +87,7 @@ class Parser {
 
     if (!match('/>')) {
       consume('>');
-      children = parseChildren(switch tag {
-        case TagBuiltin(name): name;
-        case TagComponent(path): path.join('.');
-        case TagAttribute(name): '.' + name;
-      });
+      children = parseChildren(tag.value);
     }
 
     return {
@@ -109,17 +105,13 @@ class Parser {
       return didClose = attempt(() -> {
         if (match('</')) {
           whitespace();
-          var tag = tag();
-          return switch tag {
-            case TagBuiltin(name): name == closeTag;
-            case TagComponent(path): path.join('.') == closeTag;
-            case TagAttribute(name): '.' + name == closeTag;
-          }
+          return tag().value == closeTag;
         }
         return false;
       });
     }
 
+    // @todo: this is ugly
     function closeTagError(start:Int) {
       whitespace();
       identifier();
@@ -164,12 +156,6 @@ class Parser {
       pos: createPos(start, position)
     }
   }
-  function checkAttempt(handle:()->Bool) {
-    var start = position;
-    var res = attempt(handle);
-    position = start;
-    return res;
-  }
 
   function attempt(handle:()->Bool) {
     var start = position;
@@ -185,13 +171,23 @@ class Parser {
     }
   }
 
-  function tag():NodeTag {
-    if (match('.')) return TagAttribute(identifier().value);
+  function tag():Located<String> {
+    var start = position;
     var parts = path();
     if (parts.length == 0) expected('Identifier');
-    if (parts.length > 1 || isTypeIdentifier(parts[0].charAt(0))) return TagComponent(parts);
-    return TagBuiltin(parts[0]);
+    return {
+      value: parts.map(p -> p.value).join('.'),
+      pos: createPos(start, position)
+    };
   }
+
+  // function tag():NodeTag {
+  //   if (match('.')) return TagAttribute(identifier());
+  //   var parts = path();
+  //   if (parts.length == 0) expected('Identifier');
+  //   if (parts.length > 1 || isTypeIdentifier(parts[0].value.charAt(0))) return TagComponent(parts);
+  //   return TagBuiltin(parts[0]);
+  // }
 
   function expression():AttributeValue {
     if (match('{')) {
@@ -278,8 +274,17 @@ class Parser {
     };
   }
 
-  function path() {
-    return readWhile(() -> isAlphaNumeric(peek()) || checkAny('.', '-', '_')).split('.');
+  function path():Array<Located<String>> {
+    var parts = [identifier()];
+    while (!isAtEnd() && match('.')) {
+      var ident = identifier();
+      if (ident == null) errorAt('Expected an identifier', peek());
+      parts.push(ident);
+    }
+    if (parts.length == 0) {
+      errorAt('Expected an identifier', peek());
+    }
+    return parts;
   }
   
   function identifier():Located<String> {

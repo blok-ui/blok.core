@@ -22,7 +22,7 @@ class Provider<T:Context> extends Component {
   }
 
   @:constant final create:()->T;
-  @:constant final child:(value:T)->Child;
+  @:children @:constant final child:(value:T)->Child;
 
   var context:Null<T> = null;
 

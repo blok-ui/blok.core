@@ -5,6 +5,7 @@ import haxe.macro.Compiler;
 import haxe.macro.Context;
 import haxe.macro.Expr;
 
+using Lambda;
 using blok.macro.MacroTools;
 using haxe.macro.Tools;
 
@@ -15,6 +16,7 @@ function build():Array<Field> {
   var builder = ClassBuilder.fromContext();
   var cls = Context.getLocalClass().get();
   var fieldBuilders:Array<ComponentFieldBuilder> = [];
+  var hasChildren = false;
 
   for (field in builder.findFieldsByMeta(':constant')) {
     fieldBuilders.push(createConstantField(builder, field));
@@ -50,11 +52,26 @@ function build():Array<Field> {
 
   var updates = fieldBuilders.map(p -> p.update);
   var props = fieldBuilders.map(p -> p.prop);
-  var propType:ComplexType = TAnonymous(props);
   
   for (field in builder.findFieldsByMeta(':computed')) {
     computed.push(createComputed(builder, field));
   }
+
+  // @todo: This is super awkward -- there's a better way.
+  for (field in builder.findFieldsByMeta(':children')) {
+    if (hasChildren) {
+      Context.error('Only one :children field is allowed per component', field.pos);
+    }
+    hasChildren = true;
+
+    var prop = props.find(f -> f.name == field.name);
+    if (prop == null) {
+      Context.error('Invalid target for :children: must be a :constant, :signal or :observable field', field.pos);
+    }
+    prop.meta.push({ name: ':children', params: [], pos: prop.pos });
+  }
+
+  var propType:ComplexType = TAnonymous(props);
 
   var computation:Expr = if (computed.length > 0) macro {
     var prevOwner = blok.signal.Graph.setCurrentOwner(Some(this));
@@ -120,8 +137,8 @@ function build():Array<Field> {
   builder.addField({
     name: 'node',
     access: [ AStatic, APublic ],
-    pos: cls.pos,
-    meta: [],
+    // pos: cls.pos,
+    pos: (macro null).pos,
     kind: FFun({
       params: createParams,
       args: [
@@ -129,6 +146,21 @@ function build():Array<Field> {
         { name: 'key', type: macro:Null<blok.diffing.Key>, opt: true }
       ],
       expr: macro return new blok.ui.VComponent(componentType, props, $i{cls.name}.new, key),
+      ret: macro:blok.ui.VNode
+    })
+  });
+
+  builder.addField({
+    name: 'fromMarkup',
+    access: [AStatic, APublic, AInline],
+    pos: (macro null).pos,
+    kind: FFun({
+      params: createParams,
+      args: [
+        { name: 'props', type: macro:$propType },
+        { name: 'key', type: macro:Null<blok.diffing.Key>, opt: true }
+      ],
+      expr: macro return node(props, key),
       ret: macro:blok.ui.VNode
     })
   });

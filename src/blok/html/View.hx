@@ -5,6 +5,5 @@ macro function view(expr:haxe.macro.Expr) {
   var parser = new blok.parse.Parser(expr, {
     generateExpr: generator.generate
   });
-  var expr = parser.toExpr();
-  return expr;
+  return parser.toExpr();
 }

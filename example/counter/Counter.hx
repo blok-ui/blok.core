@@ -24,8 +24,8 @@ class Counter extends Component {
       Typography.textColor('white', 0),
       Typography.fontWeight('bold'),
       Spacing.pad(3),
-      Spacing.margin(10), 
-      Border.radius(3)
+      Spacing.margin(10),
+      Border.radius(3),
     )}
   >
     <div>'Current count: ' {count.map(Std.string)}</div>
@@ -35,40 +35,41 @@ class Counter extends Component {
     )}>
       // You can declare attributes as child nodes:
       <CounterButton>
-        <.onClick>{_ -> if (count.peek() > 0) count.update(i -> i - 1)}</.onClick>
-        // Note: right now we don't have anything like `@:children` that will allow us
-        // just to pass this to a children attribute, so you need to basically use "slots".
-        <.label>
+        <onClick>{_ -> if (count.peek() > 0) count.update(i -> i - 1)}</onClick>
+        <label>
           // Svg should Just Work.
-          <svg class={Breeze.compose(
+          <svg className={Breeze.compose(
             Sizing.height(8),
             Sizing.width(8),
             Layout.display('block'),
             Svg.fill('currentColor')
           )} viewBox="0 0 40 40">
             <path d="m24.875 11.199-11.732 8.8008 11.732 8.8008 1.2012-1.6016-9.5996-7.1992 9.5996-7.1992z"/>
-          </svg>   
-        </.label>
+          </svg>
+        </label>
       </CounterButton>
-      // ... or normally:
-      <CounterButton onClick={_ -> count.update(i -> i + 1)} label={<svg class={Breeze.compose(
-        Sizing.height(8),
-        Sizing.width(8),
-        Layout.display('block'),
-        Svg.fill('currentColor')
-      )} viewBox="0 0 40 40">
-        <path d="m15.125 11.199-1.2012 1.6016 9.5996 7.1992-9.5996 7.1992 1.2012 1.6016 11.732-8.8008z"/>
-      </svg>} />
+      // CounterButton has an @:children field, so we can just
+      // pass children to it. 
+      <CounterButton onClick={_ -> count.update(i -> i + 1)}>
+        <svg className={Breeze.compose(
+          Sizing.height(8),
+          Sizing.width(8),
+          Layout.display('block'),
+          Svg.fill('currentColor')
+        )} viewBox="0 0 40 40">
+          <path d="m15.125 11.199-1.2012 1.6016 9.5996 7.1992-9.5996 7.1992 1.2012 1.6016 11.732-8.8008z"/>
+        </svg>
+      </CounterButton>
     </div>
   </div>);
 }
 
 class CounterButton extends Component {
   @:constant final onClick:EventListener;
-  @:constant final label:Child;
+  @:children @:constant final label:Child;
 
   function render() {
-    return view(<button class={Breeze.compose(
+    return view(<button className={Breeze.compose(
       Background.color('white', 0),
       Typography.textColor('red', 500),
       Typography.fontWeight('bold'),

@@ -11,6 +11,7 @@ using haxe.macro.Tools;
 function parseExpr(expr:Expr) {
   return switch expr.expr {
     case EConst(CString(s, _)):
+      Context.warning('Use blok.html.View instead', expr.pos);
       parse(s, expr.pos);
     default:
       Context.error('Expected a string', expr.pos);

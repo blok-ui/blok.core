@@ -6,6 +6,7 @@ import haxe.macro.Expr;
 using Lambda;
 using haxe.macro.Tools;
 
+// @todo: Figure out how to get this thing to enable completion.
 class Generator {
   var context:TagContext;
 
@@ -23,7 +24,7 @@ class Generator {
   }
 
   public function generateNode(node:Node):Expr {
-    return switch node.node {
+    return switch node.value {
       case NFragment(children):
         var components = children.map(generateNode);
         macro blok.ui.Fragment.node($a{components});
@@ -56,7 +57,7 @@ class Generator {
           addProp(attr);
         }
         
-        function isAttributeChild(child:Node) return switch child.node {
+        function isAttributeChild(child:Node) return switch child.value {
           case NNode(name, attributes, children) if (tag.attributes.hasAttribute(name)):
             true;
           default:
@@ -66,7 +67,7 @@ class Generator {
         var attrChildren = children.filter(isAttributeChild);
         var nodeChildren = children.filter(child -> !isAttributeChild(child));
 
-        for (child in attrChildren) switch child.node {
+        for (child in attrChildren) switch child.value {
           case NNode(name, attributes, children):
             if (attributes.length > 0) {
               // @todo: This error message is confusing.
@@ -110,8 +111,6 @@ class Generator {
         var path:Array<String> = tag.isBuiltin 
           ? tag.name.split('.')
           : name.value.split('.');
-
-        trace(path);
         
         var e = switch tag.kind {
           case FunctionCall:
@@ -121,14 +120,12 @@ class Generator {
             macro @:pos(name.pos) $p{path};
         }
 
-        #if (haxe_ver >= 4.1)
-        if (Context.containsDisplayPosition(e.pos)) {
+        if (Context.containsDisplayPosition(node.pos)) {
           e = {expr: EDisplay(e, DKMarked), pos: e.pos};
         }
-        #end
 
         args = args.concat(restArgs);
-        return macro @:pos(name.pos) $e($a{args});
+        return macro @:pos(node.pos) $e($a{args});
       case NText(text):
         macro blok.ui.Text.node($v{text});
       case NExpr(expr):

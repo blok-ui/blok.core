@@ -10,15 +10,16 @@ import js.Browser;
 function counter() {
   Client.mount(
     Browser.document.getElementById('counter-root'),
-    () -> Counter.node({})
+    () -> view(<Counter key="foo" count={1} />)
   );
 }
 
 class Counter extends Component {
   @:signal final count:Int = 0;
+  @:computed final countId:String = 'counter-${count()}';
 
-  function render() return view(<div 
-    id={count.map(count -> 'counter-$count')}
+  function render() return view(<div
+    id=countId
     className={Breeze.compose(
       Background.color('red', 500),
       Typography.textColor('white', 0),
@@ -28,10 +29,14 @@ class Counter extends Component {
       Border.radius(3),
     )}
   >
-    <div>'Current count: ' {count.map(Std.string)}</div>
+    // Blok requires strings to be wrapped in quotes, which is a bit
+    // different than other DSLs. As a benefit of this, you can pass
+    // identifiers directly as node children (like `count` here) without
+    // wrapping them in brackets (like `{count}`).
+    <div>'Current count: ' count</div>
     <div className={Breeze.compose(
       Flex.display(),
-      Flex.gap(3)
+      Flex.gap(3),
     )}>
       // You can declare attributes as child nodes:
       <CounterButton>

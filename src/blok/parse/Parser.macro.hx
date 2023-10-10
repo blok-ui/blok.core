@@ -11,6 +11,7 @@ typedef ParserOptions = {
   public final generateExpr:(nodes:Array<Node>)->Expr;
 }
 
+// @todo: this should really use char codes, not strings
 class Parser {
   final source:Source;
   final options:ParserOptions;
@@ -23,7 +24,9 @@ class Parser {
   }
 
   public function toExpr() {
-    return options.generateExpr(parse());
+    var expr = options.generateExpr(parse());
+    var pos = createPos(0, position);
+    return macro @:pos(pos) $expr;
   }
 
   public function parse():Array<Node> {
@@ -73,7 +76,7 @@ class Parser {
       var value:AttributeValue = if (match('=')) {
         whitespace();
         expression();
-      } else ANone;
+      } else AExpr(macro true);
 
       whitespace();
 
@@ -87,11 +90,17 @@ class Parser {
 
     if (!match('/>')) {
       consume('>');
-      children = parseChildren(tag.value);
+      children = try parseChildren(tag.value) catch (e:ParserException) {
+        // @todo: This is pretty hacky.
+        if (e.message == ParserException.unexpectedCloseTag) {
+          error('Unclosed tag: ${tag.value}', start, position);
+          [];
+        } else throw e;
+      }
     }
 
     return {
-      node: NNode(tag, attributes, children),
+      value: NNode(tag, attributes, children),
       pos: createPos(start, position)
     };
   }
@@ -111,24 +120,12 @@ class Parser {
       });
     }
 
-    // @todo: this is ugly
-    function closeTagError(start:Int) {
-      whitespace();
-      identifier();
-      whitespace();
-      match('>');
-      error('Unclosed tag: ${closeTag}', start, position);
-    }
-
     whitespace();
-    try while (!isAtEnd() && !isClosed()) {
+    
+    while (!isAtEnd() && !isClosed()) {
       var n = parseRoot();
       if (n != null) children.push(n);
       whitespace();
-    } catch (e:ParserException) {
-      if (e.message == ParserException.unexpectedCloseTag) {
-        closeTagError(position - 2);
-      } else throw e;
     }
 
     whitespace();
@@ -143,7 +140,7 @@ class Parser {
       case ANone: macro null;
     }
     return {
-      node: NExpr(expr),
+      value: NExpr(expr),
       pos: expr.pos
     };
   }
@@ -152,7 +149,7 @@ class Parser {
     var start = position;
     var children = parseChildren('');
     return {
-      node: NFragment(children),
+      value: NFragment(children),
       pos: createPos(start, position)
     }
   }
@@ -180,14 +177,6 @@ class Parser {
       pos: createPos(start, position)
     };
   }
-
-  // function tag():NodeTag {
-  //   if (match('.')) return TagAttribute(identifier());
-  //   var parts = path();
-  //   if (parts.length == 0) expected('Identifier');
-  //   if (parts.length > 1 || isTypeIdentifier(parts[0].value.charAt(0))) return TagComponent(parts);
-  //   return TagBuiltin(parts[0]);
-  // }
 
   function expression():AttributeValue {
     if (match('{')) {

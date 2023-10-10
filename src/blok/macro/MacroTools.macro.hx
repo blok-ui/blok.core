@@ -5,8 +5,38 @@ import haxe.macro.Expr;
 import haxe.macro.Type;
 
 using StringTools;
+using Lambda;
 using haxe.macro.Tools;
 using kit.Hash;
+
+function getField(t:TypeDefinition, name:String, ?pos:Position):Result<Field, haxe.macro.Expr.Error> {
+  return switch t.fields.find(f -> f.name == name) {
+    case null: Error(new haxe.macro.Expr.Error('Field $name was not found', pos ?? Context.currentPos()));
+    case field: Ok(field);
+  }
+}
+
+function toTypeParamDecl(params:Array<TypeParameter>) {
+  return params.map(p -> ({
+    name: p.name,
+    constraints: extractTypeParams(p)
+  }:TypeParamDecl));
+}
+
+function withPos(field:Field, position:Position) {
+  field.pos = position;
+  return field;
+}
+
+function applyParameters(field:Field, params:Array<TypeParamDecl>) {
+  switch field.kind {
+    case FFun(f):
+      f.params = params;
+    default:
+      // todo
+  }
+  return field;
+}
 
 function typeExists(name:String) {
   try {

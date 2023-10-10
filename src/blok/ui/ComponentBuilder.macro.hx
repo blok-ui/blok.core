@@ -57,7 +57,6 @@ function build():Array<Field> {
     computed.push(createComputed(builder, field));
   }
 
-  // @todo: This is super awkward -- there's a better way.
   for (field in builder.findFieldsByMeta(':children')) {
     if (hasChildren) {
       Context.error('Only one :children field is allowed per component', field.pos);
@@ -66,13 +65,12 @@ function build():Array<Field> {
 
     var prop = props.find(f -> f.name == field.name);
     if (prop == null) {
-      Context.error('Invalid target for :children: must be a :constant, :signal or :observable field', field.pos);
+      Context.error('Invalid target for :children. Must be a :constant, :signal or :observable field', field.pos);
     }
     prop.meta.push({ name: ':children', params: [], pos: prop.pos });
   }
 
   var propType:ComplexType = TAnonymous(props);
-
   var computation:Expr = if (computed.length > 0) macro {
     var prevOwner = blok.signal.Graph.setCurrentOwner(Some(this));
     try $b{computed} catch (e) {
@@ -130,40 +128,29 @@ function build():Array<Field> {
       });
   }
   
-  var createParams = cls.params.length > 0
-    ? [ for (p in cls.params) { name: p.name, constraints: p.extractTypeParams() } ]
-    : [];
+  var createParams = cls.params.toTypeParamDecl();
+  var markupType = TAnonymous(props.concat((macro class {
+    @:optional public final key:blok.diffing.Key;
+  }).fields));
+  var constructors = macro class {
+    public static function node(props:$propType, ?key:Null<blok.diffing.Key>):blok.ui.VNode {
+      return new blok.ui.VComponent(componentType, props, $i{cls.name}.new, key);
+    }
 
-  builder.addField({
-    name: 'node',
-    access: [ AStatic, APublic ],
-    // pos: cls.pos,
-    pos: (macro null).pos,
-    kind: FFun({
-      params: createParams,
-      args: [
-        { name: 'props', type: macro:$propType },
-        { name: 'key', type: macro:Null<blok.diffing.Key>, opt: true }
-      ],
-      expr: macro return new blok.ui.VComponent(componentType, props, $i{cls.name}.new, key),
-      ret: macro:blok.ui.VNode
-    })
-  });
+    public static function fromMarkup(props:$markupType):blok.ui.VNode {
+      return node(props, props.key);
+    }
+  };
 
-  builder.addField({
-    name: 'fromMarkup',
-    access: [AStatic, APublic, AInline],
-    pos: (macro null).pos,
-    kind: FFun({
-      params: createParams,
-      args: [
-        { name: 'props', type: macro:$propType },
-        { name: 'key', type: macro:Null<blok.diffing.Key>, opt: true }
-      ],
-      expr: macro return node(props, key),
-      ret: macro:blok.ui.VNode
-    })
-  });
+  builder.addField(constructors
+    .getField('node')
+    .unwrap()
+    .applyParameters(createParams));
+  builder.addField(constructors
+    .getField('fromMarkup')
+    .unwrap()
+    .withPos(cls.pos)
+    .applyParameters(createParams));
 
   builder.add(macro class {
     public static final componentType = new kit.UniqueId();

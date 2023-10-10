@@ -8,16 +8,14 @@ using Lambda;
 using StringTools;
 using haxe.macro.Tools;
 
+// @todo: Probably rip off tink_hxx a little less comprehensively here.
 class Tag {
   public static final fromMarkup = 'fromMarkup';
   
   public static function fromType(locatedName:Located<String>, type:Type, isBuiltin:Bool = false):Tag {
     var name = locatedName.value;
     var pos = locatedName.pos;
-
-    function reject(reason:String) {
-      return Context.error('$name is not a valid markup type as $reason', pos);
-    }
+    var reject = createRejector(name, pos);
 
     return switch type {
       case TLazy(f):
@@ -82,10 +80,12 @@ enum TagChildrenAttribute {
   Field(name:String, field:ClassField);
 }
 
+private function createRejector(name:String, pos:Position) {
+  return (reason:String) -> Context.error('$name is not valid markup: $reason', pos);
+}
+
 private function processType(name:String, path:String, type:Type, kind:TagKind, isBuiltin:Bool, pos:Position):Tag {
-  function reject(reason:String) {
-    return Context.error('$name is not a valid markup type as $reason', pos);
-  }
+  var reject = createRejector(name, pos);
   return switch type {
     case TLazy(f):
       processType(name, path, f(), kind, isBuiltin, pos);
@@ -122,7 +122,7 @@ private function processType(name:String, path:String, type:Type, kind:TagKind, 
                   case None:
                     childrenAttr = Rest;
                   default:
-                    Context.error('Cannot have restful children and :children fields', pos);
+                    Context.error('Cannot have both restful children and :children fields', pos);
                 }
             }
 

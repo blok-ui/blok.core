@@ -1,4 +1,4 @@
-import todo.Todo;
+import todo.TodoWithMarkup;
 import counter.Counter;
 import suspense.SuspenseExample;
 

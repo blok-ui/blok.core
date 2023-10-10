@@ -7,6 +7,7 @@ import haxe.macro.Expr;
 import blok.macro.ClassBuilder;
 
 using Lambda;
+using blok.macro.MacroTools;
 using haxe.macro.Tools;
 
 // @todo: Try to unify this a bit with our ComponentBuilder. I bet all
@@ -92,9 +93,6 @@ function build() {
   var pos = cls.pos;
   var clsType = Context.getLocalType().toComplexType();
   var clsTp:TypePath = { pack: cls.pack, name: cls.name };
-  var params = cls.params.length > 0
-    ? [ for (p in cls.params) { name: p.name, constraints: extractTypeParams(p) } ]
-    : [];
   var serializers:Array<ObjectField> = fieldBuilders.map(item -> ({
     field: item.name,
     expr: item.json.serializer
@@ -103,24 +101,20 @@ function build() {
     field: item.name,
     expr: item.json.deserializer
   }:ObjectField));
-  
-  builder.addField({
-    name: 'fromJson',
-    access: [ AStatic, APublic ],
-    pos: pos,
-    meta: [],
-    kind: FFun({
-      params: params,
-      args: [
-        { name: 'data', type: macro:Dynamic }
-      ],
-      expr: macro return new $clsTp(${ {
+  var constructors = macro class {
+    public static function fromJson(data:{}):$clsType {
+      return new $clsTp(${ {
         expr: EObjectDecl(deserializers),
         pos: pos
-      } }),
-      ret: macro:$clsType
-    })
-  });
+      } });
+    }
+  };
+
+  builder.addField(constructors
+    .getField('fromJson')
+    .unwrap()
+    .withPos(pos)
+    .applyParameters(cls.params.toTypeParamDecl()));
 
   builder.add(macro class {
     public function toJson():Dynamic {

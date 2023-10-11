@@ -137,7 +137,7 @@ function build():Array<Field> {
       return new blok.ui.VComponent(componentType, props, $i{cls.name}.new, key);
     }
 
-    public static function fromMarkup(props:$markupType):blok.ui.VNode {
+    public inline static function fromMarkup(props:$markupType):blok.ui.VNode {
       return node(props, props.key);
     }
   };

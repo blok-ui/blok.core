@@ -9,3 +9,7 @@ function isComponentName(name:String) {
   }
   return name.charAt(0).toUpperCase() == name.charAt(0);
 }
+
+inline function toPath(name:String):Array<String> {
+  return name.split('.');
+}

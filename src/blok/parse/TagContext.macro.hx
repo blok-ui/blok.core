@@ -35,7 +35,7 @@ class TagContext {
       case null: 
         switch Context.getLocalTVars().get(name.value) {
           case null if (name.value.isComponentName()):
-            var type = Context.typeof(macro @:pos(name.pos) $i{name.value});
+            var type = Context.typeof(macro @:pos(name.pos) $p{name.value.toPath()});
             tags[name.value] = Tag.fromType(name, type);
           case null:
             for (source in getBuiltins()) {

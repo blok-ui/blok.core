@@ -5,6 +5,7 @@ import haxe.macro.Expr;
 
 using Lambda;
 using haxe.macro.Tools;
+using blok.parse.ParseTools;
 
 // @todo: Figure out how to get this thing to enable completion.
 class Generator {
@@ -109,8 +110,8 @@ class Generator {
           pos: name.pos
         }];
         var path:Array<String> = tag.isBuiltin 
-          ? tag.name.split('.')
-          : name.value.split('.');
+          ? tag.name.toPath()
+          : name.value.toPath();
         
         var e = switch tag.kind {
           case FunctionCall:

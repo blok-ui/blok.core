@@ -9,6 +9,14 @@ using Lambda;
 using haxe.macro.Tools;
 using kit.Hash;
 
+function atPos(expr:Expr, pos:Position) {
+  return macro @:pos(pos) $expr;
+}
+
+function error(pos:Position, message:String) {
+  Context.error(message, pos);
+}
+
 function getField(t:TypeDefinition, name:String, ?pos:Position):Result<Field, haxe.macro.Expr.Error> {
   return switch t.fields.find(f -> f.name == name) {
     case null: Error(new haxe.macro.Expr.Error('Field $name was not found', pos ?? Context.currentPos()));

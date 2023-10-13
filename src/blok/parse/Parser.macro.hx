@@ -5,6 +5,7 @@ import blok.parse.Node;
 import haxe.macro.Context;
 import haxe.macro.Expr;
 
+using blok.macro.MacroTools;
 using haxe.macro.Tools;
 
 typedef ParserOptions = {
@@ -12,6 +13,8 @@ typedef ParserOptions = {
 }
 
 // @todo: this should really use char codes, not strings
+// @todo: Something I'm doing here (parseInlineString?) is killing
+// completion. May also be happening in the Generator.
 class Parser {
   final source:Source;
   final options:ParserOptions;
@@ -38,7 +41,7 @@ class Parser {
       whitespace();
       nodes.push(parseRoot());
     } catch (e:ParserException) {
-      Context.error(e.message, e.pos);
+      e.pos.error(e.message);
     }
     
     return nodes;
@@ -73,10 +76,10 @@ class Parser {
 
       whitespace();
 
-      var value:AttributeValue = if (match('=')) {
+      var value:Expr = if (match('=')) {
         whitespace();
         expression();
-      } else AExpr(macro true);
+      } else macro true;
 
       whitespace();
 
@@ -90,13 +93,7 @@ class Parser {
 
     if (!match('/>')) {
       consume('>');
-      children = try parseChildren(tag.value) catch (e:ParserException) {
-        // @todo: This is pretty hacky.
-        if (e.message == ParserException.unexpectedCloseTag) {
-          error('Unclosed tag: ${tag.value}', start, position);
-          [];
-        } else throw e;
-      }
+      children = parseChildren(tag.value);
     }
 
     return {
@@ -108,24 +105,21 @@ class Parser {
   function parseChildren(closeTag:String):Array<Node> {
     var start = position;
     var children:Array<Node> = [];
-    var didClose = false;
-
-    function isClosed() {
-      return didClose = attempt(() -> {
-        if (match('</')) {
-          whitespace();
-          return tag().value == closeTag;
-        }
-        return false;
-      });
-    }
 
     whitespace();
     
-    while (!isAtEnd() && !isClosed()) {
+    while (!isAtEnd() && !check('</')) {
       var n = parseRoot();
       if (n != null) children.push(n);
       whitespace();
+    }
+
+    consume('</');
+    whitespace();
+    
+    var matched = tag();
+    if (matched.value != closeTag) {
+      error('Expected close tag to be </$closeTag>', matched.pos);
     }
 
     whitespace();
@@ -136,9 +130,10 @@ class Parser {
 
   function parseExpr():Node {
     var expr = switch expression() {
-      case AExpr(expr): expr;
-      case ANone: macro null;
+      case null: macro null;
+      case expr: expr;
     }
+
     return {
       value: NExpr(expr),
       pos: expr.pos
@@ -154,19 +149,19 @@ class Parser {
     }
   }
 
-  function attempt(handle:()->Bool) {
-    var start = position;
-    try {
-      if (handle()) {
-        return true;
-      }
-      position = start;
-      return false;
-    } catch (_:ParserException) {
-      position = start;
-      return false;
-    }
-  }
+  // function attempt(handle:()->Bool) {
+  //   var start = position;
+  //   try {
+  //     if (handle()) {
+  //       return true;
+  //     }
+  //     position = start;
+  //     return false;
+  //   } catch (_:ParserException) {
+  //     position = start;
+  //     return false;
+  //   }
+  // }
 
   function tag():Located<String> {
     var start = position;
@@ -178,39 +173,51 @@ class Parser {
     };
   }
 
-  function expression():AttributeValue {
+  function expression():Expr {
+    var start = position;
+
     if (match('{')) {
       var exprStr = extractDelimitedString('{', '}');
       var expr = stringToExpression(exprStr);
-      return AExpr(expr);
+      var pos = createPos(start, position);
+      return expr.atPos(pos);
     }
 
     if (match('"')) {
       var str = extractDelimitedString('"', '"', true);
-      return AExpr(macro @:pos(str.pos) $v{str.value});
+      var pos = createPos(start, position);
+      return macro @:pos(pos) $v{str.value};
     }
 
     if (match("'")) {
       var str = extractDelimitedString("'", "'", true);
       // Note: this is to allow for interpolation in single-quoted strings.
+      var pos = createPos(start, position);
       var expr = stringToExpression({
         value: "'" + str.value + "'",
-        pos: str.pos
+        pos: pos
       });
-      return AExpr(expr);
+      return expr.atPos(pos);
     }
 
-    if (isIdentifier(peek())) {
-      var located = identifier();
-      return AExpr(macro @:pos(located.pos) $i{located.value});
+    if (isAlpha(peek())) {
+      var located = path();
+      var pos = createPos(start, position);
+      return macro @:pos(pos) $p{located.map(p -> p.value)};
     }
 
-    return ANone;
+    if (isDigit(peek())) {
+      var located = number();
+      return macro @:pos(located.pos) $v{located.value};
+    }
+
+    reject(peek());
+    return null;
   }
 
   function stringToExpression(exprStr:Located<String>):Expr {
     try return reenter(Context.parseInlineString(exprStr.value, exprStr.pos)) catch (e) {
-      Context.error(e.message, exprStr.pos);
+      exprStr.pos.error(e.message);
       return macro null;
     }
   }
@@ -250,7 +257,7 @@ class Parser {
       advance();
     }
     
-    if (isAtEnd()) error('Unterminated value.', start, position);
+    if (isAtEnd()) error('Unterminated value.', createPos(start, position));
 
     var value = source.content.substring(start, position);
     var pos = createPos(start, position - 1);
@@ -279,6 +286,15 @@ class Parser {
   function identifier():Located<String> {
     var start = position;
     var value = readWhile(() -> isIdentifier(peek()));
+    return {
+      value: value,
+      pos: createPos(start, position)
+    };
+  }
+
+  function number():Located<String> {
+    var start = position;
+    var value = readWhile(() -> isDigit(peek()) || check('.'));
     return {
       value: value,
       pos: createPos(start, position)
@@ -394,22 +410,6 @@ class Parser {
   function isAtEnd() {
     return position == source.content.length;
   }
-  
-  function error(msg:String, min:Int, max:Int) {
-    throw new ParserException(msg, createPos(min, max));
-  }
-
-  function errorAt(msg:String, value:String) {
-    return error(msg, position - value.length, position);
-  }
-
-  function reject(s:String) {
-    return error('Unexpected [${s}]', position - s.length, position);
-  }
-
-  function expected(s:String) {
-    return error('Expected [${s}]', position, position + 1);
-  }
 
   function createPos(min:Int, max:Int) {
     return Context.makePosition({
@@ -417,5 +417,21 @@ class Parser {
       max: source.offset + max,
       file: source.file
     });
+  }
+  
+  function error(msg:String, pos:Position) {
+    throw new ParserException(msg, pos);
+  }
+
+  function errorAt(msg:String, value:String) {
+    throw error(msg, createPos(position - value.length, position));
+  }
+
+  function reject(s:String) {
+    throw error('Unexpected [${s}]', createPos(position - s.length, position));
+  }
+
+  function expected(s:String) {
+    throw error('Expected [${s}]', createPos(position, position + 1));
   }
 }

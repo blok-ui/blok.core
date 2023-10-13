@@ -83,7 +83,7 @@ abstract class Component extends ComponentBase {
       true;
     });
 
-    assert(node != null, 'Component does not have an node');
+    assert(node != null, 'Component does not have a node');
 
     return node;
   }

@@ -40,10 +40,7 @@ class Generator {
           }
           props.push({
             field: attr.name.value,
-            expr: switch attr.value {
-              case ANone: macro null;
-              case AExpr(expr): expr;
-            } 
+            expr: attr.value
           });
         }
 
@@ -76,7 +73,7 @@ class Generator {
             }
             addProp({
               name: name,
-              value: AExpr(generate(children))
+              value: generate(children)
             });
           default:
         }
@@ -98,7 +95,7 @@ class Generator {
                   file: nodeChildren[0].pos.getInfos().file,
                 })
               },
-              value: AExpr(generate(nodeChildren))
+              value: generate(nodeChildren)
             });
           default:
         }
@@ -121,7 +118,7 @@ class Generator {
             macro @:pos(name.pos) $p{path};
         }
 
-        if (Context.containsDisplayPosition(node.pos)) {
+        if (Context.containsDisplayPosition(name.pos)) {
           e = {expr: EDisplay(e, DKMarked), pos: e.pos};
         }
 

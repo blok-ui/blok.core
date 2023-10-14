@@ -149,20 +149,6 @@ class Parser {
     }
   }
 
-  // function attempt(handle:()->Bool) {
-  //   var start = position;
-  //   try {
-  //     if (handle()) {
-  //       return true;
-  //     }
-  //     position = start;
-  //     return false;
-  //   } catch (_:ParserException) {
-  //     position = start;
-  //     return false;
-  //   }
-  // }
-
   function tag():Located<String> {
     var start = position;
     var parts = path();
@@ -180,7 +166,7 @@ class Parser {
       var exprStr = extractDelimitedString('{', '}');
       var expr = stringToExpression(exprStr);
       var pos = createPos(start, position);
-      return expr.atPos(pos);
+      return expr.at(pos);
     }
 
     if (match('"')) {
@@ -197,13 +183,12 @@ class Parser {
         value: "'" + str.value + "'",
         pos: pos
       });
-      return expr.atPos(pos);
+      return expr.at(pos);
     }
 
     if (isAlpha(peek())) {
       var located = path();
-      var pos = createPos(start, position);
-      return macro @:pos(pos) $p{located.map(p -> p.value)};
+      return macro @:pos(located.pos) $p{located.map(p -> p.value)};
     }
 
     if (isDigit(peek())) {

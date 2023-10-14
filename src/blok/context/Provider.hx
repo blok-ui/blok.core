@@ -21,8 +21,8 @@ class Provider<T:Context> extends Component {
     });
   }
 
-  @:constant final create:()->T;
-  @:children @:constant final child:(value:T)->Child;
+  @:attribute final create:()->T;
+  @:children @:attribute final child:(value:T)->Child;
 
   var context:Null<T> = null;
 

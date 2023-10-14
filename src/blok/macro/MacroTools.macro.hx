@@ -9,7 +9,7 @@ using Lambda;
 using haxe.macro.Tools;
 using kit.Hash;
 
-function atPos(expr:Expr, pos:Position) {
+function at(expr:Expr, pos:Position) {
   return macro @:pos(pos) $expr;
 }
 

@@ -18,8 +18,16 @@ function build():Array<Field> {
   var fieldBuilders:Array<ComponentFieldBuilder> = [];
   var hasChildren = false;
 
+  // @todo: Remove this once migration is complete. `:constant` was
+  // a confusing name for these fields, as they *can* change externally.
+  // We'll continue using the name in Models, where it does make sense.
   for (field in builder.findFieldsByMeta(':constant')) {
-    fieldBuilders.push(createConstantField(builder, field));
+    Context.warning('Use :attribute instead', field.meta.find(m -> m.name == ':constant').pos);
+    fieldBuilders.push(createAttributeField(builder, field));
+  }
+
+  for (field in builder.findFieldsByMeta(':attribute')) {
+    fieldBuilders.push(createAttributeField(builder, field));
   }
   
   for (field in builder.findFieldsByMeta(':signal')) {
@@ -65,7 +73,7 @@ function build():Array<Field> {
 
     var prop = props.find(f -> f.name == field.name);
     if (prop == null) {
-      Context.error('Invalid target for :children. Must be a :constant, :signal or :observable field', field.pos);
+      Context.error('Invalid target for :children. Must be a :attribute, :signal or :observable field', field.pos);
     }
     prop.meta.push({ name: ':children', params: [], pos: prop.pos });
   }
@@ -177,7 +185,7 @@ private typedef ComponentFieldBuilder = {
   public final prop:Field;
 }
 
-private function createConstantField(builder:ClassBuilder, field:Field):ComponentFieldBuilder {
+private function createAttributeField(builder:ClassBuilder, field:Field):ComponentFieldBuilder {
   return switch field.kind {
     case FVar(t, e) if (t == null):
       Context.error('Expected a type', field.pos);
@@ -188,10 +196,7 @@ private function createConstantField(builder:ClassBuilder, field:Field):Componen
 
       if (!field.access.contains(AFinal)) {
         if (Compiler.getConfiguration().debug) {
-          Context.error(
-            '@:constant fields must be final.',
-            field.pos
-          );
+          Context.error(':attribute fields must be final.', field.pos);
         }
       }
       

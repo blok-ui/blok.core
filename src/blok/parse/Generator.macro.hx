@@ -123,7 +123,7 @@ class Generator {
         }
 
         args = args.concat(restArgs);
-        return macro @:pos(node.pos) $e($a{args});
+        return macro $e($a{args});
       case NText(text):
         macro blok.ui.Text.node($v{text});
       case NExpr(expr):

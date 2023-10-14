@@ -204,7 +204,7 @@ class TodoFooter extends Component {
 }
 
 class VisibilityControl extends Component {
-  @:constant final visibility:TodoVisibility;
+  @:attribute final visibility:TodoVisibility;
   
   function render() {
     var todos = TodoContext.from(this);
@@ -219,8 +219,8 @@ class VisibilityControl extends Component {
 }
 
 class Button extends Component {
-  @:constant final label:String;
-  @:constant final action:()->Void;
+  @:attribute final label:String;
+  @:attribute final action:()->Void;
   @:observable final selected:Bool = false;
 
   function render() {
@@ -248,10 +248,10 @@ class Button extends Component {
 }
 
 class TodoInput extends Component {
-  @:constant final className:String;
-  @:constant final clearOnComplete:Bool;
-  @:constant final onSubmit:(data:String) -> Void;
-  @:constant final onCancel:() -> Void;
+  @:attribute final className:String;
+  @:attribute final clearOnComplete:Bool;
+  @:attribute final onSubmit:(data:String) -> Void;
+  @:attribute final onCancel:() -> Void;
   @:signal final value:String;
   @:observable final isEditing:Bool = false;
 
@@ -327,7 +327,7 @@ class TodoList extends Component {
 }
 
 class TodoItem extends Component {
-  @:constant final todo:Todo;
+  @:attribute final todo:Todo;
   @:computed final className:ClassName = [
     if (todo.isCompleted() && !todo.isEditing()) Typography.textColor('gray', 500) else null
   ];

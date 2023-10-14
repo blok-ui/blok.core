@@ -85,6 +85,16 @@ class SuspenseExample extends Component {
 
 class SuspenseItem extends Component {
   @:signal final delay:Int;
+  // A 'resource' represents an asynchronous value of some sort. When
+  // used in a Component, it will trigger a suspense that can be
+  // will be handled by the closest SuspenseBoundary ancestor. Once
+  // the resource is ready, the SuspenseBoundary will remount the 
+  // suspended component.
+  //
+  // Note that using resources outside of a SuspenseBoundary will cause
+  // an error to be thrown. Note that resources trigger a suspense at their
+  // point of *use*, so you can define a resource and also wrap it in
+  // a SuspenseBoundary within the same component.
   @:resource final str:String = {
     var delay = delay();
     new Task(activate -> {
@@ -94,7 +104,7 @@ class SuspenseItem extends Component {
 
   function render() {
     return Html.div({},
-      str(),
+      str(), // Suspense is potentially triggered here.
       Html.button({
         className: Breeze.compose(
           Background.color('white', 0),

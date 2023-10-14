@@ -5,7 +5,7 @@ class Scope extends Component {
     return node({ child: child });
   }
 
-  @:children @:constant final child:(context:Component)->Child;
+  @:children @:attribute final child:(context:Component)->Child;
 
   function render():VNode {
     return child(this);

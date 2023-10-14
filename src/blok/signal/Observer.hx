@@ -20,6 +20,20 @@ typedef DependencyLink = {
 } 
 
 class Observer implements ConsumerNode {
+  /**
+    Create a root-level Observer. Will return a Disposable
+    that can be used to clean up the observable scope.
+
+    Important: you probably don't need to use this! Prefer
+    `Observer.track` unless you know what you're doing.
+  **/
+  public static inline function root(handler):Disposable {
+    var owner = new DisposableCollection();
+    assert(getCurrentOwner() == None, 'Attempted to use `root` inside an existing scope. Use `track` instead or ensure you are actually calling `root` outside an owner.');
+    withOwner(owner, () -> track(handler));
+    return owner;
+  }
+
   public static inline function track(handler) {
     return new Observer(handler);
   }

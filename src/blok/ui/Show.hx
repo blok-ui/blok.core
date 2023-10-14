@@ -12,7 +12,7 @@ final class Show extends Component {
   }
 
   @:observable final condition:Bool;
-  @:children @:constant final child:()->Child;
+  @:children @:attribute final child:()->Child;
 
   function render() {
     return if (condition()) child() else Placeholder.node();

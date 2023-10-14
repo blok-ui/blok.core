@@ -194,7 +194,7 @@ class TodoFooter extends Component {
 }
 
 class VisibilityControl extends Component {
-  @:constant final visibility:TodoVisibility;
+  @:attribute final visibility:TodoVisibility;
   
   function render() {
     var todos = TodoContext.from(this);
@@ -208,39 +208,37 @@ class VisibilityControl extends Component {
 }
 
 class Button extends Component {
-  @:children @:constant final label:String;
-  @:constant final action:()->Void;
+  @:attribute final action:()->Void;
+  @:children @:attribute final label:String;
   @:observable final selected:Bool = false;
+  @:computed final className:ClassName = [
+    Spacing.pad('x', 3),
+    Spacing.pad('y', 1),
+    Border.radius(2),
+    Border.width(.5),
+    Border.color('black', 0),
+    if (selected()) Breeze.compose(
+      Background.color('black', 0),
+      Typography.textColor('white', 0)
+    ) else Breeze.compose(
+      Background.color('white', 0),
+      Typography.textColor('black', 0),
+      Modifier.hover(
+        Background.color('gray', 200)
+      )
+    )
+  ];
 
   function render() {
-    return view(<button
-      className={new Computation<ClassName>(() -> [
-        Spacing.pad('x', 3),
-        Spacing.pad('y', 1),
-        Border.radius(2),
-        Border.width(.5),
-        Border.color('black', 0),
-        if (selected()) Breeze.compose(
-          Background.color('black', 0),
-          Typography.textColor('white', 0)
-        ) else Breeze.compose(
-          Background.color('white', 0),
-          Typography.textColor('black', 0),
-          Modifier.hover(
-            Background.color('gray', 200)
-          )
-        )
-      ])}
-      onClick={_ -> action()}
-    >label</button>);
+    return view(<button className=className onClick={_ -> action()}>label</button>);
   }
 }
 
 class TodoInput extends Component {
-  @:constant final className:String;
-  @:constant final clearOnComplete:Bool;
-  @:constant final onSubmit:(data:String) -> Void;
-  @:constant final onCancel:() -> Void;
+  @:attribute final className:String;
+  @:attribute final clearOnComplete:Bool;
+  @:attribute final onSubmit:(data:String) -> Void;
+  @:attribute final onCancel:() -> Void;
   @:signal final value:String;
   @:observable final isEditing:Bool = false;
 
@@ -316,7 +314,7 @@ class TodoList extends Component {
 }
 
 class TodoItem extends Component {
-  @:constant final todo:Todo;
+  @:attribute final todo:Todo;
   @:computed final className:ClassName = [
     if (todo.isCompleted() && !todo.isEditing()) Typography.textColor('gray', 500) else null
   ];

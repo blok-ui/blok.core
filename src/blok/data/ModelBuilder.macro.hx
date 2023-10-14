@@ -19,7 +19,7 @@ function build() {
   for (field in builder.findFieldsByMeta(':constant')) {
     fieldBuilders.push(createConstantField(field));
   }
-  
+
   for (field in builder.findFieldsByMeta(':signal')) {
     fieldBuilders.push(createSignalField(field, false));
   }

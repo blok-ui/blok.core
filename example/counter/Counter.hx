@@ -70,8 +70,8 @@ class Counter extends Component {
 }
 
 class CounterButton extends Component {
-  @:constant final onClick:EventListener;
-  @:children @:constant final label:Child;
+  @:attribute final onClick:EventListener;
+  @:children @:attribute final label:Child;
 
   function render() {
     return view(<button className={Breeze.compose(

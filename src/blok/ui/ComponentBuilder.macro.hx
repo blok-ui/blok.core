@@ -1,70 +1,37 @@
 package blok.ui;
 
 import blok.macro.ClassBuilder;
-import haxe.macro.Compiler;
 import haxe.macro.Context;
 import haxe.macro.Expr;
 
 using Lambda;
+using blok.macro.FieldBuilder;
 using blok.macro.MacroTools;
-using haxe.macro.Tools;
 
-// @todo: Refactor this, try to create something that is easier
-// to share across our various reactive objects. Ideally we'll
-// merge it with ReactiveObjectBuilder?
-function build():Array<Field> {
+function build() {
   var builder = ClassBuilder.fromContext();
+  var options:FieldBuilderOptions = { serialize: false };
   var cls = Context.getLocalClass().get();
-  var fieldBuilders:Array<ComponentFieldBuilder> = [];
   var hasChildren = false;
+  var fieldBuilders:Array<FieldBuilder> = [
+    builder.parseAttributeFields(options),
+    builder.parseSignalFields(options),
+    builder.parseObservableFields(options)
+  ].flatten();
 
-  // @todo: Remove this once migration is complete. `:constant` was
-  // a confusing name for these fields, as they *can* change externally.
-  // We'll continue using the name in Models, where it does make sense.
-  for (field in builder.findFieldsByMeta(':constant')) {
-    Context.warning('Use :attribute instead', field.meta.find(m -> m.name == ':constant').pos);
-    fieldBuilders.push(createAttributeField(builder, field));
-  }
-
-  for (field in builder.findFieldsByMeta(':attribute')) {
-    fieldBuilders.push(createAttributeField(builder, field));
-  }
+  builder.parseActionFields();
+  builder.findFieldsByMeta(':resource').map(f -> createResource(builder, f));
   
-  for (field in builder.findFieldsByMeta(':signal')) {
-    fieldBuilders.push(createSignalField(builder, field, false));
-  }
-
-  for (field in builder.findFieldsByMeta(':action')) switch field.kind {
-    case FFun(f):
-      if (f.ret != null && f.ret != macro:Void) {
-        Context.error(':action methods cannot return anything', field.pos);
-      }
-      var expr = f.expr;
-      f.expr = macro blok.signal.Action.run(() -> $expr);
-    default:
-      Context.error(':action fields must be functions', field.pos);
-  }
-
-  for (field in builder.findFieldsByMeta(':resource')) {
-    createResource(builder, field);
-  }
-
-  var computed:Array<Expr> = [];
-  var inits = fieldBuilders.map(p -> p.init);
-  
-  for (field in builder.findFieldsByMeta(':observable')) {
-    var f = createSignalField(builder, field, true);
-    fieldBuilders.push(f);
-    computed.push(f.init);
-  }
-
+  var inits:Array<Expr> = fieldBuilders
+    .filter(f -> f.lateInit != true)
+    .map(p -> p.init);
+  var computed:Array<Expr> = fieldBuilders
+    .filter(f -> f.lateInit == true)
+    .map(f -> f.init)
+    .concat(builder.parseComputedFields());
   var updates = fieldBuilders.map(p -> p.update);
   var props = fieldBuilders.map(p -> p.prop);
   
-  for (field in builder.findFieldsByMeta(':computed')) {
-    computed.push(createComputed(builder, field));
-  }
-
   for (field in builder.findFieldsByMeta(':children')) {
     if (hasChildren) {
       Context.error('Only one :children field is allowed per component', field.pos);
@@ -178,197 +145,6 @@ function build():Array<Field> {
   return builder.export();
 }
 
-private typedef ComponentFieldBuilder = {
-  public final name:String;
-  public final init:Expr;
-  public final update:Expr;
-  public final prop:Field;
-}
-
-private function createAttributeField(builder:ClassBuilder, field:Field):ComponentFieldBuilder {
-  return switch field.kind {
-    case FVar(t, e) if (t == null):
-      Context.error('Expected a type', field.pos);
-    case FVar(t, e):
-      var name = field.name;
-      var backingName = '__backing_$name';
-      var getterName = 'get_$name';
-
-      if (!field.access.contains(AFinal)) {
-        if (Compiler.getConfiguration().debug) {
-          Context.error(':attribute fields must be final.', field.pos);
-        }
-      }
-      
-      field.kind = FProp('get', 'never', t);
-      
-      var expr = switch e {
-        case macro null: macro new blok.signal.Signal(null);
-        default: e;
-      };
-
-      builder.add(macro class {
-        @:noCompletion final $backingName:blok.signal.Signal<$t>;
-
-        function $getterName():$t {
-          return this.$backingName.get();
-        }
-      });
-
-      return {
-        name: name,
-        init: if (e == null) {
-          macro this.$backingName = props.$name;
-        } else {
-          macro @:pos(e.pos) this.$backingName = props.$name ?? $e;
-        },
-        update: if (e == null) { 
-          macro this.$backingName.set(props.$name);
-        } else {
-          macro @:pos(e.pos) this.$backingName.set(props.$name ?? $e);
-        },
-        prop: createProp(field.name, t, e != null, Context.currentPos())
-      };
-    default:
-      Context.error('Invalid field', field.pos);
-  }
-
-}
-
-private function createSignalField(builder:ClassBuilder, field:Field, isReadonly:Bool):ComponentFieldBuilder {
-  var name = field.name;
-  if (!field.access.contains(AFinal)) {
-    if (Compiler.getConfiguration().debug) {
-      Context.warning(
-        '@:signal and @:observable fields are strongly encouraged to be final. They will be converted to final fields by the compiler for you, which may be confusing.',
-        field.pos
-      );
-    }
-    field.access.push(AFinal);
-  }
-
-  return switch field.kind {
-    case FVar(t, e) if (t == null):
-      Context.error('Expected a type', field.pos);
-    case FVar(t, e) if (!isReadonly):
-      var type = switch t {
-        case macro:Null<$t>: macro:blok.signal.Signal<Null<$t>>;
-        default: macro:blok.signal.Signal<$t>;
-      }
-      var isOptional = e != null;
-      
-      field.kind = FVar(type, switch e {
-        case macro null: macro new blok.signal.Signal(null);
-        default: e;
-      });
-
-      {
-        name: name,
-        init: createInit(field.name, e),
-        update: if (isOptional) {
-          macro if (props.$name != null) this.$name.set(props.$name);
-        } else {
-          macro this.$name.set(props.$name);
-        },
-        prop: createProp(field.name, t, e != null, Context.currentPos())
-      };
-    case FVar(t, e) if (isReadonly):
-      var backingName = '__backing_$name';
-      var type = switch t {
-        case macro:Null<$t>: macro:blok.signal.Signal.ReadonlySignal<Null<$t>>;
-        default: macro:blok.signal.Signal.ReadonlySignal<$t>;
-      }
-      var isOptional = e != null;
-      var expr = switch e {
-        case null: macro null; // Won't actually be used.
-        case macro null: macro new blok.signal.Signal.ReadonlySignal(null);
-        default: macro cast ($e:blok.signal.Signal.ReadonlySignal<$t>);
-      };
-
-      builder.add(macro class {
-        @:noCompletion final $backingName:blok.signal.Signal<$type>;
-      });
-
-      field.kind = FVar(type, null);
-
-      var init:Array<Expr> = [
-        if (e == null) {
-          macro this.$backingName = props.$name;
-        } else {
-          macro this.$backingName = props.$name ?? $expr;
-        },
-        switch t {
-          case macro:Null<$_>:
-            macro this.$name = new blok.signal.Computation(() -> this.$backingName.get()?.get());
-          default:
-            macro this.$name = new blok.signal.Computation(() -> this.$backingName.get().get());
-        }
-      ];
-
-      {
-        name: name,
-        init: macro @:mergeBlock $b{init},
-        update: if (isOptional) {
-          macro if (props.$name != null) this.$backingName.set(props.$name);
-        } else {
-          macro this.$backingName.set(props.$name);
-        },
-        prop: createProp(field.name, type, e != null, Context.currentPos())
-      }
-    default:
-      Context.error('Invalid field', field.pos);
-  }
-}
-
-private function createComputed(builder:ClassBuilder, field:Field):Expr {
-  return switch field.kind {
-    case FVar(t, e):
-      if (t == null) {
-        Context.error('@:computed field require an explicit type', field.pos);
-      }
-      if (e == null) {
-        Context.error('@:computed fields require an expression', field.pos);
-      }
-      if (!field.access.contains(AFinal)) {
-        Context.error('@:computed fields must be final', field.pos);
-      }
-
-      var name = field.name;
-      var getterName = 'get_$name';
-      var backingName = '__backing_$name';
-      var createName = '__create_$name';
-
-      field.name = createName;
-      field.meta.push({ name: ':noCompletion', params: [], pos: (macro null).pos });
-      field.kind = FFun({
-        args: [],
-        ret: macro:blok.signal.Computation<$t>,
-        expr: macro return new blok.signal.Computation<$t>(() -> $e)
-      });
-
-      builder.addField({
-        name: name,
-        access: field.access,
-        kind: FProp('get', 'never', macro:blok.signal.Computation<$t>),
-        pos: (macro null).pos
-      });
-
-      builder.add(macro class {
-        var $backingName:Null<blok.signal.Computation<$t>> = null;
-
-        @:noCompletion
-        inline function $getterName():blok.signal.Computation<$t> {
-          blok.debug.Debug.assert(this.$backingName != null);
-          return this.$backingName;
-        }
-      });
-
-      return macro this.$backingName = this.$createName();
-    default:
-      Context.error('Invalid field', field.pos);
-  }
-}
-
 private function createResource(builder:ClassBuilder, field:Field) {
   switch field.kind {
     case FVar(t, e):
@@ -408,22 +184,5 @@ private function createResource(builder:ClassBuilder, field:Field) {
       });
     default:
       Context.error(':resource fields cannot be methods', field.pos);
-  }
-}
-
-private function createInit(name:String, e:Null<Expr>) {
-  return if (e == null) {
-    macro this.$name = props.$name;
-  } else {
-    macro if (props.$name != null) this.$name = props.$name;
-  }
-}
-
-private function createProp(name:String, type:ComplexType, isOptional:Bool, pos:Position):Field {
-  return {
-    name: name,
-    pos: pos,
-    meta: isOptional ? [{name: ':optional', pos: pos}] : [],
-    kind: FVar(type, null)
   }
 }

@@ -9,8 +9,14 @@ using blok.macro.FieldBuilder;
 using blok.macro.MacroTools;
 
 function build() {
+  return parseComponent({ serialize: false }).builder.export();
+}
+
+function parseComponent(options:FieldBuilderOptions):{
+  builder:ClassBuilder,
+  fieldBuilders:Array<FieldBuilder>
+} {
   var builder = ClassBuilder.fromContext();
-  var options:FieldBuilderOptions = { serialize: false };
   var cls = Context.getLocalClass().get();
   var hasChildren = false;
   var fieldBuilders:Array<FieldBuilder> = [
@@ -142,7 +148,10 @@ function build() {
     }
   });
 
-  return builder.export();
+  return {
+    builder: builder,
+    fieldBuilders: fieldBuilders
+  }
 }
 
 private function createResource(builder:ClassBuilder, field:Field) {

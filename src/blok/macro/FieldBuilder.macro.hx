@@ -74,7 +74,7 @@ function createAttributeField(builder:ClassBuilder, field:Field, options:FieldBu
           macro @:pos(e.pos) this.$backingName.set(props.$name ?? $e);
         },
         prop: createProp(field.name, t, e != null, Context.currentPos()),
-        json: options.serialize ? createJsonSerializer(field, false) : null
+        json: options.serialize ? createJsonSerializer(field, true, e) : null
       };
     default:
       Context.error('Invalid field for :attribute', field.pos);
@@ -99,7 +99,7 @@ function createConstantField(builder:ClassBuilder, field:Field, options:FieldBui
         init: createInit(field.name, e),
         update: null,
         prop: createProp(field.name, t, e != null, Context.currentPos()),
-        json: options.serialize ? createJsonSerializer(field, true) : null
+        json: options.serialize ? createJsonSerializer(field, true, e) : null
       }
     default:
       Context.error('Invalid field for :constant', field.pos);
@@ -164,7 +164,7 @@ function createSignalField(builder:ClassBuilder, field:Field, options:FieldBuild
           macro this.$name.set(props.$name);
         },
         prop: createProp(field.name, t, e != null, Context.currentPos()),
-        json: options.serialize ? createJsonSerializer(field, false) : null
+        json: options.serialize ? createJsonSerializer(field, false, e) : null
       };
     case FVar(t, e) if (options.isReadonly):
       var backingName = '__backing_$name';
@@ -209,7 +209,7 @@ function createSignalField(builder:ClassBuilder, field:Field, options:FieldBuild
           macro this.$backingName.set(props.$name);
         },
         prop: createProp(field.name, type, e != null, Context.currentPos()),
-        json: createJsonSerializer(field, false)
+        json: createJsonSerializer(field, false, e)
       }
     default:
       Context.error('Invalid field for a signal', field.pos);
@@ -282,12 +282,11 @@ function parseActionFields(builder:ClassBuilder) {
   } 
 }
 
-function createJsonSerializer(field:Field, isConstant:Bool):JsonSerializer {
+function createJsonSerializer(field:Field, isConstant:Bool, ?def:Expr):JsonSerializer {
   return switch field.kind {
-    case FVar(t, e):
+    case FVar(t, _) | FProp(_, _, t):
       var meta = field.meta.find(f -> f.name == ':json');
       var name = field.name;
-      var def = e == null ? macro null : e;
       var access = isConstant ? macro this.$name : macro this.$name.get();
   
       if (meta != null) switch meta.params {

@@ -14,7 +14,11 @@ function at(expr:Expr, pos:Position) {
 }
 
 function error(pos:Position, message:String) {
-  Context.error(message, pos);
+  return Context.error(message, pos);
+}
+
+function getMetadata(field:Field, name:String):Null<MetadataEntry> {
+  return field.meta.find(m -> m.name == name);
 }
 
 function getField(t:TypeDefinition, name:String, ?pos:Position):Result<Field, haxe.macro.Expr.Error> {
@@ -105,4 +109,26 @@ function extractTypeParams(tp:TypeParameter) {
     }
     default: [];
   }
+}
+
+function extractFunction(e:Expr):Function {
+  return switch e.expr {
+    case EFunction(_, f): f;
+    default: Context.error('Expected a function', e.pos);
+  }
+}
+
+function isModel(t:ComplexType) {
+  return Context.unify(t.toType(), (macro:blok.data.Model).toType());
+}
+
+function isSignal(t:ComplexType) {
+  return switch t.toType().toComplexType() {
+    case macro:blok.signal.Signal<$_>: true;
+    default: false;
+  }
+}
+
+function isComponentBase(t:ComplexType) {
+  return Context.unify(t.toType(), (macro:blok.ui.ComponentBase).toType());
 }

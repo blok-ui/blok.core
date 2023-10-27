@@ -1,6 +1,6 @@
 package blok.context;
 
-import blok.macro.ClassBuilder;
+import blok.macro.build.ClassBuilder;
 import haxe.macro.Context;
 import haxe.macro.Expr;
 
@@ -8,9 +8,13 @@ using blok.macro.MacroTools;
 using haxe.macro.Tools;
 
 function build() {
-  var builder = ClassBuilder.fromContext();
-  var cls = Context.getLocalClass().get();
-  var tp:TypePath = { pack: cls.pack, name: cls.name };
+  var builder = new ClassBuilder({
+    fields: Context.getBuildFields(),
+    type: Context.getLocalType(),
+    builders: []
+  });
+  var cls = builder.getClass();
+  var tp:TypePath = builder.getTypePath();
   var fallback = switch cls.meta.extract(':fallback') {
     case [ fallback ]: switch fallback.params {
       case [ expr ]:

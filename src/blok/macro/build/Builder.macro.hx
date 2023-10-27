@@ -1,6 +1,6 @@
 package blok.macro.build;
 
 interface Builder {
-  public function parse(builder:ClassBuilder):Void;
+  public final priority:BuilderPriority;
   public function apply(builder:ClassBuilder):Void;
 }

@@ -11,9 +11,7 @@ final builderFactory = new ClassBuilderFactory([
   new ComputedFieldBuilder(),
   new ActionFieldBuilder(),
   new ConstructorBuilder({}),
-  new JsonSerializerBuilder({
-    serializableFields: [ ':constant', ':signal', ':observable' ]
-  })
+  new JsonSerializerBuilder({})
 ]);
 
 function build() {

@@ -36,6 +36,7 @@ final builderFactory = new ClassBuilderFactory([
     }
   }),
   new SimpleBuilder({
+    priority: Late,
     apply: builder -> {
       var cls = builder.getClass();
       var createParams = cls.params.toTypeParamDecl();

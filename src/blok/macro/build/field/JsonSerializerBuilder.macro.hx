@@ -10,7 +10,6 @@ using blok.macro.MacroTools;
 typedef JsonSerializerBuilderOptions = {
   public final ?constructorAccessor:Expr;
   public final ?returnType:ComplexType;
-  public final serializableFields:Array<String>;
 }
 
 typedef JsonSerializerHook = {
@@ -19,51 +18,47 @@ typedef JsonSerializerHook = {
 }
 
 class JsonSerializerBuilder implements Builder {
+  public final priority:BuilderPriority = Late;
+
   final options:JsonSerializerBuilderOptions;
 
   public function new(options) {
     this.options = options;
   }
 
-  public function parse(builder:ClassBuilder) {
+  public function apply(builder:ClassBuilder) {
+    var ret = options.returnType ?? builder.getComplexType();
+    var fields = builder.getProps('new');
     var serializer:Array<ObjectField> = [];
-    var deserializer:Array<ObjectField> = []; 
-    var fields = builder.getFields()
-      .filter(f -> f.meta.exists(m -> options.serializableFields.contains(m.name)));
+    var deserializer:Array<ObjectField> = [];
     
     for (field in fields) {
       var result = parseField(builder, field);
       serializer.push({ field: field.name, expr: result.serializer });
       deserializer.push({ field: field.name, expr: result.deserializer });
     }
-
-    builder.addHook('serializer', {
+    
+    var serializerExpr:Expr = {
       expr: EObjectDecl(serializer),
       pos: (macro null).pos
-    });
-    builder.addHook('deserializer', {
+    };
+    var deserializerExpr:Expr = {
       expr: EObjectDecl(deserializer),
       pos: (macro null).pos
-    });
-  }
+    };
 
-  public function apply(builder:ClassBuilder) {
-    var ret = options.returnType ?? builder.getComplexType();
-    var pos = (macro null).pos;
-    var serializer = builder.getHook('serializer').pop();
-    var deserializer = builder.getHook('deserializer').pop();
     var constructors = switch options.constructorAccessor {
       case null: 
         var clsTp = builder.getTypePath();
         macro class {
           public static function fromJson(data:{}):$ret {
-            return new $clsTp($deserializer);
+            return new $clsTp($deserializerExpr);
           }
         }
       case access:
         macro class {
           public static function fromJson(data:{}):$ret {
-            return $access($deserializer);
+            return $access($deserializerExpr);
           }
         }
     };
@@ -75,12 +70,17 @@ class JsonSerializerBuilder implements Builder {
 
     builder.add(macro class {
       public function toJson():Dynamic {
-        return $serializer;
+        return $serializerExpr;
       }
     });
   }
 
-  function parseField(builder:ClassBuilder, field:Field):JsonSerializerHook {
+  function parseField(builder:ClassBuilder, prop:Field):JsonSerializerHook {
+    var field:Field = switch builder.findField(prop.name) {
+      case Some(field): field;
+      case None: prop;
+    }
+
     var def = switch field.kind {
       case FVar(_, e): e;
       default: macro null;

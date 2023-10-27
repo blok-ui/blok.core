@@ -17,13 +17,13 @@ typedef ConstructorBuilderOptions = {
 } 
 
 class ConstructorBuilder implements Builder {
+	public final priority:BuilderPriority = Late;
+
   final options:ConstructorBuilderOptions;
 
   public function new(options) {
     this.options = options;
   }
-
-  public function parse(builder:ClassBuilder) {}
 
   public function apply(builder:ClassBuilder) {
     var props = builder.getProps('new');

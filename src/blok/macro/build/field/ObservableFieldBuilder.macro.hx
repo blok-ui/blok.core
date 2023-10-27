@@ -9,19 +9,19 @@ typedef ObservableFieldBuilderOptions = {
 } 
 
 class ObservableFieldBuilder implements Builder {
+  public final priority:BuilderPriority = Normal;
+
   final options:ObservableFieldBuilderOptions;
 
   public function new(options) {
     this.options = options;
   }
 
-  public function parse(builder:ClassBuilder) {
+  public function apply(builder:ClassBuilder) {
     for (field in builder.findFieldsByMeta(':observable')) {
       parseField(builder, field.getMetadata(':observable'), field);
     }
   }
-
-  public function apply(builder:ClassBuilder) {}
 
   function parseField(builder:ClassBuilder, meta:MetadataEntry, field:Field) {
     var name = field.name;

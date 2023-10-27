@@ -113,17 +113,15 @@ class ClassBuilder {
     return fields.filter(f -> f.meta.exists(m -> m.name == name));
   }
 
-  function parse() {
-    for (builder in builders) builder.parse(this);
-  }
-
-  function apply() {
-    for (builder in builders) builder.apply(this);
+  function apply(priority:BuilderPriority) {
+    var selected = builders.filter(b -> b.priority == priority);
+    for (builder in selected) builder.apply(this);
   }
 
   public function export() {
-    parse();
-    apply();
+    apply(Before);
+    apply(Normal);
+    apply(Late);
     return fields.concat(newFields);
   }
 }

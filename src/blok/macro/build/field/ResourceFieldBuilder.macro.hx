@@ -5,15 +5,15 @@ import haxe.macro.Expr;
 using blok.macro.MacroTools;
 
 class ResourceFieldBuilder implements Builder {
+  public final priority:BuilderPriority = Normal;
+
   public function new() {}
 
-  public function parse(builder:ClassBuilder) {
+  public function apply(builder:ClassBuilder) {
     for (field in builder.findFieldsByMeta(':resource')) {
       parseField(builder, field.getMetadata(':resource'), field);
     }
   }
-
-  public function apply(builder:ClassBuilder) {}
 
   function parseField(builder:ClassBuilder, meta:MetadataEntry, field:Field) {
     switch field.kind {

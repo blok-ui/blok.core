@@ -5,15 +5,15 @@ import haxe.macro.Expr;
 using blok.macro.MacroTools;
 
 class ComputedFieldBuilder implements Builder {
+  public final priority:BuilderPriority = Normal;
+
   public function new() {}
 
-  public function parse(builder:ClassBuilder) {
+  public function apply(builder:ClassBuilder) {
     for (field in builder.findFieldsByMeta(':computed')) {
       parseField(builder, field.getMetadata(':computed'), field);
     }
   }
-
-  public function apply(builder:ClassBuilder) {}
 
   function parseField(builder:ClassBuilder, meta:MetadataEntry, field:Field) {
     switch field.kind {

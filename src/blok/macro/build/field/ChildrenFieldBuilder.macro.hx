@@ -4,9 +4,9 @@ using Lambda;
 using blok.macro.MacroTools;
 
 class ChildrenFieldBuilder implements Builder {
-  public function new() {}
+  public final priority:BuilderPriority = Late;
 
-  public function parse(builder:ClassBuilder) {}
+  public function new() {}
 
   public function apply(builder:ClassBuilder) {
     var children = builder.findFieldsByMeta(':children');

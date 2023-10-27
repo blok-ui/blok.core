@@ -4,15 +4,15 @@ import haxe.macro.Expr;
 import haxe.macro.Context;
 
 class ConstantFieldBuilder implements Builder {
+  public final priority:BuilderPriority = Normal;
+
   public function new() {}
 
-  public function parse(builder:ClassBuilder) {
+  public function apply(builder:ClassBuilder) {
     for (field in builder.findFieldsByMeta(':constant')) {
       parseField(builder, field);
     }
   }
-
-  public function apply(builder:ClassBuilder) {}
 
   function parseField(builder:ClassBuilder, field:Field) {
     switch field.kind {

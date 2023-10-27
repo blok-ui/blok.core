@@ -3,9 +3,11 @@ package blok.macro.build.field;
 using blok.macro.MacroTools;
 
 class ActionFieldBuilder implements Builder {
+  public final priority:BuilderPriority = Normal;
+
   public function new() {}
 
-  public function parse(builder:ClassBuilder) {
+  public function apply(builder:ClassBuilder) {
     for (field in builder.findFieldsByMeta(':action')) switch field.kind {
       case FFun(f):
         if (f.ret != null && f.ret != macro:Void) {
@@ -17,6 +19,4 @@ class ActionFieldBuilder implements Builder {
         field.pos.error(':action fields must be functions');
     }
   }
-
-  public function apply(builder:ClassBuilder) {}
 }

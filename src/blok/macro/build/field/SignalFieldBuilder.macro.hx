@@ -10,19 +10,19 @@ typedef SignalFieldBuilderOptions = {
 } 
 
 class SignalFieldBuilder implements Builder {
+  public final priority:BuilderPriority = Normal;
+
   final options:SignalFieldBuilderOptions;
 
   public function new(options) {
     this.options = options;
   }
 
-  public function parse(builder:ClassBuilder) {
+  public function apply(builder:ClassBuilder) {
     for (field in builder.findFieldsByMeta(':signal')) {
       parseField(builder, field.getMetadata(':signal'), field);
     }
   }
-
-  public function apply(builder:ClassBuilder) {}
 
   function parseField(builder:ClassBuilder, meta:MetadataEntry, field:Field) {
     var name = field.name;

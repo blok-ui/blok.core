@@ -1,4 +1,4 @@
-package blok.macro.build.field;
+package blok.macro.builder;
 
 import haxe.macro.Expr;
 import haxe.macro.Context;

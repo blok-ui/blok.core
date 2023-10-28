@@ -1,4 +1,4 @@
-package blok.macro.build.field;
+package blok.macro.builder;
 
 using Lambda;
 using blok.macro.MacroTools;

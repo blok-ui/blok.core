@@ -1,4 +1,4 @@
-package blok.macro.build.finalizer;
+package blok.macro.builder;
 
 import haxe.macro.Context;
 import haxe.macro.Expr;

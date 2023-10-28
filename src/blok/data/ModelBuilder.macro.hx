@@ -1,8 +1,7 @@
 package blok.data;
 
-import blok.macro.build.*;
-import blok.macro.build.field.*;
-import blok.macro.build.finalizer.*;
+import blok.macro.*;
+import blok.macro.builder.*;
 
 final builderFactory = new ClassBuilderFactory([
   new ConstantFieldBuilder(),

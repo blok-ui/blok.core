@@ -1,4 +1,4 @@
-package blok.macro.build;
+package blok.macro;
 
 import haxe.macro.Type;
 import haxe.macro.Context;
@@ -14,6 +14,14 @@ typedef PropField = {
 } 
 
 class ClassBuilder {
+  public static function fromContext() {
+    return new ClassBuilder({
+      type: Context.getLocalType(),
+      fields: Context.getBuildFields(),
+      builders: []
+    });
+  }
+
   final type:Type;
   final fields:Array<Field>;
   final builders:Array<Builder>;

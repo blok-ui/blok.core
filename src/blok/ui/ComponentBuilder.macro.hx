@@ -1,8 +1,7 @@
 package blok.ui;
 
-import blok.macro.build.*;
-import blok.macro.build.field.*;
-import blok.macro.build.finalizer.*;
+import blok.macro.*;
+import blok.macro.builder.*;
 import haxe.macro.Expr;
 
 using blok.macro.MacroTools;

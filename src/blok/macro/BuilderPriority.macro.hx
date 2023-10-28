@@ -1,4 +1,4 @@
-package blok.macro.build;
+package blok.macro;
 
 enum BuilderPriority {
   Before;

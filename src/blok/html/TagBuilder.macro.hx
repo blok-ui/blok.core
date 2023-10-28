@@ -1,6 +1,6 @@
 package blok.html;
 
-import blok.macro.build.ClassBuilder;
+import blok.macro.ClassBuilder;
 import haxe.macro.Context;
 import haxe.macro.Expr;
 import haxe.macro.Type;
@@ -10,11 +10,7 @@ using haxe.macro.Tools;
 
 function build(typeName:String, ?isSvg:Bool) {
   var tags = getTags(typeName);
-  var builder = new ClassBuilder({
-    fields: Context.getBuildFields(),
-    type: Context.getLocalType(),
-    builders: []
-  });
+  var builder = ClassBuilder.fromContext();
 
   for (tag in tags) {
     var name = tag.name;

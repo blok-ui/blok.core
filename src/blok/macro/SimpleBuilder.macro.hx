@@ -1,4 +1,4 @@
-package blok.macro.build;
+package blok.macro;
 
 class SimpleBuilder implements Builder {
   public final priority:BuilderPriority;
@@ -7,13 +7,13 @@ class SimpleBuilder implements Builder {
 
   public function new(props:{
     ?priority:BuilderPriority,
-    ?apply:(builder:ClassBuilder)->Void
+    apply:(builder:ClassBuilder)->Void
   }) {
     this.priority = props.priority ?? Normal;
     this.doApply = props.apply;
   }
 
   public function apply(builder:ClassBuilder) {
-    if (doApply != null) doApply(builder);
+    doApply(builder);
   }
 }

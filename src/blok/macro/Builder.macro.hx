@@ -1,4 +1,4 @@
-package blok.macro.build;
+package blok.macro;
 
 interface Builder {
   public final priority:BuilderPriority;

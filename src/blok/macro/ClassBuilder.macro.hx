@@ -23,16 +23,15 @@ class ClassBuilder {
   }
 
   final type:Type;
-  final fields:Array<Field>;
   final builders:Array<Builder>;
+  final fields:FieldBuilder;
   
   var propCollection:Map<String, Array<Field>> = [];
   var hookCollection:Map<String, Array<Expr>> = [];
-  var newFields:Array<Field> = [];
 
   public function new(options) {
     this.builders = options.builders;
-    this.fields = options.fields;
+    this.fields = new FieldBuilder(options.fields);
     this.type = options.type;
   }
 
@@ -59,17 +58,17 @@ class ClassBuilder {
     }
   }
 
-  public function getFields() {
-    return fields;
+  public inline function getFields() {
+    return fields.getFields();
   }
 
   public function add(t:TypeDefinition) {
-    mergeFields(t.fields);
+    fields.add(t);
     return this;
   }
 
   public function addField(f:Field) {
-    newFields.push(f);
+    fields.addField(f);
     return this;
   }
 
@@ -100,36 +99,23 @@ class ClassBuilder {
     return propCollection.get(key) ?? [];
   }
 
-  public function mergeFields(fields:Array<Field>) {
-    newFields = newFields.concat(fields);
-    return this;
+  public inline function findField(name:String):Maybe<Field> {
+    return fields.findField(name);
   }
 
-  public function merge(builder:ClassBuilder) {
-    mergeFields(builder.newFields);
-    return this;
-  }
-
-  public function findField(name:String):Maybe<Field> {
-    return switch fields.find(f -> f.name == name) {
-      case null: None;
-      case field: Some(field);
-    }
-  }
-
-  public function findFieldsByMeta(name:String) {
-    return fields.filter(f -> f.meta.exists(m -> m.name == name));
-  }
-
-  function apply(priority:BuilderPriority) {
-    var selected = builders.filter(b -> b.priority == priority);
-    for (builder in selected) builder.apply(this);
+  public inline function findFieldsByMeta(name:String) {
+    return fields.findFieldsByMeta(name);
   }
 
   public function export() {
     apply(Before);
     apply(Normal);
     apply(Late);
-    return fields.concat(newFields);
+    return fields.export();
+  }
+
+  function apply(priority:BuilderPriority) {
+    var selected = builders.filter(b -> b.priority == priority);
+    for (builder in selected) builder.apply(this);
   }
 }

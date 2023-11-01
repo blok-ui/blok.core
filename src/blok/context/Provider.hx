@@ -2,8 +2,8 @@ package blok.context;
 
 import blok.ui.*;
 
-class Provider<T:Context> extends Component {
-  public static function compose(contexts:Array<()->Context>, child:(context:ComponentBase)->Child) {
+class Provider<T:HasContextId> extends Component {
+  public static function compose(contexts:Array<()->HasContextId>, child:(context:ComponentBase)->Child) {
     var contextFactory = contexts.shift();
     var component:VNode = Provider.provide(contextFactory, _ -> Scope.wrap(child));
     while (contexts.length > 0) {
@@ -14,7 +14,7 @@ class Provider<T:Context> extends Component {
     return component;
   }
 
-  public inline static function provide<T:Context>(create:()->T, child:(value:T)->Child) {
+  public inline static function provide<T:HasContextId>(create:()->T, child:(value:T)->Child) {
     return node({
       create: create,
       child: child
@@ -34,7 +34,7 @@ class Provider<T:Context> extends Component {
   }
 
   public function match(contextId:Int):Bool {
-    return context?.__getContextId() == contextId;
+    return context?.getContextId() == contextId;
   }
 
   public function getContext():Maybe<T> {
@@ -42,8 +42,11 @@ class Provider<T:Context> extends Component {
   }
 
   function render() {
-    context?.dispose();
-    context = create();
+    var newContext = create();
+    if (newContext != context) {
+      context?.dispose();
+      context = create();
+    }
     return child(context);
   }
 }

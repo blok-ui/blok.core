@@ -62,8 +62,12 @@ function typePathExists(path:TypePath) {
   return typeExists(typePathToString(path));
 }
 
+function typePathToArray(path:TypePath) {
+  return path.pack.concat([path.name, path.sub]).filter(s -> s != null);
+}
+
 function typePathToString(path:TypePath) {
-  return path.pack.concat([path.name]).join('.');
+  return typePathToArray(path).join('.');
 }
 
 function parseAsType(name:String):ComplexType {

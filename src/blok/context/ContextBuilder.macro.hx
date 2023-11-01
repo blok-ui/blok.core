@@ -104,7 +104,7 @@ class ContextBuilder implements Builder {
       @:noCompletion
       public static final __contextId = new kit.UniqueId();
 
-      public function __getContextId() {
+      public function getContextId() {
         return __contextId;
       }
     });

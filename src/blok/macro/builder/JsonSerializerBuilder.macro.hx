@@ -97,7 +97,7 @@ class JsonSerializerBuilder implements Builder {
 
         t = switch t.toType().toComplexType() {
           case macro:blok.signal.Signal<$t>: t;
-          case t: t;
+          default: t;
         }
     
         if (meta != null) switch meta.params {
@@ -138,7 +138,7 @@ class JsonSerializerBuilder implements Builder {
             };
           case macro:Null<$t> if (t.isModel()):
             var path = switch t {
-              case TPath(p): p.pack.concat([ p.name ]);
+              case TPath(p): p.typePathToArray();
               default: Context.error('Could not resolve type', field.pos);
             }
 
@@ -151,7 +151,7 @@ class JsonSerializerBuilder implements Builder {
             };
           case macro:Array<$t> if (t.isModel()):
             var path = switch t {
-              case TPath(p): p.pack.concat([ p.name, p.sub ].filter(n -> n != null));
+              case TPath(p): p.typePathToArray();
               default: Context.error('Could not resolve type', field.pos);
             }
             
@@ -164,7 +164,7 @@ class JsonSerializerBuilder implements Builder {
             };
           case t if (t.isModel()):
             var path = switch t {
-              case TPath(p): p.pack.concat([ p.name ]);
+              case TPath(p): p.typePathToArray();
               default: Context.error('Could not resolve type', field.pos);
             }
 

@@ -1,4 +1,4 @@
 package blok.context;
 
 @:autoBuild(blok.context.ContextBuilder.build())
-interface Context extends HasContextId {}
+interface Context extends Providable {}

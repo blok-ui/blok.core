@@ -2,8 +2,8 @@ package blok.context;
 
 import blok.ui.*;
 
-class Provider<T:HasContextId> extends Component {
-  public static function compose(contexts:Array<()->HasContextId>, child:(context:ComponentBase)->Child) {
+class Provider<T:Providable> extends Component {
+  public static function compose(contexts:Array<()->Providable>, child:(context:ComponentBase)->Child) {
     var contextFactory = contexts.shift();
     var component:VNode = Provider.provide(contextFactory, _ -> Scope.wrap(child));
     while (contexts.length > 0) {
@@ -14,7 +14,7 @@ class Provider<T:HasContextId> extends Component {
     return component;
   }
 
-  public inline static function provide<T:HasContextId>(create:()->T, child:(value:T)->Child) {
+  public inline static function provide<T:Providable>(create:()->T, child:(value:T)->Child) {
     return node({
       create: create,
       child: child

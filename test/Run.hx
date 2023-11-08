@@ -1,8 +1,15 @@
+import kit.spec.reporter.ConsoleReporter;
+
 function main() {
   var runner = new Runner();
   
-  // Todo: no tests exist yet. If that makes you nervous
-  // about using this library, you're probably smart.
+  runner.addReporter(new ConsoleReporter({
+    verbose: true,
+    trackProgress: true
+  }));
+
+  // @todo: We're only starting testing. Not much to see here yet.
+  runner.add(blok.state.ObserverSpec);
 
   runner.run();
 }

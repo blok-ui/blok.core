@@ -1,6 +1,5 @@
 package blok.ui;
 
-import blok.debug.Debug;
 import blok.adaptor.*;
 import blok.signal.Graph;
 

@@ -46,59 +46,42 @@ class ContextBuilder implements Builder {
       // @todo: ...no idea if this will work. Probably not.
       params: createParams.map(p -> TPType(TPath({ name: p.name, pack: [] })))
     });
-
-    builder.addField({
-      name: 'provide',
-      access: [ APublic, AStatic ],
-      meta: [],
-      kind: FFun({
-        params: createParams,
-        ret: macro:blok.ui.VNode,
-        args: [
-          { name: 'create', type: macro:()->$ret  },
-          { name: 'child', type: macro:(value:$ret)->blok.ui.Child },
-          { name: 'key', type: macro:Null<blok.diffing.Key>, opt: true }
-        ],
-        expr: macro return blok.context.Provider.node({
+    var constructors = macro class {
+      public static function provide(
+        create:()->$ret,
+        child:(value:$ret)->blok.ui.Child,
+        ?key:blok.diffing.Key
+      ):blok.ui.VNode {
+        return blok.context.Provider.node({
           create: create,
           child: child
-        })
-      }),
-      pos: (macro null).pos
-    });
+        });
+      }
 
-    builder.addField({
-      name: 'from',
-      access: [ APublic, AStatic ],
-      meta: [],
-      kind: FFun({
-        params: createParams,
-        ret: ret,
-        args: [
-          { name: 'context', type: macro:blok.ui.ComponentBase }
-        ],
-        expr: macro @:pos(fallback.pos) return maybeFrom(context).or(() -> $fallback)
-      }),
-      pos: (macro null).pos
-    });
+      public inline static function from(context:blok.ui.ComponentBase):$ret {
+        return @:pos(fallback.pos) return maybeFrom(context).or(() -> $fallback);
+      }
 
-    builder.addField({
-      name: 'maybeFrom',
-      access: [ APublic, AStatic ],
-      meta: [],
-      kind: FFun({
-        params: createParams,
-        ret: macro:kit.Maybe<$ret>,
-        args: [
-          { name: 'context', type: macro:blok.ui.ComponentBase }
-        ],
-        expr: macro return context.findAncestor(ancestor -> switch Std.downcast(ancestor, blok.context.Provider) {
+      public static function maybeFrom(context:blok.ui.ComponentBase):kit.Maybe<$ret> {
+        return context.findAncestor(ancestor -> switch Std.downcast(ancestor, blok.context.Provider) {
           case null: false;
           case provider: provider.match(__contextId);
-        }).flatMap(provider -> (cast provider:blok.context.Provider<$ret>).getContext())
-      }),
-      pos: (macro null).pos
-    });
+        }).flatMap(provider -> (cast provider:blok.context.Provider<$ret>).getContext());
+      }
+    }
+
+    builder.addField(constructors
+      .getField('provide')
+      .unwrap()
+      .applyParameters(createParams));
+    builder.addField(constructors
+      .getField('from')
+      .unwrap()
+      .applyParameters(createParams));
+    builder.addField(constructors
+      .getField('maybeFrom')
+      .unwrap()
+      .applyParameters(createParams));
 
     builder.add(macro class {
       @:noCompletion

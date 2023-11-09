@@ -56,10 +56,12 @@ class ComponentBuilder implements Builder {
       @:optional public final key:blok.diffing.Key;
     }).fields));
     var constructors = macro class {
+      @:noUsing
       public static function node(props:$propType, ?key:Null<blok.diffing.Key>):blok.ui.VNode {
         return new blok.ui.VComponent(componentType, props, $i{cls.name}.new, key);
       }
   
+      @:noUsing
       public inline static function fromMarkup(props:$markupType):blok.ui.VNode {
         return node(props, props.key);
       }

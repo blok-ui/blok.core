@@ -38,66 +38,31 @@ interface ResourceObject<T, E = kit.Error> extends Disposable {
   public function get():T;
 }
 
-class DefaultResourceObject<T, E = kit.Error> implements ResourceObject<T, E> {
+class DefaultResourceObject<T, E = kit.Error> implements ResourceObject<T, E>  {
   public final data:Signal<ResourceStatus<T, E>>;
   public final loading:ReadonlySignal<Bool>;
-  
+
   final fetch:()->Task<T, E> = null;
   final disposables:DisposableCollection = new DisposableCollection();
-  final currentFetch:Signal<Maybe<Task<T, E>>> = new Signal(None);
 
+  var task:Null<Task<T, E>> = null;
   var link:Null<Cancellable> = null;
-  var first:Bool = true;
 
-  public function new(fetch:()->Task<T, E>) {
+  public function new(fetch) {
     var prevOwner = setCurrentOwner(Some(disposables));
-
     this.data = new Signal(Loading);
     this.loading = this.data.map(status -> status == Loading);
     this.fetch = fetch;
-    
-    Observer.track(() -> {
-      var handled = false;
-      switch currentFetch() {
-        case None:
-          link?.cancel();
-          link = null;
-        case Some(task):
-          link?.cancel();
-          link = task.handle(result -> switch result {
-            case Ok(value): 
-              handled = true;
-              data.set(Loaded(value));
-            case Error(error): 
-              handled = true;
-              data.set(Error(error));
-          });
-      }
-      if (!handled) data.set(Loading);
-    });
-
     setCurrentOwner(prevOwner);
-
-    // // @todo: Not sure if this is a good idea?
-    // switch prevOwner {
-    //   case Some(owner): owner.addDisposable(this);
-    //   case None:
-    // }
   }
 
   public function get():T {
-    if (first) {
-      first = false;
-      withOwner(disposables, () -> Observer.track(() -> {
-        currentFetch.set(Some(fetch()));
-      }));
-    }
-
+    if (task == null) setupFetch();
     return switch data() {
       case Loaded(value):
         value;
       case Loading:
-        throw new SuspenseException(currentFetch.peek().unwrap());
+        throw new SuspenseException(task);
       case Error(e): 
         throw e;
     }
@@ -107,5 +72,25 @@ class DefaultResourceObject<T, E = kit.Error> implements ResourceObject<T, E> {
     link?.cancel();
     link = null;
     disposables.dispose();
+  }
+
+  function setupFetch() {
+    if (task != null) return;
+    var prevOwner = setCurrentOwner(Some(disposables));
+    Observer.track(() -> {
+      var handled = false;
+      task = fetch();
+      link?.cancel();
+      link = task.handle(result -> switch result {
+        case Ok(value): 
+          handled = true;
+          data.set(Loaded(value));
+        case Error(error): 
+          handled = true;
+          data.set(Error(error));
+      });
+      if (!handled) data.set(Loading);
+    });
+    setCurrentOwner(prevOwner);
   }
 }

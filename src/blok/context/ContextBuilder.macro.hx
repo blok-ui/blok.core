@@ -47,6 +47,7 @@ class ContextBuilder implements Builder {
       params: createParams.map(p -> TPType(TPath({ name: p.name, pack: [] })))
     });
     var constructors = macro class {
+      @:noUsing
       public static function provide(
         create:()->$ret,
         child:(value:$ret)->blok.ui.Child,
@@ -57,11 +58,13 @@ class ContextBuilder implements Builder {
           child: child
         });
       }
-
+      
+      @:noUsing
       public inline static function from(context:blok.ui.ComponentBase):$ret {
         return @:pos(fallback.pos) return maybeFrom(context).or(() -> $fallback);
       }
 
+      @:noUsing
       public static function maybeFrom(context:blok.ui.ComponentBase):kit.Maybe<$ret> {
         return context.findAncestor(ancestor -> switch Std.downcast(ancestor, blok.context.Provider) {
           case null: false;

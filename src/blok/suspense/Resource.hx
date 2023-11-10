@@ -27,7 +27,8 @@ abstract Resource<T, E = kit.Error>(ResourceObject<T, E>)
 }
 
 enum ResourceStatus<T, E = kit.Error> {
-  Loading;
+  Pending;
+  Loading(task:Task<T, E>);
   Loaded(value:T);
   Error(e:E);
 }
@@ -45,23 +46,60 @@ class DefaultResourceObject<T, E = kit.Error> implements ResourceObject<T, E>  {
   final fetch:()->Task<T, E> = null;
   final disposables:DisposableCollection = new DisposableCollection();
 
-  var task:Null<Task<T, E>> = null;
   var link:Null<Cancellable> = null;
 
   public function new(fetch) {
     var prevOwner = setCurrentOwner(Some(disposables));
-    this.data = new Signal(Loading);
-    this.loading = this.data.map(status -> status == Loading);
+    
+    this.data = new Signal(Pending);
+    this.loading = this.data.map(status -> switch status {
+      case Loading(_) | Pending: true;
+      default: false;
+    });
     this.fetch = fetch;
+    
     setCurrentOwner(prevOwner);
+    
+    switch prevOwner {
+      case Some(owner): owner.addDisposable(this);
+      case None:
+    }
   }
 
   public function get():T {
-    if (task == null) setupFetch();
+    // Note: It's important we set up the Observer *before* the
+    // signal is accessed for the first time. This will ensure
+    // we don't trigger dependencies more than once.
+    switch data.peek() {
+      case Pending:
+        var prevOwner = setCurrentOwner(Some(disposables));
+        Observer.track(() -> {
+          link?.cancel();
+
+          var handled = false;
+          var task = fetch();
+
+          link = task.handle(result -> switch result {
+            case Ok(value): 
+              handled = true;
+              data.set(Loaded(value));
+            case Error(error): 
+              handled = true;
+              data.set(Error(error));
+          });
+
+          if (!handled) data.set(Loading(task));
+        });
+        setCurrentOwner(prevOwner);
+      default:
+    }
+
     return switch data() {
+      case Pending:
+        throw new BlokException('Data was not initialized');
       case Loaded(value):
         value;
-      case Loading:
+      case Loading(task):
         throw new SuspenseException(task);
       case Error(e): 
         throw e;
@@ -72,25 +110,5 @@ class DefaultResourceObject<T, E = kit.Error> implements ResourceObject<T, E>  {
     link?.cancel();
     link = null;
     disposables.dispose();
-  }
-
-  function setupFetch() {
-    if (task != null) return;
-    var prevOwner = setCurrentOwner(Some(disposables));
-    Observer.track(() -> {
-      var handled = false;
-      task = fetch();
-      link?.cancel();
-      link = task.handle(result -> switch result {
-        case Ok(value): 
-          handled = true;
-          data.set(Loaded(value));
-        case Error(error): 
-          handled = true;
-          data.set(Error(error));
-      });
-      if (!handled) data.set(Loading);
-    });
-    setCurrentOwner(prevOwner);
   }
 }

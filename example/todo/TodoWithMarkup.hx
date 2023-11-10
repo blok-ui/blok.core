@@ -4,7 +4,6 @@ import Breeze;
 import blok.context.*;
 import blok.data.*;
 import blok.html.*;
-import blok.html.View;
 import blok.signal.*;
 import blok.ui.*;
 import haxe.Json;
@@ -108,7 +107,7 @@ class TodoContext extends Model implements Context {
 
 class TodoRoot extends Component {
   function render() {
-    return view(<div className={Breeze.compose(
+    return Html.view(<div className={Breeze.compose(
       Flex.display(),
       Flex.justify('center'),
       Spacing.pad(10),
@@ -134,7 +133,7 @@ class TodoRoot extends Component {
 class TodoHeader extends Component {
   function render():VNode {
     var todos = TodoContext.from(this);
-    return view(<header role="header" className={Breeze.compose(
+    return Html.view(<header role="header" className={Breeze.compose(
       Spacing.pad('x', 3)
     )}>
       <div className={Breeze.compose(
@@ -177,7 +176,7 @@ class TodoHeader extends Component {
 class TodoFooter extends Component {
   function render() {
     var todos = TodoContext.from(this);
-    return view(<footer
+    return Html.view(<footer
       className={Breeze.compose(
         Background.color('black', 0),
         Typography.textColor('white', 0),
@@ -198,7 +197,7 @@ class VisibilityControl extends Component {
   
   function render() {
     var todos = TodoContext.from(this);
-    return view(<li>
+    return Html.view(<li>
       <Button
         action={() -> todos.visibility.set(visibility)}
         selected={new Computation(() -> visibility == todos.visibility())}
@@ -230,7 +229,7 @@ class Button extends Component {
   ];
 
   function render() {
-    return view(<button className=className onClick={_ -> action()}>label</button>);
+    return Html.view(<button className=className onClick={_ -> action()}>label</button>);
   }
 }
 

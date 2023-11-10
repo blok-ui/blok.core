@@ -3,14 +3,13 @@ package counter;
 import Breeze;
 import blok.html.*;
 import blok.html.HtmlEvents;
-import blok.html.View;
 import blok.ui.*;
 import js.Browser;
 
 function counter() {
   Client.mount(
     Browser.document.getElementById('counter-root'),
-    () -> view(<Counter key="foo" count={1} />)
+    () -> Html.view(<Counter key="foo" count={1} />)
   );
 }
 
@@ -18,7 +17,7 @@ class Counter extends Component {
   @:signal final count:Int = 0;
   @:computed final countId:String = 'counter-${count()}';
 
-  function render() return view(<div
+  function render() return Html.view(<div
     id=countId
     className={Breeze.compose(
       Background.color('red', 500),
@@ -74,7 +73,7 @@ class CounterButton extends Component {
   @:children @:attribute final label:Child;
 
   function render() {
-    return view(<button className={Breeze.compose(
+    return Html.view(<button className={Breeze.compose(
       Background.color('white', 0),
       Typography.textColor('red', 500),
       Typography.fontWeight('bold'),

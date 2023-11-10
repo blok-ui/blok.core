@@ -43,7 +43,7 @@ class TagContext {
               switch type {
                 default:
                 case TInst(t, _):
-                  var statics = t.get().statics.get();
+                  var statics = t.get().statics.get().filter(f -> !f.meta.has(':skip'));
                   var field = statics.find(f -> f.name == name.value);
                   if (field != null) {
                     return tags[name.value] = Tag.fromType({

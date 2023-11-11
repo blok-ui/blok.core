@@ -45,7 +45,7 @@ class Provider<T:Providable> extends Component {
     var newContext = create();
     if (newContext != context) {
       context?.dispose();
-      context = create();
+      context = newContext;
     }
     return child(context);
   }

@@ -293,22 +293,24 @@ class TodoInput extends Component {
 class TodoList extends Component {
   function render():VNode {
     var todos = TodoContext.from(this);
-    return Html.section({
-      className: 'main',
-      ariaHidden: todos.total.map(total -> total == 0),
-      style: todos.total.map(total -> total == 0 ? 'visibility:hidden' : null)
-    },
-      Html.ul({
-        className: Breeze.compose(
-          Flex.display(),
-          Flex.gap(3),
-          Flex.direction('column'),
-          Spacing.pad(3)
-        )
-      }, Scope.wrap(_ -> Fragment.node(...[ for (todo in todos.visibleTodos()) 
-        TodoItem.node({ todo: todo }, todo.id)
-      ])))
-    );
+    return Html.view(<section 
+      className="main"
+      ariaHidden={todos.total.map(total -> total == 0)}
+      style={todos.total.map(total -> total == 0 ? 'visibility:hidden' : null)}
+    >
+      <ul className={Breeze.compose(
+        Flex.display(),
+        Flex.gap(3),
+        Flex.direction('column'),
+        Spacing.pad(3)
+      )}>
+        <Scope>
+          {_ -> <>
+            {...[ for (todo in todos.visibleTodos()) <TodoItem todo=todo key={todo.id} /> ]}
+          </>}
+        </Scope>
+      </ul>
+    </section>);
   }
 }
 
@@ -319,38 +321,26 @@ class TodoItem extends Component {
   ];
 
   function render():VNode {
-    return Html.li({
-      id: 'todo-${todo.id}',
-      className: className.map(className -> Breeze.compose(
-        className,
-        Flex.display(),
-        Flex.gap(3),
-        Flex.alignItems('center'),
-        Spacing.pad('y', 3),
-        Border.width('bottom', .5),
-        Border.color('gray', 300),
-        Select.child('last', Border.style('bottom', 'none'))
-      )),
-      onDblClick: _ -> todo.isEditing.set(true),
-    },
-      if (!todo.isEditing()) Fragment.node(
-        Html.input({
-          type: blok.html.HtmlAttributes.InputType.Checkbox,
-          checked: todo.isCompleted,
-          onClick: _ -> todo.isCompleted.update(status -> !status)
-        }),
-        Html.div({
-          className: Spacing.margin('right', 'auto')
-        }, todo.description),
-        Button.node({
-          action: () -> todo.isEditing.set(true),
-          label: 'Edit'
-        }),
-        Button.node({
-          action: () -> TodoContext.from(this).removeTodo(todo),
-          label: 'Remove'
-        })
-      ) else TodoInput.node({
+    return Html.view(<li id={'todo-${todo.id}'} className={className.map(className -> Breeze.compose(
+      className,
+      Flex.display(),
+      Flex.gap(3),
+      Flex.alignItems('center'),
+      Spacing.pad('y', 3),
+      Border.width('bottom', .5),
+      Border.color('gray', 300),
+      Select.child('last', Border.style('bottom', 'none'))
+    ))} onDblClick={_ -> todo.isEditing.set(true)}>
+      {if (!todo.isEditing()) <>
+        <input 
+          type={blok.html.HtmlAttributes.InputType.Checkbox}
+          checked={todo.isCompleted}
+          onClick={_ -> todo.isCompleted.update(status -> !status)}
+        />
+        <div className={Spacing.margin('right', 'auto')}>{todo.description}</div>
+        <Button action={() -> todo.isEditing.set(true)}>'Edit'</Button>
+        <Button action={() -> TodoContext.from(this).removeTodo(todo)}>'Remove'</Button>
+      </> else TodoInput.node({
         className: Breeze.compose(
           'edit',
           Sizing.width('full')
@@ -363,7 +353,7 @@ class TodoItem extends Component {
           todo.description.set(data);
           todo.isEditing.set(false);
         })
-      })
-    );
+      })}
+    </li>);
   }
 }

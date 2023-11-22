@@ -16,7 +16,7 @@ To get a sense of how Blok works, try creating a simple counter app:
 
 ```haxe
 import blok.ui.*;
-import blok.html.View;
+import blok.html.Html;
 
 function main() {
   Client.mount(
@@ -33,7 +33,7 @@ class Counter extends Component {
     count.update(count -> count > 0 ? count - 1 : 0);
   }
 
-  function render() return view(<div>
+  function render() return Html.view(<div>
     <div>count</div>
     <button onClick=decrement>"-"</button>
     <button onClick={ _ -> count.update(count -> count + 1)}>"+"</button>

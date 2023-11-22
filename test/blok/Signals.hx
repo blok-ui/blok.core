@@ -1,12 +1,12 @@
-package blok.state;
+package blok;
 
 import blok.signal.Graph;
 import blok.core.DisposableCollection;
 import blok.signal.*;
 
-class ObserverSpec extends Suite {
+class Signals extends Suite {
 	function execute() {
-		describe('Observer', () -> {
+		describe('blok.signal.Observer', () -> {
 			it('should react to changes in state', spec -> scope(() -> {
 				spec.expect(2);
 

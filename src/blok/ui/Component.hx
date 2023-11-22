@@ -55,10 +55,15 @@ abstract class Component extends ComponentBase {
 
   function __update():Void {
     __updateProps();
-    // @todo: This solves a problem where sometimes the component fails
-    // to render correctly, but it's not ideal. We'd much rather use
-    // `__rendered?.peek()`. Investigate this more.
+    // @todo: The desired behavior here is that `__updateProps` *should*
+    // cause the `__rendered` computation to update if anything changes.
+    // However this seems to not always work as expected, especially
+    // when `Suspenses` are involved (possibly some sort of race conditions?).
+    // Just re-rendering everything seems to work, but it does negate
+    // all the benefit conditional rendering would get us. Investigate 
+    // this more -- we'd much rather use `__rendered?.peek()`.
     __child = updateChild(this, __child, __render(), __slot);
+    // The desired code:
     // __child = updateChild(this, __child, __rendered?.peek(), __slot);
   }
 

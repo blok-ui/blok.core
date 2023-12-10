@@ -82,7 +82,7 @@ class JsonSerializerBuilder implements Builder {
     }
 
     var def = switch field.kind {
-      case FVar(_, e): e;
+      case FVar(_, e) if (e != null): e;
       default: macro null;
     }
 
@@ -100,7 +100,7 @@ class JsonSerializerBuilder implements Builder {
           default: t;
         }
     
-        if (meta != null) switch meta.params {
+        if (meta != null) return switch meta.params {
           case [ macro to = ${to}, macro from = ${from} ] | [ macro from = ${from}, macro to = ${to} ]:
             var serializer = macro {
               var value = $access;
@@ -125,7 +125,7 @@ class JsonSerializerBuilder implements Builder {
               deserializer: deserializer
             };
           case []:
-            Context.warning('There is no need to mark fields with @:json unless you are defining how they should serialize/unserialize', meta.pos);
+            Context.error('There is no need to mark fields with @:json unless you are defining how they should serialize/unserialize', meta.pos);
           default:
             Context.error('Invalid arguments', meta.pos);
         }

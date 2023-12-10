@@ -57,7 +57,10 @@ class ConstructorBuilder implements Builder {
         None;
     }
     var func:Function = switch options.customBuilder {
-      case null if (Context.unify(builder.getType(), (macro:blok.core.DisposableHost).toType())):
+      case null if (
+        Context.unify(builder.getType(), (macro:blok.core.DisposableHost).toType())
+        && late.length > 0
+      ):
         (macro function (props:$propsType) {
           @:mergeBlock $b{init};
           var prevOwner = blok.signal.Graph.setCurrentOwner(Some(this));

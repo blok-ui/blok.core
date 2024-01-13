@@ -15,6 +15,7 @@ final builderFactory = new ClassBuilderFactory([
   new ResourceFieldBuilder(),
   new ChildrenFieldBuilder(),
   new ConstructorBuilder({
+    privateConstructor: true,
     customBuilder: options -> {
       var propType = options.props;
       return (macro function (node:blok.ui.VNode) {

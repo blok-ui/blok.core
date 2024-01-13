@@ -197,10 +197,12 @@ class VisibilityControl extends Component {
   
   function render() {
     var todos = TodoContext.from(this);
+    var isSelected = new Computation(() -> visibility == todos.visibility());
+
     return Html.view(<li>
       <Button
         action={() -> todos.visibility.set(visibility)}
-        selected={new Computation(() -> visibility == todos.visibility())}
+        selected=isSelected
       >visibility</Button>
     </li>);
   }
@@ -293,10 +295,13 @@ class TodoInput extends Component {
 class TodoList extends Component {
   function render():VNode {
     var todos = TodoContext.from(this);
+    var hidden = todos.total.map(total -> total == 0);
+    var style = todos.total.map(total -> total == 0 ? 'visibility:hidden' : null);
+
     return Html.view(<section 
       className="main"
-      ariaHidden={todos.total.map(total -> total == 0)}
-      style={todos.total.map(total -> total == 0 ? 'visibility:hidden' : null)}
+      ariaHidden=hidden
+      style=style
     >
       <ul className={Breeze.compose(
         Flex.display(),

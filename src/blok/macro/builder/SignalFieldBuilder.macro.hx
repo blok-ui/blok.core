@@ -51,11 +51,12 @@ class SignalFieldBuilder implements Builder {
           type: t,
           optional: isOptional
         });
-        builder.addHook('init', if (e == null) {
-          macro this.$name = props.$name;
-        } else {
+        builder.addHook('init', if (isOptional) {
           macro if (props.$name != null) this.$name = props.$name;
+        } else {
+          macro this.$name = props.$name;
         });
+
         if (options.updatable) {
           builder.addHook('update', if (isOptional) {
             macro if (props.$name != null) this.$name.set(props.$name);

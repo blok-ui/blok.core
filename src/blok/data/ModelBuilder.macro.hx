@@ -9,7 +9,7 @@ final builderFactory = new ClassBuilderFactory([
   new ObservableFieldBuilder({ updatable: false }),
   new ComputedFieldBuilder(),
   new ActionFieldBuilder(),
-  new ConstructorBuilder({}),
+  new ConstructorBuilder({ privateConstructor: false }),
   new JsonSerializerBuilder({})
 ]);
 

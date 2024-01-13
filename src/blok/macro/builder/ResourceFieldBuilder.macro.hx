@@ -46,12 +46,12 @@ class ResourceFieldBuilder implements Builder {
           var $backingName:Null<blok.suspense.Resource<$t>> = null;
   
           function $getterName():blok.suspense.Resource<$t> {
-            if (this.$backingName == null) {
-              this.$backingName = this.$createName(); 
-            }
+            blok.debug.Debug.assert(this.$backingName != null);
             return this.$backingName;
           }
         });
+
+        builder.addHook('init:late', macro this.$backingName = this.$createName());
       default:
         meta.pos.error(':resource fields cannot be methods');
     }

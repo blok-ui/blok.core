@@ -7,6 +7,7 @@ using haxe.macro.Tools;
 using blok.macro.MacroTools;
 
 typedef ConstructorBuilderOptions = {
+  public final ?privateConstructor:Bool;
   public final ?customBuilder:(options:{
     builder:ClassBuilder,
     props:ComplexType,
@@ -42,9 +43,9 @@ class ConstructorBuilder implements Builder {
             );
           }
           
-          if (field.access.contains(APublic)) {
+          if (options.privateConstructor == true && field.access.contains(APublic)) {
             Context.error(
-              'Component constructors must be private (remove the `public` keyword)',
+              'Constructor must be private (remove the `public` keyword)',
               field.pos
             );
           }
@@ -99,7 +100,7 @@ class ConstructorBuilder implements Builder {
       case None:
         builder.addField({
           name: 'new',
-          access: [ APublic ],
+          access: if (options.privateConstructor) [ APrivate ] else [ APublic ],
           kind: FFun(func),
           pos: (macro null).pos
         });

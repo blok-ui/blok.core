@@ -1,16 +1,17 @@
 package blok.ui;
 
-import blok.core.DisposableCollection;
 import blok.adaptor.Cursor;
 import blok.debug.Debug;
 import blok.diffing.Differ;
 import blok.signal.Computation;
 import blok.signal.Graph;
+import blok.signal.Isolate;
 
 using blok.boundary.BoundaryTools;
 
 @:autoBuild(blok.ui.ComponentBuilder.build())
 abstract class Component extends ComponentBase {
+  var __isolatedRender:Null<Isolate<VNode>>;
   var __child:Null<ComponentBase> = null;
   var __rendered:Null<Computation<Null<VNode>>> = null;
 
@@ -25,13 +26,17 @@ abstract class Component extends ComponentBase {
       __rendered = null;
     }
 
+    if (__isolatedRender == null) {
+      __isolatedRender = new Isolate(render);
+    }
+
     withOwner(this, () -> {
       __rendered = new Computation(() -> switch __status {
         case Disposing | Disposed: 
           Placeholder.node();
         default:
-          var node = try withOwnedValue(__getLocalOwner(), render) catch (e:Any) {
-            __cleanupLocalOwner();
+          var node = try __isolatedRender() catch (e:Any) {
+            __isolatedRender.cleanup();
             this.tryToHandleWithBoundary(e);
             null;
           }
@@ -41,24 +46,6 @@ abstract class Component extends ComponentBase {
     });
 
     return __rendered?.peek() ?? Placeholder.node();
-  }
-
-  // @todo: Test this, but the `__localOwner` should clean up
-  // any computations/signals created inside the render method.
-  // This isn't the most efficient way to handle things,
-  // and may not even be needed, but I forsee some
-  // issues with memory leaks if we don't do this.
-  var __localOwner:Null<DisposableCollection> = null;
-  
-  inline function __cleanupLocalOwner() {
-    __localOwner?.dispose();
-    __localOwner = null;
-  }
-
-  inline function __getLocalOwner() {
-    __cleanupLocalOwner();
-    __localOwner = new DisposableCollection();
-    return __localOwner;
   }
   
   function __initialize():Void {
@@ -92,8 +79,8 @@ abstract class Component extends ComponentBase {
   }
 
   function __dispose():Void {
-    __localOwner?.dispose();
-    __localOwner = null;
+    __isolatedRender?.dispose();
+    __isolatedRender = null;
     __rendered = null;
   }
 

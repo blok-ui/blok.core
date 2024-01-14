@@ -4,7 +4,7 @@ import blok.adaptor.*;
 import blok.core.*;
 import blok.debug.Debug;
 
-enum abstract ComponentStatus(Int) {
+enum abstract ComponentStatus(#if debug String #else Int #end) {
   final Pending;
   final Valid;
   final Invalid;

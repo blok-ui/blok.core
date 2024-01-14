@@ -41,3 +41,15 @@ class Scheduler {
     for (u in currentUpdates) u();
   }
 }
+
+private var currentScheduler:Maybe<Scheduler> = Some(new Scheduler());
+
+function setCurrentScheduler(scheduler:Maybe<Scheduler>) {
+  var prev = currentScheduler;
+  currentScheduler = scheduler;
+  return prev;
+}
+
+function getCurrentScheduler() {
+  return currentScheduler;
+}

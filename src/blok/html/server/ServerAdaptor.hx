@@ -1,9 +1,9 @@
 package blok.html.server;
 
 import blok.adaptor.*;
+import blok.core.Scheduler;
 import blok.debug.Debug;
 import blok.node.*;
-import blok.core.*;
 import blok.ui.*;
 
 using StringTools;
@@ -13,11 +13,12 @@ typedef ServerAdaptorOptions = {
 };
 
 class ServerAdaptor implements Adaptor {
-  final scheduler = new Scheduler();
+  final scheduler:Scheduler;
   final options:ServerAdaptorOptions;
 
   public function new(?options) {
     this.options = options ?? { prefixTextWithMarker: true };
+    this.scheduler = getCurrentScheduler().orThrow('No scheduler available');
   }
 
 	public function createNode(name:String, attrs:{}):Dynamic {

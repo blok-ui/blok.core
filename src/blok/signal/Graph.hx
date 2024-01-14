@@ -1,5 +1,7 @@
 package blok.signal;
 
+import blok.debug.Debug.warn;
+import blok.core.Scheduler.getCurrentScheduler;
 import blok.core.*;
 
 using Kit;
@@ -103,11 +105,21 @@ function setCurrentConsumer(consumer:Maybe<ConsumerNode>) {
 
 function enqueueConsumer(node:ConsumerNode) {
   if (!pending.has(node)) pending.add(node);
-  validateConsumers(); // @todo: in the future, this should be scheduled.
+  scheduleValidation();
 }
 
-function validateConsumers() {
+function scheduleValidation() {
   if (depth > 0) return;
+  switch getCurrentScheduler() {
+    case Some(scheduler): 
+      scheduler.schedule(validateConsumers);
+    case None: 
+      warn('Using signals without a scheduler can result in strange behavior');
+      validateConsumers();
+  }
+}
+
+private function validateConsumers() {
   for (consumer in pending) {
     pending.remove(consumer);
     consumer.validate();
@@ -118,7 +130,7 @@ function batch(compute:()->Void) {
   depth++;
   compute();
   depth--;
-  validateConsumers();
+  scheduleValidation();
 }
 
 function untrack(compute:()->Void) {

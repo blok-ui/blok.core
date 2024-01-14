@@ -1,9 +1,9 @@
 package blok.html.client;
 
 import blok.adaptor.*;
+import blok.core.Scheduler;
 import blok.debug.Debug;
 import blok.ui.*;
-import blok.core.*;
 import js.Browser;
 import js.html.Element;
 
@@ -12,9 +12,11 @@ using StringTools;
 inline extern final svgNamespace = 'http://www.w3.org/2000/svg';
 
 class ClientAdaptor implements Adaptor {
-  final scheduler = new Scheduler();
+  final scheduler:Scheduler;
 
-  public function new() {}
+  public function new() {
+    scheduler = getCurrentScheduler().orThrow('No scheduler available');
+  }
 
   public function createNode(name:String, initialAttrs:{}):Dynamic {
     return name.startsWith('svg:')

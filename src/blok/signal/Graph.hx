@@ -108,11 +108,22 @@ function enqueueConsumer(node:ConsumerNode) {
   scheduleValidation();
 }
 
+function dequeueConsumer(node:ConsumerNode) {
+  pending.remove(node);
+}
+
+var scheduled:Bool = false;
+
 function scheduleValidation() {
   if (depth > 0) return;
+  if (scheduled) return;
   switch getCurrentScheduler() {
-    case Some(scheduler): 
-      scheduler.schedule(validateConsumers);
+    case Some(scheduler):
+      scheduled = true; 
+      scheduler.schedule(() -> {
+        scheduled = false;
+        validateConsumers();
+      });
     case None: 
       warn('Using signals without a scheduler can result in strange behavior');
       validateConsumers();

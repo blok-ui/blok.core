@@ -18,20 +18,11 @@ abstract class Component extends ComponentBase {
   abstract function setup():Void;
   abstract function render():Child;
   abstract function __updateProps():Void;
-
-  function __render():VNode {
-    if (__rendered != null) {
-      removeDisposable(__rendered);
-      __rendered.dispose();
-      __rendered = null;
-    }
-
-    if (__isolatedRender == null) {
+  
+  function __createRendered() {
+    return withOwnedValue(this, () -> {
       __isolatedRender = new Isolate(render);
-    }
-
-    withOwner(this, () -> {
-      __rendered = new Computation(() -> switch __status {
+      return new Computation(() -> switch __status {
         case Disposing | Disposed: 
           Placeholder.node();
         default:
@@ -44,43 +35,34 @@ abstract class Component extends ComponentBase {
           node ?? Placeholder.node();
       });
     });
-
-    return __rendered?.peek() ?? Placeholder.node();
   }
-  
+
   function __initialize():Void {
-    __child = __render().createComponent();
+    assert(__rendered == null);
+    __rendered = __createRendered();
+    __child = __rendered.peek().createComponent();
     __child?.mount(this, __slot);
     withOwner(this, setup);
   }
 
   function __hydrate(cursor:Cursor):Void {
-    __child = __render().createComponent();
+    assert(__rendered == null);
+    __rendered = __createRendered();
+    __child = __rendered.peek().createComponent();
     __child?.hydrate(cursor, this, __slot);
     withOwner(this, setup);
   }
 
   function __update():Void {
+    assert(__rendered != null);
     __updateProps();
-    __updateChild();
+    __rendered.validateImmediately();
+    __child = updateChild(this, __child, __rendered.peek(), __slot);
   }
 
   function __validate():Void {
-    __updateChild();
-  }
-
-  function __updateChild() {
-    if (__rendered == null) {
-      __child = updateChild(this, __child, __render(), __slot);
-    } else {
-      __child = updateChild(this, __child, __rendered.peek(), __slot);
-    }
-  }
-
-  function __dispose():Void {
-    __isolatedRender?.dispose();
-    __isolatedRender = null;
-    __rendered = null;
+    assert(__rendered != null);
+    __child = updateChild(this, __child, __rendered.peek(), __slot);
   }
 
   function __updateSlot(oldSlot, newSlot:Null<Slot>) {
@@ -103,5 +85,10 @@ abstract class Component extends ComponentBase {
 
   public function visitChildren(visitor:(child:ComponentBase)->Bool) {
     if (__child != null) visitor(__child);
+  }
+
+  function __dispose():Void {
+    __isolatedRender = null;
+    __rendered = null;
   }
 }

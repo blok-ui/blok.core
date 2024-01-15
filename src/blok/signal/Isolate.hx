@@ -12,7 +12,7 @@ import blok.core.*;
   when the component renders again.
 **/
 @:forward
-abstract Isolate<T>(IsolateImpl<T>) to Disposable {
+abstract Isolate<T>(IsolateImpl<T>) to Disposable to DisposableItem {
   @:from 
   public static inline function ofFunction<T>(scope:()->T) {
     return new Isolate(scope);
@@ -35,6 +35,11 @@ class IsolateImpl<T> implements Disposable {
 
   public function new(scope) {
     this.scope = scope;
+    switch getCurrentOwner() {
+      case Some(parent):
+        parent.addDisposable(this);
+      case None:
+    }
   }
 
   public function get():T {

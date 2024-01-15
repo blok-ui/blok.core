@@ -9,7 +9,7 @@ class Scheduler {
 
   public function new() {}
 
-  public function schedule(item) {
+  public function schedule(item:()->Void) {
     if (onUpdate == null) {
       onUpdate = [];
       onUpdate.push(item);

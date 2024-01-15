@@ -109,6 +109,11 @@ class Observer implements ConsumerNode {
     if (err != null) throw err;
   }
 
+  public function validateImmediately() {
+    validate();
+    dequeueConsumer(this);
+  }
+
   public function getVersion() {
     return version;
   }

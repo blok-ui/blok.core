@@ -202,10 +202,10 @@ class SuspenseBoundary extends ComponentBase implements Boundary {
         Ok;
     }
 
-    if (suspenseStatus == Ok) getAdaptor().schedule(() -> {
+    if (suspenseStatus == Ok) {
       setActiveChild();
-      triggerOnComplete();
-    });
+      getAdaptor().schedule(triggerOnComplete);
+    }
   }
 
   function triggerOnSuspended() {

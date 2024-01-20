@@ -9,7 +9,7 @@ function main() {
   }));
 
   // @todo: We're only starting testing. Not much to see here yet.
-  runner.add(blok.Signals2);
+  runner.add(blok.Signals);
 
   runner.run();
 }

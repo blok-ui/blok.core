@@ -113,11 +113,12 @@ class ComputationObject<T> implements Disposable {
             status = Computed(value);
         }
       case Computed(prevValue) if (node.status == Invalid):
-        // Eagerly recompute a value on access even if node validation
-        // is still scheduled.
         var value:T = prevValue;
 
         status = Computing;
+        // We may be recomputing before the node's scheduled validation,
+        // in which case let's optimistically mark the node as valid
+        // now so the scheduled callback can be skipped.
         node.status = Valid;
 
         try node.useAsCurrentConsumer(() -> {

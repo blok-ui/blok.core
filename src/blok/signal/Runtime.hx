@@ -28,7 +28,7 @@ class Runtime {
   final scheduler:Scheduler;
 
   var status:RuntimeStatus = Idle;
-  var epoch:Int = 0;
+  var epoch:Int = 1;
   
   var currentConsumerNode:Null<ReactiveNode> = null;
 

@@ -35,7 +35,7 @@ class ReactiveNode implements Disposable {
   final alwaysLive:Bool;
 
   var version:ReactiveNodeVersion = 0;
-  var lastValidEpoch:Int;
+  var lastValidEpoch:Int = 0;
   var producers:Null<Array<ReactiveNodeProducerLink>> = null;
   var producerNextIndex:Int = 0;
   var consumers:Null<Array<ReactiveNodeLink>> = null;
@@ -43,7 +43,6 @@ class ReactiveNode implements Disposable {
 
   public function new(?runtime, ?onValidate, alwaysLive:Bool = false) {
     this.runtime = runtime ?? Runtime.current();
-    this.lastValidEpoch = runtime.epoch;
     this.onValidate = onValidate;
     this.alwaysLive = alwaysLive;
 
@@ -91,6 +90,7 @@ class ReactiveNode implements Disposable {
   public function validate() {
     var epoch = runtime.epoch;
 
+    if (isLive() && status == Valid) return;
     if (status == Valid && epoch == lastValidEpoch) return;
 
     if (!pollProducers()) {
@@ -99,10 +99,24 @@ class ReactiveNode implements Disposable {
       return;
     }
 
+    // @todo: Lock signal writing here?
     if (onValidate != null) onValidate(this);
 
     status = Valid;
     lastValidEpoch = epoch;
+  }
+
+  function pollProducers():Bool {
+    ensureConsumerNode();
+
+    for (link in producers) {
+      var lastSeenVersion = link.lastSeenVersion;
+      if (lastSeenVersion != link.node.version) return true;
+      link.node.validate();
+      if (lastSeenVersion != link.node.version) return true;
+    }
+
+    return false;
   }
 
   public function addProducer(producer:ReactiveNode) {
@@ -132,24 +146,6 @@ class ReactiveNode implements Disposable {
     producers[index].lastSeenVersion = producer.version;
   }
 
-  function maybeValidate() {
-    if (isLive() && status == Valid) return;
-    validate();
-  }
-
-  function pollProducers():Bool {
-    ensureConsumerNode();
-
-    for (link in producers) {
-      var lastSeenVersion = link.lastSeenVersion;
-      if (lastSeenVersion != link.node.version) return true;
-      link.node.maybeValidate();
-      if (lastSeenVersion != link.node.version) return true;
-    }
-
-    return false;
-  }
-
   public function addConsumerAt(index:Int, consumer:ReactiveNode):Int {
     runtime.assertNotNotifying();
 
@@ -176,6 +172,8 @@ class ReactiveNode implements Disposable {
 
     assert(consumers.length >= index, 'Consumer index ${index} is out of bounds of ${consumers.length}');
 
+    // If we're removing the last consumer from this node its producers
+    // no longer need to update it.
     if (consumers.length == 1) for (link in producers) {
       link.node.removeConsumerAt(link.foreignIndex);
     }

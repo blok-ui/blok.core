@@ -56,13 +56,3 @@ class Scheduler {
     for (u in currentUpdates) u();
   }
 }
-
-@:deprecated('Use Scheduler.setCurrent')
-function setCurrentScheduler(scheduler:Maybe<Scheduler>) {
-  return Some(Scheduler.setCurrent(scheduler.unwrap()));
-}
-
-@:deprecated('Use Scheduler.current')
-function getCurrentScheduler() {
-  return Some(Scheduler.current());
-}

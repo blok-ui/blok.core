@@ -22,12 +22,12 @@ final builderFactory = new ClassBuilderFactory([
         __node = node;
         var props:$propType = __node.getProps();
         ${options.inits}
-        var prevOwner = blok.signal.Graph.setCurrentOwner(Some(this));
+        var prevOwner = blok.signal.Owner.setCurrent(this);
         try ${options.lateInits} catch (e) {
-          blok.signal.Graph.setCurrentOwner(prevOwner);
+          blok.signal.Owner.setCurrent(prevOwner);
           throw e;
         }
-        blok.signal.Graph.setCurrentOwner(prevOwner);
+        blok.signal.Owner.setCurrent(prevOwner);
         ${switch options.previousExpr {
           case Some(expr): macro blok.signal.Observer.untrack(() -> $expr);
           case None: macro null;
@@ -62,8 +62,10 @@ class ComponentBuilder implements Builder {
         return new blok.ui.VComponent(componentType, props, $i{cls.name}.new, key);
       }
   
+      @:fromMarkup
       @:noUsing
-      public inline static function fromMarkup(props:$markupType):blok.ui.VNode {
+      @:noCompletion
+      public inline static function __fromMarkup(props:$markupType):blok.ui.VNode {
         return node(props, props.key);
       }
     };
@@ -80,7 +82,7 @@ class ComponentBuilder implements Builder {
       .unwrap()
       .applyParameters(createParams));
     builder.addField(constructors
-      .getField('fromMarkup')
+      .getField('__fromMarkup')
       .unwrap()
       .withPos(cls.pos)
       .applyParameters(createParams));
@@ -89,10 +91,10 @@ class ComponentBuilder implements Builder {
       public static final componentType = new kit.UniqueId();
   
       function __updateProps() {
-        blok.signal.Action.run(() -> {
+        // blok.signal.Action.run(() -> {
           var props:$propType = __node.getProps();
           @:mergeBlock $b{updates};
-        });
+        // });
       }
       
       public function canBeUpdatedByNode(node:blok.ui.VNode):Bool {

@@ -4,7 +4,7 @@ import blok.adaptor.*;
 import blok.core.Disposable;
 import blok.debug.Debug;
 import blok.diffing.Differ;
-import blok.signal.Graph;
+import blok.signal.Owner;
 import blok.signal.Observer;
 import blok.signal.Signal;
 
@@ -44,8 +44,8 @@ class RealNodeComponent extends ComponentBase implements RealNodeHost {
       }
     }
 
-    withOwner(this, () -> for (name in fields) {
-      var signal:ReadonlySignal<Any> = Reflect.field(props, name);
+    Owner.with(this, () -> for (name in fields) {
+      var signal:ReadOnlySignal<Any> = Reflect.field(props, name);
       var updater = updaters.get(name);
 
       // @todo: Investigate this null case a bit more.
@@ -137,7 +137,7 @@ class RealNodeComponent extends ComponentBase implements RealNodeHost {
 
 class RealNodePropertyUpdater<T> implements Disposable {
   final name:String;
-  final changeSignal:Signal<ReadonlySignal<T>>;
+  final changeSignal:Signal<ReadOnlySignal<T>>;
   final observer:Observer;
   final setAttribute:(name:String, oldValue:T, newValue:T)->Void;
 
@@ -145,7 +145,7 @@ class RealNodePropertyUpdater<T> implements Disposable {
   
   public function new(
     name:String,
-    propSignal:ReadonlySignal<T>,
+    propSignal:ReadOnlySignal<T>,
     setAttribute
   ) {
     this.name = name;
@@ -162,7 +162,7 @@ class RealNodePropertyUpdater<T> implements Disposable {
     });
   }
 
-  public function update(newSignal:ReadonlySignal<T>) {
+  public function update(newSignal:ReadOnlySignal<T>) {
     changeSignal.set(newSignal);
   }
 

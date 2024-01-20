@@ -15,7 +15,8 @@ class ClientAdaptor implements Adaptor {
   final scheduler:Scheduler;
 
   public function new() {
-    scheduler = getCurrentScheduler().orThrow('No scheduler available');
+    // scheduler = getCurrentScheduler().orThrow('No scheduler available');
+    scheduler = Scheduler.current();
   }
 
   public function createNode(name:String, initialAttrs:{}):Dynamic {

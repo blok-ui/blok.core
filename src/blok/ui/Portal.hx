@@ -11,6 +11,16 @@ typedef PortalProps = {
 class Portal extends ComponentBase {
   public static final componentType = new UniqueId();
 
+  @:fromMarkup
+  @:noUsing
+  @:noCompletion
+  public static inline function fromMarkup(props:{
+    public final target:Dynamic;
+    @:children public final child:()->Child;
+  }) {
+    return wrap(props.target, props.child);
+  };
+
   public inline static function wrap(target:Dynamic, child:()->Child, ?key) {
     return node({
       target: target,

@@ -34,14 +34,14 @@ class ObservableFieldBuilder implements Builder {
       case FVar(t, e) if (options.updatable):
         var backingName = '__backing_$name';
         var type = switch t {
-          case macro:Null<$t>: macro:blok.signal.Signal.ReadonlySignal<Null<$t>>;
-          default: macro:blok.signal.Signal.ReadonlySignal<$t>;
+          case macro:Null<$t>: macro:blok.signal.Signal.ReadOnlySignal<Null<$t>>;
+          default: macro:blok.signal.Signal.ReadOnlySignal<$t>;
         }
         var isOptional = e != null;
         var expr = switch e {
           case null: macro null; // Won't actually be used.
-          case macro null: macro new blok.signal.Signal.ReadonlySignal(null);
-          default: macro cast ($e:blok.signal.Signal.ReadonlySignal<$t>);
+          case macro null: macro new blok.signal.Signal.ReadOnlySignal(null);
+          default: macro cast ($e:blok.signal.Signal.ReadOnlySignal<$t>);
         };
   
         field.kind = FVar(type, null);
@@ -77,8 +77,8 @@ class ObservableFieldBuilder implements Builder {
         });
       case FVar(t, e):
         var type = switch t {
-          case macro:Null<$t>: macro:blok.signal.Signal.ReadonlySignal<Null<$t>>;
-          default: macro:blok.signal.Signal.ReadonlySignal<$t>;
+          case macro:Null<$t>: macro:blok.signal.Signal.ReadOnlySignal<Null<$t>>;
+          default: macro:blok.signal.Signal.ReadOnlySignal<$t>;
         }
         
         field.kind = FVar(type, switch e {

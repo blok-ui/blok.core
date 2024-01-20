@@ -1,7 +1,9 @@
 package blok.ui;
 
+import blok.signal.Runtime;
+import blok.signal.Observer;
 import blok.adaptor.*;
-import blok.signal.Graph;
+import blok.signal.Owner;
 
 class RootComponent extends ComponentBase implements RealNodeHost {
   public static final componentType = new UniqueId();
@@ -31,8 +33,8 @@ class RootComponent extends ComponentBase implements RealNodeHost {
     this.__adaptor = adaptor;
   }
 
-  function render() {
-    return withOwnedValue(this, ()-> untrackValue(child));
+  function render():Child {
+    return Owner.with(this, ()-> Runtime.current().withNoConsumer(child));
   }
 
   function __initialize() {

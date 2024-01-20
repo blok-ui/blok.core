@@ -12,7 +12,7 @@ abstract Text(VNode) to VNode from VNode {
     return TextComponent.node(value);
   }
 
-  @:from public static function ofSignal(signal:ReadonlySignal<String>):Text {
+  @:from public static function ofSignal(signal:ReadOnlySignal<String>):Text {
     return Scope.node({ child: _ -> Text.node(signal.get()) });
   }
 

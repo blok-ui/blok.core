@@ -1,7 +1,8 @@
 package blok.suspense;
 
+import blok.signal.Computation;
 import blok.core.*;
-import blok.signal.Graph;
+import blok.signal.Owner;
 import blok.signal.Observer;
 import blok.signal.Signal;
 
@@ -34,14 +35,14 @@ enum ResourceStatus<T, E = kit.Error> {
 }
 
 interface ResourceObject<T, E = kit.Error> extends Disposable {
-  public final data:ReadonlySignal<ResourceStatus<T, E>>;
-  public final loading:ReadonlySignal<Bool>;
+  public final data:ReadOnlySignal<ResourceStatus<T, E>>;
+  public final loading:ReadOnlySignal<Bool>;
   public function get():T;
 }
 
 class DefaultResourceObject<T, E = kit.Error> implements ResourceObject<T, E>  {
   public final data:Signal<ResourceStatus<T, E>>;
-  public final loading:ReadonlySignal<Bool>;
+  public final loading:ReadOnlySignal<Bool>;
 
   final fetch:()->Task<T, E> = null;
   final disposables:DisposableCollection = new DisposableCollection();
@@ -49,21 +50,22 @@ class DefaultResourceObject<T, E = kit.Error> implements ResourceObject<T, E>  {
   var link:Null<Cancellable> = null;
 
   public function new(fetch) {
-    var prevOwner = setCurrentOwner(Some(disposables));
+    var prevOwner = Owner.setCurrent(disposables);
     
     this.data = new Signal(Pending);
-    this.loading = this.data.map(status -> switch status {
+    // this.loading = this.data.map(status -> switch status {
+    //   case Loading(_) | Pending: true;
+    //   default: false;
+    // });
+    this.loading = new Computation(() -> switch data() {
       case Loading(_) | Pending: true;
       default: false;
     });
     this.fetch = fetch;
     
-    setCurrentOwner(prevOwner);
+    Owner.setCurrent(prevOwner);
     
-    switch prevOwner {
-      case Some(owner): owner.addDisposable(this);
-      case None:
-    }
+    prevOwner?.addDisposable(this);
   }
 
   public function get():T {
@@ -72,7 +74,7 @@ class DefaultResourceObject<T, E = kit.Error> implements ResourceObject<T, E>  {
     // we don't trigger dependencies more than once.
     switch data.peek() {
       case Pending:
-        var prevOwner = setCurrentOwner(Some(disposables));
+        var prevOwner = Owner.setCurrent(disposables);
         Observer.track(() -> {
           link?.cancel();
 
@@ -90,7 +92,7 @@ class DefaultResourceObject<T, E = kit.Error> implements ResourceObject<T, E>  {
 
           if (!handled) data.set(Loading(task));
         });
-        setCurrentOwner(prevOwner);
+        Owner.setCurrent(prevOwner);
       default:
     }
 

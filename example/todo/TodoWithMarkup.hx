@@ -354,10 +354,14 @@ class TodoItem extends Component {
         value: todo.description.peek(),
         clearOnComplete: false,
         onCancel: () -> todo.isEditing.set(false),
-        onSubmit: data -> Action.run(() -> {
+        onSubmit: data -> {
           todo.description.set(data);
           todo.isEditing.set(false);
-        })
+        }
+        // onSubmit: data -> Action.run(() -> {
+        //   todo.description.set(data);
+        //   todo.isEditing.set(false);
+        // })
       })}
     </li>);
   }

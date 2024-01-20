@@ -10,7 +10,7 @@ using haxe.macro.Tools;
 
 // @todo: Probably rip off tink_hxx a little less comprehensively here.
 class Tag {
-  public static final fromMarkup = 'fromMarkup';
+  public static final fromMarkupMeta = ':fromMarkup';
   
   public static function fromType(locatedName:Located<String>, type:Type, isBuiltin:Bool = false):Tag {
     var name = locatedName.value;
@@ -23,13 +23,20 @@ class Tag {
       case TInst(t, _):
         var cls = t.get();
         var statics = cls.statics.get();
-        var field = statics.find(f -> f.name == fromMarkup);
+        var field = statics.find(f -> f.meta.has(fromMarkupMeta));
         
         if (field == null) {
-          reject('it does not have a [$fromMarkup] static method.');
+          reject('it does not have a [$fromMarkupMeta] static method.');
         }
 
-        processType(name, cls.pack.concat([ cls.name ]).join('.'), field.type, FromMarkupMethod, isBuiltin, pos);
+        processType(
+          name,
+          cls.pack.concat([ cls.name ]).join('.'),
+          field.type,
+          FromMarkupMethod(field.name),
+          isBuiltin,
+          pos
+        );
       case TType(_.get() => { pack: [], name: t }, []) if (t.startsWith('Class<')):  
         return fromType(locatedName, Context.getType(name), isBuiltin);
       case TFun(_, _):
@@ -71,7 +78,7 @@ class TagAttributes {
 
 enum TagKind {
   FunctionCall;
-  FromMarkupMethod;
+  FromMarkupMethod(name:String);
 }
 
 enum TagChildrenAttribute {
@@ -92,8 +99,8 @@ private function processType(name:String, path:String, type:Type, kind:TagKind, 
     case TFun(args, ret):
       args = args.copy();
       switch args[0] {
-        case null if (kind == FromMarkupMethod):
-          reject('its ${Tag.fromMarkup} method has no arguments (expected at least one)');
+        case null if (kind.match(FromMarkupMethod(_))):
+          reject('its ${Tag.fromMarkupMeta} method has no arguments (expected at least one)');
         case null:
           reject('it has no arguments (expected at least one)');
 
@@ -131,14 +138,14 @@ private function processType(name:String, path:String, type:Type, kind:TagKind, 
               attributesType: props.t,
               childrenAttribute: childrenAttr
             }, isBuiltin);
-          case _ if (kind == FromMarkupMethod):
-            reject('its ${Tag.fromMarkup} method must have a first argument that is an anonymous object');
+          case _ if (kind.match(FromMarkupMethod(_))):
+            reject('its ${Tag.fromMarkupMeta} method must have a first argument that is an anonymous object');
           default:
             reject('it must have a first argument that is an anonymous object');
         }
       }
-    case _ if (kind == FromMarkupMethod):
-      reject('its ${Tag.fromMarkup} field is not a function');
+    case _ if (kind.match(FromMarkupMethod(_))):
+      reject('its ${Tag.fromMarkupMeta} field is not a function');
     default:
       reject('it is not a function');
   }

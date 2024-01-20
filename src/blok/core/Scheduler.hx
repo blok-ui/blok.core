@@ -1,6 +1,21 @@
 package blok.core;
 
 class Scheduler {
+  private static var instance:Null<Scheduler> = null;
+
+  public static function setCurrent(scheduler:Scheduler):Scheduler {
+    var prev = instance;
+    instance = scheduler;
+    return prev;
+  }
+
+  public static function current() {
+    if (instance == null) {
+      instance = new Scheduler();
+    }
+    return instance;
+  }
+
   #if js
   static final hasRaf:Bool = js.Syntax.code("typeof window != 'undefined' && 'requestAnimationFrame' in window");
   #end
@@ -42,14 +57,12 @@ class Scheduler {
   }
 }
 
-private var currentScheduler:Maybe<Scheduler> = Some(new Scheduler());
-
+@:deprecated('Use Scheduler.setCurrent')
 function setCurrentScheduler(scheduler:Maybe<Scheduler>) {
-  var prev = currentScheduler;
-  currentScheduler = scheduler;
-  return prev;
+  return Some(Scheduler.setCurrent(scheduler.unwrap()));
 }
 
+@:deprecated('Use Scheduler.current')
 function getCurrentScheduler() {
-  return currentScheduler;
+  return Some(Scheduler.current());
 }

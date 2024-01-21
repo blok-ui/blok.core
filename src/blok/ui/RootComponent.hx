@@ -34,7 +34,7 @@ class RootComponent extends ComponentBase implements RealNodeHost {
   }
 
   function render():Child {
-    return Owner.with(this, ()-> Runtime.current().withNoConsumer(child));
+    return Owner.with(this, ()-> Runtime.current().untrack(child));
   }
 
   function __initialize() {

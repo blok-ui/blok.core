@@ -5,7 +5,7 @@ import blok.core.Disposable;
 @:forward(dispose)
 abstract Observer(ReactiveNode) to Disposable {
   public static function untrack(effect:()->Void) {
-    Runtime.current().withCurrentConsumer(null, effect);
+    Runtime.current().untrack(effect);
   }
 
   public inline static function track(effect:()->Void):Disposable {

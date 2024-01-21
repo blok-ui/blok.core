@@ -70,11 +70,11 @@ class Runtime {
     if (finish != null) finish();
   }
 
-  public inline function withNoConsumer<T>(handler:()->T):T {
-    return withCurrentConsumer(null, handler);
+  public inline function untrack<T>(handler:()->T):T {
+    return track(null, handler);
   }
 
-  public function withCurrentConsumer<T>(node:ReactiveNode, handler:()->T, ?finish:()->Void):T {
+  public function track<T>(node:ReactiveNode, handler:()->T, ?finish:()->Void):T {
     var prev = setCurrentConsumer(node);
     var value = try handler() catch (e) {
       if (finish != null) finish();

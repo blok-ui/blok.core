@@ -63,7 +63,7 @@ class ReactiveNode implements Disposable {
     producerNextIndex = 0;
     ensureConsumerNode();
     
-    runtime.withCurrentConsumer(this, () -> effect(), () -> {
+    runtime.track(this, () -> effect(), () -> {
       if (isLive()) for (index in producerNextIndex...producers.length) {
         var link = producers[index];
         link.node.removeConsumerAt(link.foreignIndex);

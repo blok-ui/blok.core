@@ -1,10 +1,9 @@
 package blok.signal;
 
 import blok.signal.Computation;
-import blok.core.Disposable;
 
 @:forward
-abstract Signal<T>(SignalObject<T>) to ReadOnlySignal<T> to Disposable {
+abstract Signal<T>(SignalObject<T>) to ReadOnlySignal<T> {
   @:from 
   public static function ofValue<T>(value:T):Signal<T> {
     return new Signal(value);
@@ -19,12 +18,20 @@ abstract Signal<T>(SignalObject<T>) to ReadOnlySignal<T> to Disposable {
     return this.get();
   }
 
+  public inline function peek() {
+    return this.peek();
+  }
+
   public inline function map<R>(transform:(value:T)->R):ReadOnlySignal<R> {
     return new Computation(() -> transform(get()));
   }
+
+  public inline function readOnly():ReadOnlySignal<T> {
+    return this;
+  }
 }
 
-class SignalObject<T> implements Disposable {
+class SignalObject<T> {
   final node:ReactiveNode;
   final equal:(a:T, b:T)->Bool;
 
@@ -57,10 +64,6 @@ class SignalObject<T> implements Disposable {
 
   public function update(handler:(oldValue:T)->T) {
     set(handler(value));
-  }
-
-  public function dispose() {
-    node.dispose();
   }
 }
 
@@ -102,5 +105,9 @@ abstract ReadOnlySignal<T>(ReadOnlySignalObject<T>)
   @:op(a())
   public inline function get():T {
     return this.get();
-  }  
+  }
+
+  public inline function peek() {
+    return this.peek();
+  }
 }

@@ -167,7 +167,7 @@ class RealNodePropertyUpdater<T> implements Disposable {
   }
 
   public function dispose() {
-    changeSignal.dispose();
+    // changeSignal.dispose();
     observer.dispose();
     // @todo: Not 100% on needing this:
     // @todo: This seems to be setting the attribute to null,

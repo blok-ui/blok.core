@@ -23,13 +23,13 @@ typedef ReactiveNodeProducerLink = ReactiveNodeLink & {
 
 typedef ReactiveNodeVersion = Int; 
 
-enum abstract ReactiveNodeStatus(Bool) {
-  final Valid = false;
-  final Invalid = true;
+enum abstract ReactiveNodeStatus(Int) {
+  final Valid = 0;
+  final Invalid = 1;
 }
 
 @:allow(blok.signal)
-class ReactiveNode implements Disposable {
+class ReactiveNode {
   final runtime:Runtime;
   final onValidate:Null<(node:ReactiveNode)->Void>;
   final alwaysLive:Bool;
@@ -45,8 +45,6 @@ class ReactiveNode implements Disposable {
     this.runtime = runtime ?? Runtime.current();
     this.onValidate = onValidate;
     this.alwaysLive = alwaysLive;
-
-    Owner.current()?.addDisposable(this);
   }
 
   public function isLive() {
@@ -178,23 +176,27 @@ class ReactiveNode implements Disposable {
       link.node.removeConsumerAt(link.foreignIndex);
     }
     
+    // Move the last link in our consumers array into the spot that
+    // just became available. If there's only a single consumer
+    // this will effectively clear the array.
     var lastIndex = consumers.length - 1;
+    var link = consumers[lastIndex];
 
-    consumers[index] = consumers[lastIndex];
-    consumers.resize(consumers.length - 1);
+    consumers[index] = link;
+    consumers.resize(lastIndex > 0 ? lastIndex : 0);
 
+    // If the index is still valid, update the link's pointers
+    // to the new index.
     if (index < consumers.length) {
-      var link = consumers[index];
-      var consumer = link.node;
-      var foreignIndex = link.foreignIndex;
-      
-      consumer.ensureConsumerNode();
-      consumer.producers[foreignIndex].foreignIndex = index;
+      link.node.ensureConsumerNode();
+      link.node.producers[link.foreignIndex].foreignIndex = index;
     }
   }
 
-  public function dispose() {
-    if (isLive() && producers != null) for (link in producers) {
+  public function disconnect() {
+    ensureConsumerNode();
+
+    if (isLive()) for (link in producers) {
       link.node.removeConsumerAt(link.foreignIndex);
     }
 

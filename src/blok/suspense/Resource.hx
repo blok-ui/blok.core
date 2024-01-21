@@ -53,10 +53,6 @@ class DefaultResourceObject<T, E = kit.Error> implements ResourceObject<T, E>  {
     var prevOwner = Owner.setCurrent(disposables);
     
     this.data = new Signal(Pending);
-    // this.loading = this.data.map(status -> switch status {
-    //   case Loading(_) | Pending: true;
-    //   default: false;
-    // });
     this.loading = new Computation(() -> switch data() {
       case Loading(_) | Pending: true;
       default: false;

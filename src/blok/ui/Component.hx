@@ -20,6 +20,8 @@ abstract class Component extends ComponentBase {
   @:noCompletion abstract function __updateProps():Void;
   
   @:noCompletion function __createRendered() {
+    // @todo: With new new Signal model, we probably don't need the 
+    // Isolate anymore?
     return Owner.with(this, () -> {
       __isolatedRender = new Isolate(render);
       return Computation.eager(() -> switch __status {
@@ -87,7 +89,7 @@ abstract class Component extends ComponentBase {
   }
 
   @:noCompletion function __dispose():Void {
-    __isolatedRender = null;
+    // __isolatedRender = null;
     __rendered = null;
   }
 }

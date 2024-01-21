@@ -6,7 +6,11 @@ import blok.signal.Signal;
 import haxe.Exception;
 
 @:forward
-abstract Computation<T>(ComputationObject<T>) from ComputationObject<T> to Disposable {
+abstract Computation<T>(ComputationObject<T>) 
+  from ComputationObject<T>
+  to DisposableItem
+  to Disposable 
+{
   /**
     Eager Computations will always recompute, even if they don't
     have any consumers of their own.
@@ -47,6 +51,7 @@ abstract Computation<T>(ComputationObject<T>) from ComputationObject<T> to Dispo
 enum ComputationStatus<T> {
   Uninitialized;
   Computing;
+  Disposed(lastValue:T);
   Computed(value:T);
   Errored(e:Exception);
 }
@@ -54,8 +59,8 @@ enum ComputationStatus<T> {
 class ComputationObject<T> implements Disposable {
   final factory:()->T;
   final equals:(a:T, b:T)->Bool;
-  final node:ReactiveNode;
   
+  var node:Null<ReactiveNode>;
   var status:ComputationStatus<T> = Uninitialized;
 
   public function new(factory, ?equals, ?alwaysLive) {
@@ -66,11 +71,12 @@ class ComputationObject<T> implements Disposable {
       _ -> compute(),
       alwaysLive
     );
+    if (alwaysLive) Owner.current()?.addDisposable(this);
   }
 
   public function get():T {
     compute();
-    node.accessed();
+    node?.accessed();
     return resolveValue();
   }
 
@@ -80,7 +86,15 @@ class ComputationObject<T> implements Disposable {
   }
 
   public function dispose() {
-    node.dispose();
+    switch status {
+      case Disposed(_):
+      case Computed(value):
+        status = Disposed(value);
+        node?.disconnect();
+        node = null;
+      default:
+        // @todo: Is this an error?
+    }
   }
 
   function resolveValue() {
@@ -93,12 +107,16 @@ class ComputationObject<T> implements Disposable {
         error('Cycle detected');
       case Computed(value):
         value;
+      case Disposed(lastValue):
+        lastValue;
     };
   }
 
   function compute() {
     switch status {
       case Uninitialized:
+        assert(node != null);
+
         var value:Null<T> = null;
 
         status = Computing;
@@ -112,7 +130,7 @@ class ComputationObject<T> implements Disposable {
           default: 
             status = Computed(value);
         }
-      case Computed(prevValue) if (node.status == Invalid):
+      case Computed(prevValue) if (node != null && node.status == Invalid):
         var value:T = prevValue;
 
         status = Computing;

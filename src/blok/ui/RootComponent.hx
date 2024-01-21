@@ -1,9 +1,8 @@
 package blok.ui;
 
-import blok.signal.Runtime;
-import blok.signal.Observer;
 import blok.adaptor.*;
 import blok.signal.Owner;
+import blok.signal.Runtime;
 
 class RootComponent extends ComponentBase implements RealNodeHost {
   public static final componentType = new UniqueId();

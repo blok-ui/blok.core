@@ -2,6 +2,8 @@ package blok.signal;
 
 import blok.core.*;
 
+// @todo: Rethink Owner. May not work (or really be needed) with the
+// Angular-based signals we're using here.
 class Owner implements DisposableHost implements Disposable {
   static var currentOwner:Null<DisposableHost> = null;
 

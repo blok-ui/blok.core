@@ -18,7 +18,7 @@ class ServerAdaptor implements Adaptor {
 
   public function new(?options) {
     this.options = options ?? { prefixTextWithMarker: true };
-    this.scheduler = getCurrentScheduler().orThrow('No scheduler available');
+    this.scheduler = Scheduler.current();
   }
 
 	public function createNode(name:String, attrs:{}):Dynamic {

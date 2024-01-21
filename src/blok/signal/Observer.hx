@@ -1,10 +1,10 @@
 package blok.signal;
 
-import blok.core.Disposable;
+import blok.core.*;
 
 @:forward(dispose)
-abstract Observer(ReactiveNode) to Disposable {
-  public static function untrack(effect:()->Void) {
+abstract Observer(ObserverObject) to DisposableItem to Disposable {
+  public static function untrack(effect:()->Void):Void {
     Runtime.current().untrack(effect);
   }
 
@@ -13,11 +13,26 @@ abstract Observer(ReactiveNode) to Disposable {
   }
 
   public function new(effect:()->Void) {
-    this = new ReactiveNode(
+    this = new ObserverObject(effect);
+  }  
+}
+
+class ObserverObject implements Disposable {
+  var node:Null<ReactiveNode>;
+
+  public function new(effect:()->Void) {
+    this.node = new ReactiveNode(
       Runtime.current(),
       node -> node.useAsCurrentConsumer(effect),
       true
     );
-    this.useAsCurrentConsumer(effect);
-  }  
+    node.useAsCurrentConsumer(effect);
+    Owner.current()?.addDisposable(this);
+  }
+
+  public function dispose() {
+    if (node == null) return;
+    node.disconnect();
+    node = null;
+  }
 }

@@ -8,7 +8,7 @@
   "contributors": [
     "wartman"
   ],
-  "releasenote": "Improved Macro api and Resource api",
+  "releasenote": "Refactored signals",
   "version": "0.8.0-alpha.1",
   "url": "https://github.com/blok-ui/blok.core",
   "dependencies": {

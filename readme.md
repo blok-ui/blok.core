@@ -28,7 +28,6 @@ function main() {
 class Counter extends Component {
   @:signal final count:Int = 0;
 
-  @:action
   function decrement(_:blok.html.HtmlEvents.Event) {
     count.update(count -> count > 0 ? count - 1 : 0);
   }

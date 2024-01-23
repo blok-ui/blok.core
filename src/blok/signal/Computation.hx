@@ -63,25 +63,30 @@ class ComputationObject<T> implements Disposable {
   var node:Null<ReactiveNode>;
   var status:ComputationStatus<T> = Uninitialized;
 
-  public function new(factory, ?equals, ?alwaysLive) {
+  public function new(factory, ?equals, ?alwaysLive:Bool) {
     this.factory = factory;
     this.equals = equals ?? (a, b) -> a == b;
-    this.node = new ReactiveNode(
-      Runtime.current(),
-      _ -> compute(),
-      alwaysLive
-    );
-    if (alwaysLive) Owner.current()?.addDisposable(this);
+    this.node = new ReactiveNode(Runtime.current(), _ -> compute(), {
+      alwaysLive: alwaysLive,
+      forceValidation: _ -> switch status  {
+        case Uninitialized: true;
+        default: false;
+      }
+    });
+    if (alwaysLive == true) Owner.current()?.addDisposable(this);
   }
 
   public function get():T {
-    compute();
+    // We always validate the node to ensure we have the most
+    // up-to-date value. This can mean the node is validated
+    // before it would usually be scheduled.
+    node?.validate();
     node?.accessed();
     return resolveValue();
   }
 
   public function peek():T {
-    compute();
+    node?.validate();
     return resolveValue();
   }
 
@@ -99,7 +104,7 @@ class ComputationObject<T> implements Disposable {
 
   function resolveValue() {
     return switch status {
-      case Uninitialized: 
+      case Uninitialized:
         error('No value computed');
       case Errored(e):
         throw e;
@@ -130,14 +135,10 @@ class ComputationObject<T> implements Disposable {
           default: 
             status = Computed(value);
         }
-      case Computed(prevValue) if (node != null && node.status == Invalid):
+      case Computed(prevValue):
         var value:T = prevValue;
 
         status = Computing;
-        // We may be recomputing before the node's scheduled validation,
-        // in which case let's optimistically mark the node as valid
-        // now so the scheduled callback can be skipped.
-        node.status = Valid;
 
         try node.useAsCurrentConsumer(() -> {
           var newValue = factory();

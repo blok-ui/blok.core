@@ -21,11 +21,9 @@ class ObserverObject implements Disposable {
   var node:Null<ReactiveNode>;
 
   public function new(effect:()->Void) {
-    this.node = new ReactiveNode(
-      Runtime.current(),
-      node -> node.useAsCurrentConsumer(effect),
-      true
-    );
+    this.node = new ReactiveNode(Runtime.current(), node -> node.useAsCurrentConsumer(effect), {
+      alwaysLive: true
+    });
     node.useAsCurrentConsumer(effect);
     Owner.current()?.addDisposable(this);
   }

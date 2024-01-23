@@ -47,7 +47,7 @@ Signals
 
 Blok is a *reactive framework*. When a value changes, it automatically tracks it and updates as needed.
 
-The core mechanism to make this possible are *Signals*. Blok's implementation is based heavily on [Preact's Signals](https://github.com/preactjs/signals) and on the implementation used by [Angular](https://github.com/angular/angular/tree/d32767da06dd3a05930f177fd14a9fed49cbb8d1/packages/core/primitives/signals).
+The core mechanism to make this possible are *Signals*. Blok's implementation is based heavily on [Preact's Signals](https://github.com/preactjs/signals) and (especially) on the implementation used by [Angular](https://github.com/angular/angular/blob/4be253483d045cfee6b42766c9dfd8c9888057e0/packages/core/primitives/signals).
 
 Generally you won't be creating Signals directly (we'll get into why in the Components and Models sections below), but it's useful to understand what's going on with them. Lets set up a simple example:
 
@@ -94,7 +94,9 @@ If you run this code, you'll notice something: it traces "foo", "foobar" and fin
 
 > Note: if you want to get the value of a Signal *without* subscribing to it, you can use the `peek` method (e.g. `foo.peek()`).
 
-> Todo: There are still a few more things to explain, mainly `Computation` and `Action`.
+Note that when signals change their Observers will update *asynchronously* since Blok uses a scheduling mechanism behind the scenes. This is to ensure that other asynchronous events, like HTTP requests, don't update out of order and potentially cause strange behavior.
+
+> Todo: Explain `Computation`, especially the fact that it *can* update synchronously when it's accessed.
 
 Components
 ----------

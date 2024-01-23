@@ -10,7 +10,6 @@
 package blok.signal;
 
 import blok.debug.Debug;
-import blok.core.Disposable;
 
 typedef ReactiveNodeLink = {
   public var foreignIndex:Int;
@@ -28,10 +27,16 @@ enum abstract ReactiveNodeStatus(Int) {
   final Invalid = 1;
 }
 
+typedef ReactiveNodeOptions = {
+  public final ?alwaysLive:Bool;
+  public final ?forceValidation:(node:ReactiveNode)->Bool;
+} 
+
 @:allow(blok.signal)
 class ReactiveNode {
   final runtime:Runtime;
   final onValidate:Null<(node:ReactiveNode)->Void>;
+  final forceValidation:(node:ReactiveNode)->Bool;
   final alwaysLive:Bool;
 
   var version:ReactiveNodeVersion = 0;
@@ -41,10 +46,11 @@ class ReactiveNode {
   var consumers:Null<Array<ReactiveNodeLink>> = null;
   var status:ReactiveNodeStatus = Valid;
 
-  public function new(?runtime, ?onValidate, alwaysLive:Bool = false) {
+  public function new(?runtime, ?onValidate, ?options:ReactiveNodeOptions) {
     this.runtime = runtime ?? Runtime.current();
     this.onValidate = onValidate;
-    this.alwaysLive = alwaysLive;
+    this.alwaysLive = options?.alwaysLive ?? false;
+    this.forceValidation = options?.forceValidation ?? _ -> false;
   }
 
   public function isLive() {
@@ -88,13 +94,15 @@ class ReactiveNode {
   public function validate() {
     var epoch = runtime.epoch;
 
-    if (isLive() && status == Valid) return;
-    if (status == Valid && epoch == lastValidEpoch) return;
-
-    if (!pollProducers()) {
-      status = Valid;
-      lastValidEpoch = epoch;
-      return;
+    if (!forceValidation(this)) {
+      if (isLive() && status == Valid) return;
+      if (status == Valid && epoch == lastValidEpoch) return;
+  
+      if (!pollProducers()) {
+        status = Valid;
+        lastValidEpoch = epoch;
+        return;
+      }
     }
 
     // @todo: Lock signal writing here?

@@ -24,7 +24,7 @@ abstract class Component extends ComponentBase {
     // Isolate anymore?
     return Owner.with(this, () -> {
       __isolatedRender = new Isolate(render);
-      return Computation.eager(() -> switch __status {
+      return Computation.untracked(() -> switch __status {
         case Disposing | Disposed: 
           Placeholder.node();
         default:

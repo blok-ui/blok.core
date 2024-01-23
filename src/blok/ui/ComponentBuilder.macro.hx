@@ -11,7 +11,6 @@ final builderFactory = new ClassBuilderFactory([
   new SignalFieldBuilder({ updatable: true }),
   new ObservableFieldBuilder({ updatable: true }),
   new ComputedFieldBuilder(),
-  new ActionFieldBuilder(),
   new ResourceFieldBuilder(),
   new ChildrenFieldBuilder(),
   new ConstructorBuilder({

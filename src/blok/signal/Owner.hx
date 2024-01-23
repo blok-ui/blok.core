@@ -2,8 +2,6 @@ package blok.signal;
 
 import blok.core.*;
 
-// @todo: Rethink Owner. May not work (or really be needed) with the
-// Angular-based signals we're using here.
 class Owner implements DisposableHost implements Disposable {
   static var currentOwner:Null<DisposableHost> = null;
 
@@ -28,7 +26,7 @@ class Owner implements DisposableHost implements Disposable {
 
   public function new() {}
 
-  public function wrap<T>(scope:()->T) {
+  public function own<T>(scope:()->T) {
     var prev = setCurrent(this);
     var value = scope();
     setCurrent(prev);

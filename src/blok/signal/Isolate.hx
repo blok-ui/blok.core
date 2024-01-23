@@ -40,7 +40,7 @@ class IsolateImpl<T> implements Disposable {
   public function get():T {
     cleanup();
     owner = new Owner();
-    return owner.wrap(scope);
+    return owner.own(scope);
   }
 
   public function cleanup() {

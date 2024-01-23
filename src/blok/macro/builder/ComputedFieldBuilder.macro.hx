@@ -27,38 +27,11 @@ class ComputedFieldBuilder implements Builder {
         if (!field.access.contains(AFinal)) {
           field.pos.error('@:computed fields must be final');
         }
-  
-        var name = field.name;
-        var getterName = 'get_$name';
-        var backingName = '__backing_$name';
-        var createName = '__create_$name';
-  
-        field.name = createName;
-        field.meta.push({ name: ':noCompletion', params: [], pos: (macro null).pos });
-        field.kind = FFun({
-          args: [],
-          ret: macro:blok.signal.Computation<$t>,
-          expr: macro return new blok.signal.Computation<$t>(() -> $e)
-        });
-  
-        builder.addField({
-          name: name,
-          access: field.access,
-          kind: FProp('get', 'never', macro:blok.signal.Computation<$t>),
-          pos: (macro null).pos
-        });
-  
-        builder.add(macro class {
-          var $backingName:Null<blok.signal.Computation<$t>> = null;
-  
-          @:noCompletion
-          inline function $getterName():blok.signal.Computation<$t> {
-            blok.debug.Debug.assert(this.$backingName != null);
-            return this.$backingName;
-          }
-        });
 
-        builder.addHook('init:late', macro this.$backingName = this.$createName());
+        var name = field.name;
+
+        field.kind = FVar(macro:blok.signal.Computation<$t>, null);
+        builder.addHook('init', macro this.$name = new blok.signal.Computation<$t>(() -> $e));
       default:
         meta.pos.error('Invalid field for :computed');
     }

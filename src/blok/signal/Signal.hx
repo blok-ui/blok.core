@@ -67,6 +67,22 @@ class SignalObject<T> {
   }
 }
 
+class StaticSignalObject<T> {
+  final value:T;
+
+  public function new(value) {
+    this.value = value;
+  }
+
+  public function get():T {
+    return value;
+  }
+
+  public function peek():T {
+    return value;
+  }
+}
+
 typedef ReadOnlySignalObject<T> = {
   public function get():T;
   public function peek():T;
@@ -91,11 +107,11 @@ abstract ReadOnlySignal<T>(ReadOnlySignalObject<T>)
   }
 
   @:from public inline static function ofValue<T>(value:T):ReadOnlySignal<T> {
-    return new Signal(value);
+    return new ReadOnlySignal(value);
   }
 
   public inline function new(value:T) {
-    this = new SignalObject(value);
+    this = new StaticSignalObject(value);
   }
   
   public inline function map<R>(transform:(value:T)->R):ReadOnlySignal<R> {

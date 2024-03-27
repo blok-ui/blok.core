@@ -78,10 +78,7 @@ import blok.signal.*;
 
 function main() {
   var foo:Signal<String> = 'foo';
-  // Note: generally you'll be using `Observer.track`, however 
-  // we need to call `Observer.root` here to set up our observable 
-  // scope correctly. You'll never need to do this inside Components.
-  var root = Observer.root(() -> {
+  Observer.track(() -> {
     trace(foo());
   });
 
@@ -123,7 +120,6 @@ class Counter extends Component {
   @:signal final count:Int = 0;
   @:computed final className = 'counter-${count()}';
 
-  @:action
   function decrement(_:blok.html.HtmlEvents.Event) {
     count.update(count -> count > 0 ? count - increment : 0);
   }

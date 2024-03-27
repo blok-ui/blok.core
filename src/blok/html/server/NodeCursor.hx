@@ -1,4 +1,4 @@
-package blok.node;
+package blok.html.server;
 
 import blok.adaptor.Cursor;
 import blok.debug.Debug;

@@ -105,7 +105,7 @@ Components
 
 Blok apps are built out of Components, and they're the primary thing you'll be using. Let's bring back our Counter example:
 
-> Note: Blok *does* have a JSX-like DSL, but it's still very experimental so we're going to be sticking to function calls here. You can use either method in your apps.
+> Note: Blok *does* have a JSX-like DSL, but it's still very experimental so we're going to be sticking to a alternate, fluent API to create elements. You can use either method in your apps.
 
 ```haxe
 import blok.ui.*;
@@ -128,12 +128,16 @@ class Counter extends Component {
     count.update(count -> count > 0 ? count - increment : 0);
   }
 
-  function render() {
-    return Html.div({ className: className },
-      Html.div({}, count),
-      Html.button({ onClick: decrement }, '-'),
-      Html.button({ onClick: _ -> count.update(count -> count + increment) }, '+')
-    );
+  function render():Child {
+    return Html.div()
+      .attr(ClassName, className)
+      .child([
+        Html.div().child(count),
+        Html.button().on(Click, decrement).child('-'),
+        Html.button()
+          .on(Click, _ -> count.update(count -> count + increment)) 
+          .child('+')
+      ]);
   }
 }
 ```

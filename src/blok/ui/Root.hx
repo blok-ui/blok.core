@@ -1,10 +1,10 @@
 package blok.ui;
 
 import blok.adaptor.*;
-import blok.signal.Owner;
+import blok.core.Owner;
 import blok.signal.Runtime;
 
-class RootComponent extends ComponentBase implements RealNodeHost {
+class Root extends View implements PrimitiveHost {
   public static final componentType = new UniqueId();
 
   public static function node(props:{
@@ -12,13 +12,13 @@ class RootComponent extends ComponentBase implements RealNodeHost {
     child:()->Child,
     adaptor:Adaptor
   }) {
-    return new VComponent(componentType, props, RootComponent.new);
+    return new VComponent(componentType, props, Root.new);
   }
 
   final target:Dynamic;
   final child:()->Child;
 
-  var component:Null<ComponentBase> = null;
+  var component:Null<View> = null;
   
   function new(node) {
     __node = node;
@@ -57,7 +57,7 @@ class RootComponent extends ComponentBase implements RealNodeHost {
     component.updateSlot(newSlot);
   }
 
-  public function getRealNode():Dynamic {
+  public function getPrimitive():Dynamic {
     return target;
   }
 
@@ -65,7 +65,7 @@ class RootComponent extends ComponentBase implements RealNodeHost {
     return false;
   }
 
-  public function visitChildren(visitor:(child:ComponentBase) -> Bool) {
+  public function visitChildren(visitor:(child:View) -> Bool) {
     if (component != null) visitor(component);
   }
 }

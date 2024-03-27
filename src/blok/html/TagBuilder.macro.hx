@@ -22,15 +22,15 @@ function build(typeName:String, ?isSvg:Bool) {
       case TagVoid:
         builder.add(macro class {
           private static final $nameType = blok.html.TagCollection.getTypeForTag($v{name});
-          public static function $name(props:$props & blok.html.HtmlEvents, ?key) {
-            return new blok.ui.VRealNode($i{nameType}, $v{tagName}, props, null, key);
+          public static function $name(?props:$props & blok.html.HtmlEvents, ?key) {
+            return new blok.html.VHtmlPrimitive($i{nameType}, $v{tagName}, props ?? {}, null, key);
           }
         });
       default:
         builder.add(macro class {
           private static final $nameType = blok.html.TagCollection.getTypeForTag($v{name});
-          public static function $name(props:$props & blok.html.HtmlEvents & { ?key:blok.diffing.Key }, ...children:blok.ui.Child) {
-            return new blok.ui.VRealNode($i{nameType}, $v{tagName}, props, children.toArray(), props.key);
+          public static function $name(?props:$props & blok.html.HtmlEvents & { ?key:blok.diffing.Key }, ...children:blok.ui.Child) {
+            return new blok.html.VHtmlPrimitive($i{nameType}, $v{tagName}, props ?? {}, children.toArray(), props?.key);
           }
         });
     }
@@ -60,8 +60,10 @@ function getTags(typeName:String):Array<TagInfo> {
 
   var type = Context.getType(typeName);
   var tags:Array<TagInfo> = [];
+  var requireAttributes:Bool = false;
   var groups = switch type {
-    case TType(t, params): switch (t.get().type) {
+    case TType(t, params): 
+      switch (t.get().type) {
         case TAnonymous(a): a.get().fields;
         default: throw 'assert';
       }

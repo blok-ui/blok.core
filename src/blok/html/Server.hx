@@ -1,11 +1,10 @@
 package blok.html;
 
-import blok.node.*;
 import blok.ui.*;
-import blok.html.server.ServerAdaptor;
+import blok.html.server.*;
 
 function mount(node:Node, child:()->Child) {
-  var root = RootComponent.node({
+  var root = Root.node({
     target: node,
     child: child,
     adaptor: new ServerAdaptor()
@@ -17,7 +16,7 @@ function mount(node:Node, child:()->Child) {
 
 function hydrate(node:Node, child:()->Child) {
   var adaptor = new ServerAdaptor();
-  var root = RootComponent.node({
+  var root = Root.node({
     target: node,
     child: child,
     adaptor: adaptor

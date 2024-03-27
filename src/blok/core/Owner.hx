@@ -1,6 +1,4 @@
-package blok.signal;
-
-import blok.core.*;
+package blok.core;
 
 class Owner implements DisposableHost implements Disposable {
   static var currentOwner:Null<DisposableHost> = null;

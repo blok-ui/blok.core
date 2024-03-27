@@ -72,7 +72,7 @@ class ServerAdaptor implements Adaptor {
   public function insertNode(object:Dynamic, slot:Null<Slot>, findParent:() -> Dynamic) {
     var node:Node = object;
     if (slot != null && slot.previous != null) {
-      var relative:Node = slot.previous.getRealNode();
+      var relative:Node = slot.previous.getPrimitive();
       var parent = relative.parent;
       if (parent != null) {
         var index = parent.children.indexOf(relative);
@@ -111,7 +111,7 @@ class ServerAdaptor implements Adaptor {
       return;
     }
 
-    var relative:Node = to.previous.getRealNode();
+    var relative:Node = to.previous.getPrimitive();
     var parent = relative.parent;
 
     assert(parent != null);

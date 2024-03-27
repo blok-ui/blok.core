@@ -1,5 +1,5 @@
 package blok.adaptor;
 
-interface RealNodeHost {
+interface PrimitiveHost {
   // @todo  
 }

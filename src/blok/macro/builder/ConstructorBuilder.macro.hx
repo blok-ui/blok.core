@@ -64,12 +64,12 @@ class ConstructorBuilder implements Builder {
       ):
         (macro function (props:$propsType) {
           @:mergeBlock $b{init};
-          var prevOwner = blok.signal.Owner.setCurrent(this);
+          var prevOwner = blok.core.Owner.setCurrent(this);
           try $b{late} catch (e) {
-            blok.signal.Owner.setCurrent(prevOwner);
+            blok.core.Owner.setCurrent(prevOwner);
             throw e;
           }
-          blok.signal.Owner.setCurrent(prevOwner);
+          blok.core.Owner.setCurrent(prevOwner);
           ${switch previousConstructorExpr {
             case Some(expr): macro blok.signal.Observer.untrack(() -> $expr);
             case None: macro null;

@@ -5,7 +5,7 @@ import blok.html.client.ClientAdaptor;
 import js.html.Element;
 
 function mount(el:Element, child:()->Child) {
-  var root = RootComponent.node({
+  var root = Root.node({
     target: el,
     child: child,
     adaptor: new ClientAdaptor()
@@ -17,7 +17,7 @@ function mount(el:Element, child:()->Child) {
 
 function hydrate(el:Element, child:()->Child) {
   var adaptor = new ClientAdaptor();
-  var root = RootComponent.node({
+  var root = Root.node({
     target: el,
     child: child,
     adaptor: adaptor

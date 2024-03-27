@@ -6,7 +6,7 @@ class VComponent<Props:{}> implements VNode {
   public final type:UniqueId;
   public final key:Null<Key>;
   public final props:Props;
-  public final factory:(node:VNode)->ComponentBase;
+  public final factory:(node:VNode)->View;
 
   public function new(type, props:Props, factory, ?key) {
     this.type = type;
@@ -19,7 +19,7 @@ class VComponent<Props:{}> implements VNode {
     return cast props;
   }
 
-  public function createComponent():ComponentBase {
+  public function createComponent():View {
     return factory(this);
   }
 }

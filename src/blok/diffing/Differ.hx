@@ -5,11 +5,11 @@ import blok.debug.Debug;
 import blok.ui.*;
 
 function updateChild(
-  parent:ComponentBase,
-  child:Null<ComponentBase>,
+  parent:View,
+  child:Null<View>,
   node:Null<VNode>,
   slot:Null<Slot>
-):Null<ComponentBase> {
+):Null<View> {
   if (node == null) {
     if (child != null) child.dispose();
     return null;
@@ -33,16 +33,16 @@ function updateChild(
 }
 
 function diffChildren(
-  parent:ComponentBase,
-  oldChildren:Array<ComponentBase>,
+  parent:View,
+  oldChildren:Array<View>,
   newNodes:Array<VNode>
-):Array<ComponentBase> {
+):Array<View> {
   var newHead = 0;
   var oldHead = 0;
   var newTail = newNodes.length - 1;
   var oldTail = oldChildren.length - 1;
-  var previousChild:Null<ComponentBase> = null;
-  var newChildren:Array<Null<ComponentBase>> = [];
+  var previousChild:Null<View> = null;
+  var newChildren:Array<Null<View>> = [];
 
   // Scan from the top of the list, syncing until we can't anymore.
   while ((oldHead <= oldTail) && (newHead <= newTail)) {
@@ -72,7 +72,7 @@ function diffChildren(
 
   // Scan the middle.
   var hasOldChildren = oldHead <= oldTail;
-  var oldKeyedChildren:Null<KeyMap<ComponentBase>> = null;
+  var oldKeyedChildren:Null<KeyMap<View>> = null;
 
   // If we still have old children, go through the array and check
   // if any have keys. If they don't, remove them.
@@ -94,7 +94,7 @@ function diffChildren(
   // Sync/update any new elements. If we have more children than before
   // this is where things will happen.
   while (newHead <= newTail) {
-    var oldChild:Null<ComponentBase> = null;
+    var oldChild:Null<View> = null;
     var newNode = newNodes[newHead];
 
     // Check if we already have an element with a matching key.
@@ -150,8 +150,8 @@ function diffChildren(
   return cast newChildren;
 }
 
-function hydrateChildren(parent:ComponentBase, cursor:Cursor, children:Array<VNode>) {
-  var previous:Null<ComponentBase> = null;
+function hydrateChildren(parent:View, cursor:Cursor, children:Array<VNode>) {
+  var previous:Null<View> = null;
   return [ for (i => node in children) {
     var child = node.createComponent();
     child.hydrate(cursor, parent, parent.createSlot(i, previous));
@@ -160,12 +160,12 @@ function hydrateChildren(parent:ComponentBase, cursor:Cursor, children:Array<VNo
   } ];
 }
 
-private function createComponentForVNode(parent:ComponentBase, node:VNode, ?slot:Slot) {
+private function createComponentForVNode(parent:View, node:VNode, ?slot:Slot) {
   var element = node.createComponent();
   element.mount(parent, slot);
   return element;
 }
 
-private function canBeUpdatedByNode(component:ComponentBase, node:VNode) {
+private function canBeUpdatedByNode(component:View, node:VNode) {
   return component.canBeUpdatedByNode(node) && component.__node.key == node.key;
 }

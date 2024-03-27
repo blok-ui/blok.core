@@ -60,12 +60,12 @@ class ContextBuilder implements Builder {
       }
       
       @:noUsing
-      public inline static function from(context:blok.ui.ComponentBase):$ret {
+      public inline static function from(context:blok.ui.View):$ret {
         return @:pos(fallback.pos) return maybeFrom(context).or(() -> $fallback);
       }
 
       @:noUsing
-      public static function maybeFrom(context:blok.ui.ComponentBase):kit.Maybe<$ret> {
+      public static function maybeFrom(context:blok.ui.View):kit.Maybe<$ret> {
         return context.findAncestor(ancestor -> switch Std.downcast(ancestor, blok.context.Provider) {
           case null: false;
           case provider: provider.match(__contextId);

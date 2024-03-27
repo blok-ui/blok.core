@@ -19,18 +19,18 @@ enum abstract ComponentRenderMode(Int) {
 }
 
 @:allow(blok)
-abstract class ComponentBase implements Disposable implements DisposableHost {
+abstract class View implements Disposable implements DisposableHost {
   var __node:VNode;
   var __status:ComponentStatus = Pending;
   var __slot:Null<Slot> = null;
-  var __parent:Null<ComponentBase> = null;
+  var __parent:Null<View> = null;
   var __adaptor:Null<Adaptor> = null;
-  var __invalidChildren:Array<ComponentBase> = [];
+  var __invalidChildren:Array<View> = [];
   var __renderMode:ComponentRenderMode = Normal;
 
   final __disposables:DisposableCollection = new DisposableCollection();
 
-  public function mount(parent:Null<ComponentBase>, slot:Null<Slot>) {
+  public function mount(parent:Null<View>, slot:Null<Slot>) {
     __init(parent, slot);
 
     __status = Rendering;
@@ -42,7 +42,7 @@ abstract class ComponentBase implements Disposable implements DisposableHost {
     __cleanupAfterValidation();
   }
 
-  public function hydrate(cursor:Cursor, parent:Null<ComponentBase>, slot:Null<Slot>) {
+  public function hydrate(cursor:Cursor, parent:Null<View>, slot:Null<Slot>) {
     __init(parent, slot);
 
     __status = Rendering;
@@ -54,7 +54,7 @@ abstract class ComponentBase implements Disposable implements DisposableHost {
     __cleanupAfterValidation();
   }
 
-  function __init(parent:Null<ComponentBase>, slot:Null<Slot>) {
+  function __init(parent:Null<View>, slot:Null<Slot>) {
     assert(__status == Pending, 'Attempted to initialize a component that has already been mounted');
 
     __parent = parent;
@@ -116,11 +116,11 @@ abstract class ComponentBase implements Disposable implements DisposableHost {
   abstract function __dispose():Void;
   abstract function __updateSlot(oldSlot:Null<Slot>, newSlot:Null<Slot>):Void;
   
-  abstract public function getRealNode():Dynamic;
+  abstract public function getPrimitive():Dynamic;
   abstract public function canBeUpdatedByNode(node:VNode):Bool;
-  abstract public function visitChildren(visitor:(child:ComponentBase)->Bool):Void;
+  abstract public function visitChildren(visitor:(child:View)->Bool):Void;
 
-  public function findAncestor(match:(component:ComponentBase)->Bool):Maybe<ComponentBase> {
+  public function findAncestor(match:(component:View)->Bool):Maybe<View> {
     return switch __parent {
       case null: None;
       case parent if (match(parent)): Some(parent);
@@ -128,7 +128,7 @@ abstract class ComponentBase implements Disposable implements DisposableHost {
     }
   }
 
-  public function findAncestorOfType<T:ComponentBase>(kind:Class<T>):Maybe<T> {
+  public function findAncestorOfType<T:View>(kind:Class<T>):Maybe<T> {
     if (__parent == null) return None;
     return switch (Std.downcast(__parent, kind):Null<T>) {
       case null: __parent.findAncestorOfType(kind);
@@ -136,9 +136,9 @@ abstract class ComponentBase implements Disposable implements DisposableHost {
     }
   }
 
-  public function filterChildren(match:(child:ComponentBase) -> Bool, recursive:Bool = false):Array<ComponentBase> {
-    var results:Array<ComponentBase> = [];
-    
+  public function filterChildren(match:(child:View) -> Bool, recursive:Bool = false):Array<View> {
+    var results:Array<View> = [];
+
     visitChildren(child -> {
       if (match(child)) results.push(child);
       
@@ -152,8 +152,8 @@ abstract class ComponentBase implements Disposable implements DisposableHost {
     return results;
   }
 
-  public function findChild(match:(child:ComponentBase) -> Bool, recursive:Bool = false):Maybe<ComponentBase> {
-    var result:Null<ComponentBase> = null;
+  public function findChild(match:(child:View) -> Bool, recursive:Bool = false):Maybe<View> {
+    var result:Null<View> = null;
 
     visitChildren(child -> {
       if (match(child)) {
@@ -180,11 +180,11 @@ abstract class ComponentBase implements Disposable implements DisposableHost {
     }
   }
 
-  public function filterChildrenOfType<T:ComponentBase>(kind:Class<T>, recursive:Bool = false):Array<T> {
+  public function filterChildrenOfType<T:View>(kind:Class<T>, recursive:Bool = false):Array<T> {
     return cast filterChildren(child -> Std.isOfType(child, kind), recursive);
   }
 
-  public function findChildOfType<T:ComponentBase>(kind:Class<T>, recursive:Bool = false):Maybe<T> {
+  public function findChildOfType<T:View>(kind:Class<T>, recursive:Bool = false):Maybe<T> {
     return cast findChild(child -> Std.isOfType(child, kind), recursive);
   }
 
@@ -193,7 +193,7 @@ abstract class ComponentBase implements Disposable implements DisposableHost {
     return __adaptor;
   }
 
-  function createSlot(index:Int, previous:Null<ComponentBase>):Slot {
+  function createSlot(index:Int, previous:Null<View>):Slot {
     return new Slot(index, previous);
   }
 
@@ -215,7 +215,7 @@ abstract class ComponentBase implements Disposable implements DisposableHost {
     if (__status != Invalid) __status = Valid;
   }
 
-  function scheduleChildForValidation(child:ComponentBase) {
+  function scheduleChildForValidation(child:View) {
     if (__status == Invalid) return;
     if (__invalidChildren.contains(child)) return;
     

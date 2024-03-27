@@ -1,8 +1,7 @@
 package blok.suspense;
 
-import blok.signal.Computation;
 import blok.core.*;
-import blok.signal.Owner;
+import blok.signal.Computation;
 import blok.signal.Observer;
 import blok.signal.Signal;
 

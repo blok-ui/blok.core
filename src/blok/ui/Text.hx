@@ -5,7 +5,7 @@ import blok.debug.Debug;
 import blok.diffing.Key;
 import blok.signal.Signal;
 
-using blok.adaptor.RealNodeHostTools;
+using blok.adaptor.PrimitiveHostTools;
 
 abstract Text(VNode) to VNode from VNode {
   @:from public static function ofString(value:String):Text {
@@ -33,7 +33,7 @@ abstract Text(VNode) to VNode from VNode {
   }
 }
 
-class TextComponent extends ComponentBase implements RealNodeHost {
+class TextComponent extends View implements PrimitiveHost {
   public static final componentType = new UniqueId();
 
   public static function node(value:String, ?key:Key) {
@@ -50,7 +50,7 @@ class TextComponent extends ComponentBase implements RealNodeHost {
     var adaptor = getAdaptor();
     var props:{ value:String } = __node.getProps();
     realNode = adaptor.createTextNode(props.value);
-    adaptor.insertNode(realNode, __slot, () -> this.findNearestRealNode());
+    adaptor.insertNode(realNode, __slot, () -> this.findNearestPrimitive());
   }
 
   function __hydrate(cursor:Cursor) {
@@ -74,10 +74,10 @@ class TextComponent extends ComponentBase implements RealNodeHost {
   }
 
   function __updateSlot(oldSlot:Null<Slot>, newSlot:Null<Slot>) {
-    getAdaptor().moveNode(realNode, oldSlot, newSlot, () -> this.findNearestRealNode());
+    getAdaptor().moveNode(realNode, oldSlot, newSlot, () -> this.findNearestPrimitive());
   }
 
-  public function getRealNode():Dynamic {
+  public function getPrimitive():Dynamic {
     assert(realNode != null);
     return realNode;
   }
@@ -86,5 +86,5 @@ class TextComponent extends ComponentBase implements RealNodeHost {
     return node.type == componentType;
   }
 
-  public function visitChildren(visitor:(child:ComponentBase) -> Bool) {}
+  public function visitChildren(visitor:(child:View) -> Bool) {}
 }

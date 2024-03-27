@@ -16,6 +16,9 @@ function suspense() {
 
 class SuspenseExample extends Component {
   function render() {
+    // Note: This component is currently using a mix of the older
+    // syntax used to create vNodes and the newer, fluent builders.
+    // Both are valid (and will remain so), and can be freely mixed.
     return ErrorBoundary.node({
       child: Fragment.node(
         Html.div({
@@ -45,7 +48,7 @@ class SuspenseExample extends Component {
                   Flex.gap(3),
                   Sizing.width('50%')
                 )
-              }, SuspenseBoundary.node({
+              }).child(SuspenseBoundary.node({
                 child: SuspenseItem.node({ delay: 1000 }),
                 fallback: () -> Html.p({}, 'Loading...')
               })),
@@ -56,7 +59,7 @@ class SuspenseExample extends Component {
                   Flex.gap(3),
                   Sizing.width('50%')
                 )
-              }, SuspenseBoundary.node({
+              }).child(SuspenseBoundary.node({
                 onSuspended: () -> {
                   trace('Suspending...');
                 },
@@ -75,10 +78,10 @@ class SuspenseExample extends Component {
           )
         )
       ),
-      fallback: (component, e) -> Html.div({},
-        Html.h1({}, 'Error!'),
-        Html.p({}, e.message)  
-      )
+      fallback: (component, e) -> Html.div().child([
+        Html.h1().child('Error!'),
+        Html.p().child(e.message)  
+      ])
     });
   }
 }
@@ -105,19 +108,20 @@ class SuspenseItem extends Component {
   }
 
   function render() {
-    return Html.div({},
-      str(), // Suspense is potentially triggered here.
-      Html.button({
-        className: Breeze.compose(
-          Background.color('white', 0),
-          Typography.textColor('red', 500),
-          Typography.fontWeight('bold'),
-          Spacing.pad(3),
-          Spacing.margin('left', 3), 
-          Border.radius(3),
-        ),
-        onClick: _ -> delay.update(delay -> delay + 1)
-      }, 'Reload')
-    );
+    return Html.div()
+      .child(str()) // Suspense is potentially triggered here.
+      .child(
+        Html.button()
+          .attr(HtmlAttributeName.ClassName, Breeze.compose(
+            Background.color('white', 0),
+            Typography.textColor('red', 500),
+            Typography.fontWeight('bold'),
+            Spacing.pad(3),
+            Spacing.margin('left', 3), 
+            Border.radius(3),
+          ))
+          .on(Click, _ -> delay.update(delay -> delay + 1))
+          .child('Reload')
+      );
   }
 }

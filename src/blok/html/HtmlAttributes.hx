@@ -58,8 +58,8 @@ typedef ObjectAttr = GlobalAttr & {
 }
 
 typedef ParamAttr = GlobalAttr & {
-  var name:ReadOnlySignal<String>;
-  var value:ReadOnlySignal<String>;
+  var ?name:ReadOnlySignal<String>;
+  var ?value:ReadOnlySignal<String>;
 }
 
 typedef TableCellAttr = GlobalAttr & {
@@ -243,7 +243,7 @@ enum abstract MetaHttpEquiv(String) to String from String {
 }
 
 typedef LinkAttr = GlobalAttr & {
-  var rel:ReadOnlySignal<LinkRel>;
+  var ?rel:ReadOnlySignal<LinkRel>;
   var ?crossorigin:ReadOnlySignal<LinkCrossOrigin>;
   var ?href:ReadOnlySignal<String>;
   var ?hreflang:ReadOnlySignal<String>;
@@ -311,7 +311,7 @@ typedef CanvasAttr = GlobalAttr & {
 }
 
 typedef TrackAttr = {
-  var src:ReadOnlySignal<String>;
+  var ?src:ReadOnlySignal<String>;
   var ?kind:ReadOnlySignal<TrackKind>;
   var ?label:ReadOnlySignal<String>;
   var ?srclang:ReadOnlySignal<String>;
@@ -326,8 +326,8 @@ enum abstract TrackKind(String) to String from String {
 }
 
 typedef EmbedAttr = {
-  var height:ReadOnlySignal<Int>;
-  var width:ReadOnlySignal<Int>;
-  var src:ReadOnlySignal<String>;
-  var typed:ReadOnlySignal<String>;
+  var ?height:ReadOnlySignal<Int>;
+  var ?width:ReadOnlySignal<Int>;
+  var ?src:ReadOnlySignal<String>;
+  var ?typed:ReadOnlySignal<String>;
 }

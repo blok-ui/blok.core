@@ -3,6 +3,7 @@ package blok.html.client;
 import blok.adaptor.*;
 import blok.core.Scheduler;
 import blok.debug.Debug;
+import blok.html.HtmlEvents;
 import blok.ui.*;
 import js.Browser;
 import js.html.Element;
@@ -45,89 +46,42 @@ class ClientAdaptor implements Adaptor {
     (object:js.html.Text).textContent = value;
   }
 
-  // @todo: Refactor this to be better  
   public function updateNodeAttribute(object:Dynamic, name:String, oldValue:Null<Dynamic>, value:Null<Dynamic>, ?isHydrating:Bool) {
     var el:Element = object;
     var isSvg = el.namespaceURI == svgNamespace;
-    
-    if (isHydrating == true) {
-      name = getHtmlName(name);
-      // Only bind events.
-      // @todo: Setting events this way feels questionable.
+    var namespace = isSvg ? svgNamespace : null;
+
+    name = getHtmlName(name);
+
+    if (isHydrating) {
       if (name.startsWith('on')) {
-        var name = name.toLowerCase();
-        if (value == null) {
-          Reflect.setField(el, name, cast null);
-        } else {
-          Reflect.setField(el, name, value);
-        }
+        updateEventListener(el, name, value);
       }
       return;
     }
 
     switch name {
-      case 'className' | 'class':
-        var oldNames = Std.string(oldValue ?? '').split(' ').filter(n -> n != null && n != '');
-        var newNames = Std.string(value ?? '').split(' ').filter(n -> n != null && n != '');
-
-        for (name in oldNames) {
-          if (!newNames.contains(name)) {
-            el.classList.remove(name);
-          } else {
-            newNames.remove(name);
-          }
-        }
-
-        if (newNames.length > 0) {
-          el.classList.add(...newNames);
-        }
       case 'xmlns' if (isSvg): // skip
       case 'value' | 'selected' | 'checked' if (!isSvg):
         js.Syntax.code('{0}[{1}] = {2}', el, name, value);
-      // @todo: not sure if this line is a good idea.
-      case _ if (!isSvg && value != null && js.Syntax.code('{0} in {1}', name, el)):
+      case _ if (name.startsWith('on')):
+        updateEventListener(el, name, value);
+      case _ if (
+        !isSvg
+        && value != null 
+        && js.Syntax.code('{0} in {1}', name, el)
+      ):
+        // @todo: Not sure if this is the best idea for setting props.
         js.Syntax.code('{0}[{1}] = {2}', el, name, value);
-      case 'dataset':
-        var map:Map<String, String> = value;
-        for (key => value in map) {
-          if (value == null) {
-            Reflect.deleteField(el.dataset, key);  
-          } else {
-            Reflect.setField(el.dataset, key, value);
-          }
-        }
       default:
-        name = getHtmlName(name);
-        // @todo: Setting events this way feels questionable.
-        if (name.startsWith('on')) {
-          var name = name.toLowerCase();
-          if (value == null) {
-            Reflect.setField(el, name, cast null);
-          } else {
-            Reflect.setField(el, name, value);
-          }
-        } else if (value == null || (Std.is(value, Bool) && value == false)) {
-          el.removeAttribute(name);
-        } else if (Std.is(value, Bool) && value == true) {
-          el.setAttribute(name, name);
-        } else {
-          el.setAttribute(name, value);
-        }
+        setAttribute(el, name, value, namespace);
     }
-  }
-
-  // @todo: Figure out how to use the @:html attributes for this instead.
-  function getHtmlName(name:String) {
-    if (name.startsWith('aria')) {
-      return 'aria-' + name.substr(4).toLowerCase();
-    }
-    return name;
   }
 
   public function insertNode(object:Dynamic, slot:Null<Slot>, findParent:() -> Dynamic) {
     var el:js.html.Element = object;
     if (slot != null && slot.previous != null) {
-      var relative:js.html.Element = slot.previous.getRealNode();
+      var relative:js.html.Element = slot.previous.getPrimitive();
       relative.after(el);
     } else {
       var parent:js.html.Element = findParent();
@@ -161,7 +115,7 @@ class ClientAdaptor implements Adaptor {
       return;
     }
 
-    var relative:js.html.Element = to.previous.getRealNode();
+    var relative:js.html.Element = to.previous.getPrimitive();
     assert(relative != null);
     relative.after(el);
   }
@@ -172,5 +126,84 @@ class ClientAdaptor implements Adaptor {
 
   public function schedule(effect:() -> Void) {
     scheduler.schedule(effect);
+  }
+  
+  function setAttribute(element:Element, name:String, ?value:Dynamic, ?namespace:String) {
+    var shouldRemove = value == null || (value is Bool && value == false);
+
+    // if (shouldRemove) return if (namespace != null) {
+    //   element.removeAttributeNS(namespace, name);
+    // } else {
+    //   element.removeAttribute(name);
+    // }
+
+    if (shouldRemove) return element.removeAttribute(name);
+
+    if (value is Bool && value == true) value = name;
+
+    switch name {
+      case 'class' | 'className': 
+        updateClassList(element, value);
+      case 'dataset': 
+        updateDataset(element, value);
+      default:
+        element.setAttribute(name, value);
+        // if (namespace != null) {
+        //   element.setAttributeNS(namespace, name, value);
+        // } else {
+        //   element.setAttribute(name, value);
+        // }
+    }
+  }
+
+  function updateClassList(element:Element, value:String) {
+    var oldValue = element.classList.value;
+    var oldNames = Std.string(oldValue ?? '').split(' ').filter(n -> n != null && n != '');
+    var newNames = Std.string(value ?? '').split(' ').filter(n -> n != null && n != '');
+
+    for (name in oldNames) {
+      if (!newNames.contains(name)) {
+        element.classList.remove(name);
+      } else {
+        newNames.remove(name);
+      }
+    }
+
+    if (newNames.length > 0) {
+      element.classList.add(...newNames);
+    }
+  }
+
+  function updateDataset(element:Element, map:Map<String, String>) {
+    for (key => value in map) {
+      if (value == null) {
+        Reflect.deleteField(element.dataset, key);  
+      } else {
+        Reflect.setField(element.dataset, key, value);
+      }
+    }
+  }
+
+  function updateEventListener(element:Element, name:String, ?handler:EventListener) {
+    // @todo: Look into delegation?
+
+    // @todo: We're not actually using `addEventListener` here as we
+    // don't currently have things set up to remove old ones.
+    // Instead, we're setting properties. This seems a bit questionable
+    // as a concept, so it's just a short-term solution.
+    var name = name.toLowerCase();
+    if (handler == null) {
+      Reflect.setField(element, name, cast null);
+    } else {
+      Reflect.setField(element, name, handler);
+    }
+  }
+
+  // @todo: Figure out how to use the @:html attributes for this instead.
+  function getHtmlName(name:String) {
+    if (name.startsWith('aria')) {
+      return 'aria-' + name.substr(4).toLowerCase();
+    }
+    return name;
   }
 }

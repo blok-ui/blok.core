@@ -3,7 +3,7 @@ package blok.context;
 import blok.ui.*;
 
 class Provider<T:Providable> extends Component {
-  public static function compose(contexts:Array<()->Providable>, child:(context:ComponentBase)->Child) {
+  public static function compose(contexts:Array<()->Providable>, child:(context:View)->Child) {
     var contextFactory = contexts.shift();
     var component:VNode = Provider.provide(contextFactory, _ -> Scope.wrap(child));
     while (contexts.length > 0) {

@@ -1,18 +1,18 @@
 package blok.ui;
 
 import blok.adaptor.Cursor;
+import blok.core.Owner;
 import blok.debug.Debug;
 import blok.diffing.Differ;
 import blok.signal.Computation;
-import blok.signal.Owner;
 import blok.signal.Isolate;
 
 using blok.boundary.BoundaryTools;
 
 @:autoBuild(blok.ui.ComponentBuilder.build())
-abstract class Component extends ComponentBase {
+abstract class Component extends View {
   @:noCompletion var __isolatedRender:Null<Isolate<VNode>> = null;
-  @:noCompletion var __child:Null<ComponentBase> = null;
+  @:noCompletion var __child:Null<View> = null;
   @:noCompletion var __rendered:Null<Computation<Null<VNode>>> = null;
 
   abstract function setup():Void;
@@ -20,8 +20,6 @@ abstract class Component extends ComponentBase {
   @:noCompletion abstract function __updateProps():Void;
   
   @:noCompletion function __createRendered() {
-    // @todo: With new new Signal model, we probably don't need the 
-    // Isolate anymore?
     return Owner.with(this, () -> {
       __isolatedRender = new Isolate(render);
       return Computation.untracked(() -> switch __status {
@@ -70,12 +68,12 @@ abstract class Component extends ComponentBase {
     __child?.updateSlot(newSlot);
   }
 
-  public function getRealNode() {
+  public function getPrimitive() {
     var node:Null<Dynamic> = null;
 
     visitChildren(component -> {
       assert(node == null, 'Component has more than one real nodes');
-      node = component.getRealNode();
+      node = component.getPrimitive();
       true;
     });
 
@@ -84,12 +82,12 @@ abstract class Component extends ComponentBase {
     return node;
   }
 
-  public function visitChildren(visitor:(child:ComponentBase)->Bool) {
+  public function visitChildren(visitor:(child:View)->Bool) {
     if (__child != null) visitor(__child);
   }
 
   @:noCompletion function __dispose():Void {
-    // __isolatedRender = null;
+    __isolatedRender = null;
     __rendered = null;
   }
 }

@@ -6,6 +6,11 @@ import blok.signal.Signal;
 @:forward
 abstract Child(VNode) from Text from VNode to VNode {
   @:from
+  public inline static function ofArray(children:Array<Child>):Child {
+    return Fragment.node(...children);
+  }
+
+  @:from
   public inline static function ofComputationString(content:Computation<String>):Child {
     return Text.ofSignal(content);
   }

@@ -1,37 +1,36 @@
 package blok.ui;
 
 import blok.adaptor.*;
-import blok.core.Disposable;
+import blok.core.*;
 import blok.debug.Debug;
 import blok.diffing.Differ;
-import blok.signal.Owner;
 import blok.signal.Observer;
 import blok.signal.Signal;
 
-using blok.adaptor.RealNodeHostTools;
+using blok.adaptor.PrimitiveHostTools;
 
-class RealNodeComponent extends ComponentBase implements RealNodeHost {
+class Primitive extends View implements PrimitiveHost {
   final tag:String;
   final type:UniqueId;
-  final updaters:Map<String, RealNodePropertyUpdater<Any>> = [];
+  final updaters:Map<String, PrimitivePropertyUpdater<Any>> = [];
 
   var realNode:Null<Dynamic> = null;
-  var children:Array<ComponentBase> = [];
+  var children:Array<View> = [];
 
-  public function new(node:VRealNode) {
+  public function new(node:VPrimitive) {
     tag = node.tag;
     type = node.type;
     __node = node;
   }
 
   function render() {
-    var vn:VRealNode = cast __node;
+    var vn:VPrimitive = cast __node;
     return vn.children?.filter(n -> n != null) ?? [];
   }
 
   function observeAttributes() {
     function applyAttribute(name:String, oldValue:Any, value:Any) {
-      getAdaptor().updateNodeAttribute(getRealNode(), name, oldValue, value, __renderMode == Hydrating);
+      getAdaptor().updateNodeAttribute(getPrimitive(), name, oldValue, value, __renderMode == Hydrating);
     }
 
     var props = __node.getProps();
@@ -52,7 +51,7 @@ class RealNodeComponent extends ComponentBase implements RealNodeHost {
       if (signal == null) signal = new Signal(null);
 
       if (updater == null) {
-        updater = new RealNodePropertyUpdater(name, signal, applyAttribute);
+        updater = new PrimitivePropertyUpdater(name, signal, applyAttribute);
         updaters.set(name, updater);
       } else {
         updater.update(signal);
@@ -61,11 +60,11 @@ class RealNodeComponent extends ComponentBase implements RealNodeHost {
   }
 
   function __initialize() {
-    realNode = createRealNode();
+    realNode = createPrimitive();
     observeAttributes();
     
     var nodes = render();
-    var previous:ComponentBase = null;
+    var previous:View = null;
   
     children = [ for (i => node in nodes) {
       var child = node.createComponent();
@@ -73,7 +72,7 @@ class RealNodeComponent extends ComponentBase implements RealNodeHost {
       previous = child;
       child;
     } ];
-    getAdaptor().insertNode(realNode, __slot, () -> this.findNearestRealNode());
+    getAdaptor().insertNode(realNode, __slot, () -> this.findNearestPrimitive());
   }
 
   function __hydrate(cursor:Cursor) {
@@ -82,7 +81,7 @@ class RealNodeComponent extends ComponentBase implements RealNodeHost {
 
     var nodes = render();
     var localCursor = cursor.currentChildren();
-    var previous:ComponentBase = null;
+    var previous:View = null;
   
     children = [ for (i => node in nodes) {
       var child = node.createComponent();
@@ -110,18 +109,18 @@ class RealNodeComponent extends ComponentBase implements RealNodeHost {
       updater.dispose();
     }
     updaters.clear();
-    getAdaptor().removeNode(getRealNode(), __slot);
+    getAdaptor().removeNode(getPrimitive(), __slot);
   }
 
   function __updateSlot(oldSlot:Null<Slot>, newSlot:Null<Slot>) {
-    getAdaptor().moveNode(getRealNode(), oldSlot, newSlot, () -> this.findNearestRealNode());
+    getAdaptor().moveNode(getPrimitive(), oldSlot, newSlot, () -> this.findNearestPrimitive());
   }
 
-  function createRealNode() {
+  function createPrimitive() {
     return getAdaptor().createNode(tag, {});
   }
 
-  public function getRealNode():Dynamic {
+  public function getPrimitive():Dynamic {
     assert(realNode != null);
     return realNode;
   }
@@ -130,12 +129,12 @@ class RealNodeComponent extends ComponentBase implements RealNodeHost {
     return type == node.type;
   }
 
-  public function visitChildren(visitor:(child:ComponentBase) -> Bool) {
+  public function visitChildren(visitor:(child:View) -> Bool) {
     for (child in children) if (!visitor(child)) return;
   }
 }
 
-class RealNodePropertyUpdater<T> implements Disposable {
+class PrimitivePropertyUpdater<T> implements Disposable {
   final name:String;
   final changeSignal:Signal<ReadOnlySignal<T>>;
   final observer:Observer;

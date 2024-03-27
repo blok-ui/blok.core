@@ -7,15 +7,15 @@ using blok.boundary.BoundaryTools;
 
 enum ErrorBoundaryStatus {
   Ok;
-  Caught(component:ComponentBase, e:Exception);
+  Caught(component:View, e:Exception);
 }
 
 class ErrorBoundary extends Component implements Boundary {
   @:attribute final child:Child;
-  @:attribute final fallback:(component:ComponentBase, e:Exception)->Child;
+  @:attribute final fallback:(component:View, e:Exception)->Child;
   @:signal final status:ErrorBoundaryStatus = Ok;
 
-  public function handle(component:ComponentBase, object:Any) {
+  public function handle(component:View, object:Any) {
     if (object is Exception) {
       status.set(Caught(component, object));
       return;

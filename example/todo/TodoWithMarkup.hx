@@ -243,7 +243,7 @@ class TodoInput extends Component {
   function setup() {
     Observer.track(() -> {
       if (isEditing()) {
-        (getRealNode():js.html.InputElement).focus();
+        (getPrimitive():js.html.InputElement).focus();
       }
     });
   }

@@ -1,6 +1,5 @@
 package blok.html.server;
 
-import blok.node.*;
 import haxe.DynamicAccess;
 
 class Element extends Node {

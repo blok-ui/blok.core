@@ -21,12 +21,12 @@ final builderFactory = new ClassBuilderFactory([
         __node = node;
         var props:$propType = __node.getProps();
         ${options.inits}
-        var prevOwner = blok.signal.Owner.setCurrent(this);
+        var prevOwner = blok.core.Owner.setCurrent(this);
         try ${options.lateInits} catch (e) {
-          blok.signal.Owner.setCurrent(prevOwner);
+          blok.core.Owner.setCurrent(prevOwner);
           throw e;
         }
-        blok.signal.Owner.setCurrent(prevOwner);
+        blok.core.Owner.setCurrent(prevOwner);
         ${switch options.previousExpr {
           case Some(expr): macro blok.signal.Observer.untrack(() -> $expr);
           case None: macro null;

@@ -1,7 +1,5 @@
 package blok.html.server;
 
-import blok.node.Node;
-
 using StringTools;
 
 class TextNode extends Node {

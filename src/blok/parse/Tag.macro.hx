@@ -103,45 +103,51 @@ private function processType(name:String, path:String, type:Type, kind:TagKind, 
           reject('its ${Tag.fromMarkupMeta} method has no arguments (expected at least one)');
         case null:
           reject('it has no arguments (expected at least one)');
+        case props:
+          var t = if (props.opt) switch props.t {
+            case TAbstract(_, [ t ]): t;
+            default: throw 'assert';
+          } else {
+            props.t;
+          }
+          switch t {
+            case TAnonymous(a):
+              var obj = a.get();
+              var fields:Map<String, ClassField> = [];
+              var childrenAttr:TagChildrenAttribute = None;
 
-        case props: switch props.t {
-          case TAnonymous(a):
-            var obj = a.get();
-            var fields:Map<String, ClassField> = [];
-            var childrenAttr:TagChildrenAttribute = None;
-
-            for (field in obj.fields) {
-              fields.set(field.name, field);
-              if (field.meta.has(':children')) switch childrenAttr {
-                case None:
-                  childrenAttr = Field(field.name, field);
-                case Field(name, _):
-                  Context.error('Cannot have more than one field acting as children: ${name} already marked', field.pos);
-                case Rest:
-                  Context.error('Cannot use a children field with a function that takes rest arguments', field.pos);
-              }
-            }
-
-            switch args[1] {
-              case null:
-              case arg if (Context.unify(arg.t, (macro:haxe.Rest<Any>).toType())):
-                switch childrenAttr {
+              for (field in obj.fields) {
+                fields.set(field.name, field);
+                if (field.meta.has(':children')) switch childrenAttr {
                   case None:
-                    childrenAttr = Rest;
-                  default:
-                    Context.error('Cannot have both restful children and :children fields', pos);
+                    childrenAttr = Field(field.name, field);
+                  case Field(name, _):
+                    Context.error('Cannot have more than one field acting as children: ${name} already marked', field.pos);
+                  case Rest:
+                    Context.error('Cannot use a children field with a function that takes rest arguments', field.pos);
                 }
-            }
+              }
 
-            return new Tag(name, path, kind, {
-              fields: fields,
-              attributesType: props.t,
-              childrenAttribute: childrenAttr
-            }, isBuiltin);
-          case _ if (kind.match(FromMarkupMethod(_))):
-            reject('its ${Tag.fromMarkupMeta} method must have a first argument that is an anonymous object');
-          default:
-            reject('it must have a first argument that is an anonymous object');
+              switch args[1] {
+                case null:
+                case arg if (Context.unify(arg.t, (macro:haxe.Rest<Any>).toType())):
+                  switch childrenAttr {
+                    case None:
+                      childrenAttr = Rest;
+                    default:
+                      Context.error('Cannot have both restful children and :children fields', pos);
+                  }
+              }
+
+              return new Tag(name, path, kind, {
+                fields: fields,
+                attributesType: props.t,
+                childrenAttribute: childrenAttr
+              }, isBuiltin);
+            case _ if (kind.match(FromMarkupMethod(_))):
+              reject('its ${Tag.fromMarkupMeta} method must have a first argument that is an anonymous object');
+            default:
+              reject('it must have a first argument that is an anonymous object');
         }
       }
     case _ if (kind.match(FromMarkupMethod(_))):

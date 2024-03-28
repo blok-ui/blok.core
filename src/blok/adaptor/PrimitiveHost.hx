@@ -1,5 +1,3 @@
 package blok.adaptor;
 
-interface PrimitiveHost {
-  // @todo  
-}
+interface PrimitiveHost {}

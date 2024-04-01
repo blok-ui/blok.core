@@ -4,8 +4,12 @@ import blok.adaptor.*;
 import blok.core.*;
 import blok.debug.Debug;
 
-enum abstract ComponentStatus(#if debug String #else Int #end) {
-  final Pending;
+enum ViewMountedStatus {
+  Unmounted;
+  Mounted(parent:Null<View>, adaptor:Adaptor);
+}
+
+enum abstract ViewLifecycleStatus(#if debug String #else Int #end) {
   final Valid;
   final Invalid;
   final Rendering;
@@ -13,7 +17,7 @@ enum abstract ComponentStatus(#if debug String #else Int #end) {
   final Disposed;
 }
 
-enum abstract ComponentRenderMode(Int) {
+enum abstract ViewRenderMode(Int) {
   final Normal;
   final Hydrating;
 }
@@ -21,48 +25,47 @@ enum abstract ComponentRenderMode(Int) {
 @:allow(blok)
 abstract class View implements Disposable implements DisposableHost {
   var __node:VNode;
-  var __status:ComponentStatus = Pending;
+  var __mounted:ViewMountedStatus = Unmounted;
+  var __status:ViewLifecycleStatus = Valid;
   var __slot:Null<Slot> = null;
-  var __parent:Null<View> = null;
-  var __adaptor:Null<Adaptor> = null;
   var __invalidChildren:Array<View> = [];
-  var __renderMode:ComponentRenderMode = Normal;
+  var __renderMode:ViewRenderMode = Normal;
 
   final __disposables:DisposableCollection = new DisposableCollection();
 
-  public function mount(parent:Null<View>, slot:Null<Slot>) {
-    __init(parent, slot);
+  public function mount(adaptor:Adaptor, parent:Null<View>, slot:Null<Slot>) {
+    __init(adaptor, parent, slot);
 
     __status = Rendering;
     __renderMode = Normal;
+
     try __initialize() catch (e) {
       __cleanupAfterValidation();
       throw e;  
     };
+
     __cleanupAfterValidation();
   }
 
-  public function hydrate(cursor:Cursor, parent:Null<View>, slot:Null<Slot>) {
-    __init(parent, slot);
+  public function hydrate(cursor:Cursor, adaptor:Adaptor, parent:Null<View>, slot:Null<Slot>) {
+    __init(adaptor, parent, slot);
 
     __status = Rendering;
     __renderMode = Hydrating;
+
     try __hydrate(cursor) catch (e) {
       __cleanupAfterValidation();
-      throw e;  
+      throw e;
     };
+
     __cleanupAfterValidation();
   }
 
-  function __init(parent:Null<View>, slot:Null<Slot>) {
-    assert(__status == Pending, 'Attempted to initialize a component that has already been mounted');
+  function __init(adaptor:Adaptor, parent:Null<View>, slot:Null<Slot>) {
+    assert(__mounted == Unmounted, 'Attempted to initialize a component that has already been mounted');
 
-    __parent = parent;
+    __mounted = Mounted(parent, adaptor);
     __slot = slot;
-    if (__adaptor == null) {
-      assert(parent != null);
-      __adaptor = parent.getAdaptor();
-    }
   }
 
   public function update(node:VNode) {
@@ -85,10 +88,10 @@ abstract class View implements Disposable implements DisposableHost {
 
     __status = Invalid;
 
-    switch __parent {
-      case null:
+    switch getParent() {
+      case None:
         scheduleValidation();
-      case parent:
+      case Some(parent):
         parent.scheduleChildForValidation(this);
     }
   }
@@ -120,20 +123,19 @@ abstract class View implements Disposable implements DisposableHost {
   abstract public function canBeUpdatedByNode(node:VNode):Bool;
   abstract public function visitChildren(visitor:(child:View)->Bool):Void;
 
-  public function findAncestor(match:(component:View)->Bool):Maybe<View> {
-    return switch __parent {
-      case null: None;
-      case parent if (match(parent)): Some(parent);
-      case parent: parent.findAncestor(match);
-    }
+  public function findAncestor(match:(child:View)->Bool):Maybe<View> {
+    return getParent().flatMap(parent -> if (match(parent)) {
+      Some(parent);
+    } else {
+      parent.findAncestor(match);
+    });
   }
 
   public function findAncestorOfType<T:View>(kind:Class<T>):Maybe<T> {
-    if (__parent == null) return None;
-    return switch (Std.downcast(__parent, kind):Null<T>) {
-      case null: __parent.findAncestorOfType(kind);
+    return getParent().flatMap(parent -> switch (Std.downcast(parent, kind):Null<T>) {
+      case null: parent.findAncestorOfType(kind);
       case found: Some(cast found);
-    }
+    });
   }
 
   public function filterChildren(match:(child:View) -> Bool, recursive:Bool = false):Array<View> {
@@ -188,9 +190,19 @@ abstract class View implements Disposable implements DisposableHost {
     return cast findChild(child -> Std.isOfType(child, kind), recursive);
   }
 
-  public function getAdaptor() {
-    assert(__adaptor != null);
-    return __adaptor;
+  public function getParent():Maybe<View> {
+    return switch __mounted {
+      case Unmounted: error('Attempted to get the parent of an unmounted View');
+      case Mounted(null, _): None;
+      case Mounted(parent, _): Some(parent);
+    }
+  }
+
+  public function getAdaptor():Adaptor {
+    return switch __mounted {
+      case Unmounted: error('Attempted to get an adaptor from an unmounted View');
+      case Mounted(_, adaptor): adaptor;
+    }
   }
 
   function createSlot(index:Int, previous:Null<View>):Slot {
@@ -221,12 +233,12 @@ abstract class View implements Disposable implements DisposableHost {
     
     __invalidChildren.push(child);
 
-    if (__parent == null) {
-      scheduleValidation();
-      return;
+    switch getParent() {
+      case None: 
+        scheduleValidation();
+      case Some(parent):
+        parent.scheduleChildForValidation(this);
     }
-
-    __parent.scheduleChildForValidation(this);
   }
 
   function validateInvalidChildren() {
@@ -247,9 +259,10 @@ abstract class View implements Disposable implements DisposableHost {
   }
 
   public function dispose() {
-    assert(__status != Rendering, 'Attempted to dispose a component while it was building');
-    assert(__status != Disposing, 'Attempted to dispose a component that is already disposing');
-    assert(__status != Disposed, 'Attempted to dispose a component that was already disposed');
+    assert(__mounted != Unmounted, 'Attempted to dispose a view that was never mounted');
+    assert(__status != Rendering, 'Attempted to dispose a view while it was building');
+    assert(__status != Disposing, 'Attempted to dispose a view that is already disposing');
+    assert(__status != Disposed, 'Attempted to dispose a view that was already disposed');
 
     __status = Disposing;
     __invalidChildren = [];
@@ -263,5 +276,6 @@ abstract class View implements Disposable implements DisposableHost {
     });
     
     __status = Disposed;
+    __mounted = Unmounted;
   }
 }

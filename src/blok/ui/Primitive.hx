@@ -68,7 +68,7 @@ class Primitive extends View implements PrimitiveHost {
   
     children = [ for (i => node in nodes) {
       var child = node.createComponent();
-      child.mount(this, createSlot(i, previous));
+      child.mount(getAdaptor(), this, createSlot(i, previous));
       previous = child;
       child;
     } ];
@@ -85,7 +85,7 @@ class Primitive extends View implements PrimitiveHost {
   
     children = [ for (i => node in nodes) {
       var child = node.createComponent();
-      child.hydrate(localCursor, this, createSlot(i, previous));
+      child.hydrate(localCursor, getAdaptor(), this, createSlot(i, previous));
       previous = child;
       child;
     } ];

@@ -9,8 +9,7 @@ class Root extends View implements PrimitiveHost {
 
   public static function node(props:{
     target:Dynamic, 
-    child:()->Child,
-    adaptor:Adaptor
+    child:()->Child
   }) {
     return new VComponent(componentType, props, Root.new);
   }
@@ -24,12 +23,10 @@ class Root extends View implements PrimitiveHost {
     __node = node;
     (node.getProps():{
       target:Dynamic,
-      child:()->Child,
-      adaptor:Adaptor
-    }).extract({ target: target, child: child, adaptor: adaptor });
+      child:()->Child
+    }).extract({ target: target, child: child });
     this.target = target;
     this.child = child;
-    this.__adaptor = adaptor;
   }
 
   function render():Child {
@@ -38,12 +35,12 @@ class Root extends View implements PrimitiveHost {
 
   function __initialize() {
     component = render().createComponent();
-    component.mount(this, createSlot(0, null));
+    component.mount(getAdaptor(), this, createSlot(0, null));
   }
 
   function __hydrate(cursor:Cursor) {
     component = render().createComponent();
-    component.hydrate(cursor.currentChildren(), this, createSlot(0, null));
+    component.hydrate(cursor.currentChildren(), getAdaptor(), this, createSlot(0, null));
     cursor.next();
   }
 

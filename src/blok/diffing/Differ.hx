@@ -154,7 +154,7 @@ function hydrateChildren(parent:View, cursor:Cursor, children:Array<VNode>) {
   var previous:Null<View> = null;
   return [ for (i => node in children) {
     var child = node.createComponent();
-    child.hydrate(cursor, parent, parent.createSlot(i, previous));
+    child.hydrate(cursor, parent.getAdaptor(), parent, parent.createSlot(i, previous));
     previous = child;
     child;
   } ];
@@ -162,7 +162,7 @@ function hydrateChildren(parent:View, cursor:Cursor, children:Array<VNode>) {
 
 private function createComponentForVNode(parent:View, node:VNode, ?slot:Slot) {
   var element = node.createComponent();
-  element.mount(parent, slot);
+  element.mount(parent.getAdaptor(), parent, slot);
   return element;
 }
 

@@ -41,7 +41,7 @@ abstract class Component extends View {
     assert(__rendered == null);
     __rendered = __createRendered();
     __child = __rendered.peek().createComponent();
-    __child?.mount(this, __slot);
+    __child?.mount(getAdaptor(), this, __slot);
     Owner.with(this, setup);
   }
 
@@ -49,7 +49,7 @@ abstract class Component extends View {
     assert(__rendered == null);
     __rendered = __createRendered();
     __child = __rendered.peek().createComponent();
-    __child?.hydrate(cursor, this, __slot);
+    __child?.hydrate(cursor, getAdaptor(), this, __slot);
     Owner.with(this, setup);
   }
 

@@ -9,7 +9,7 @@
     "wartman"
   ],
   "releasenote": "Improved Macro api and Resource api",
-  "version": "0.7.1-alpha.1",
+  "version": "0.7.2",
   "url": "https://github.com/blok-ui/blok.core",
   "dependencies": {
     "kit": "0.0.0"

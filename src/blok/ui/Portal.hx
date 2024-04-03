@@ -45,8 +45,7 @@ class Portal extends View {
   function setupPortalRoot() {
     root = Root.node({
       target: target,
-      child: child,
-      adaptor: getAdaptor()
+      child: child
     }).createComponent();
   }
 
@@ -57,25 +56,29 @@ class Portal extends View {
   }
 
   function __initialize() {
+    var adaptor = getAdaptor();
+
     marker = Placeholder.node().createComponent();
-    marker.mount(this, __slot);
+    marker.mount(adaptor, this, __slot);
     setupPortalRoot();
-    root.mount(this, null);
+    root.mount(adaptor, this, null);
   }
 
   function __hydrate(cursor:Cursor) {
+    var adaptor = getAdaptor();
+    var cursor = adaptor.createCursor(target);
+
     marker = Placeholder.node().createComponent();
-    marker.mount(this, __slot);
+    marker.mount(adaptor, this, __slot);
     setupPortalRoot();
-    root.hydrate(getAdaptor().createCursor(target), this, null);
+    root.hydrate(cursor, adaptor, this, null);
   }
 
   function __update() {
     updateProps();
     root.update(Root.node({
       target: target,
-      child: child,
-      adaptor: getAdaptor()
+      child: child
     }));
   }
 

@@ -4,71 +4,71 @@ import blok.signal.Signal;
 
 // Taken from: https://github.com/haxetink/tink_domspec/blob/master/src/tink/domspec/Aria.hx
 typedef AriaAttributes = {
-  @:html('aria-label') var ?ariaLabel:ReadonlySignal<String>;
-  @:html('aria-current') var ?ariaCurrent:ReadonlySignal<String>;
-  @:html('aria-labeledby') var ?ariaLabelledby:ReadonlySignal<String>;
-  @:html('aria-describedby') var ?ariaDescribedby:ReadonlySignal<String>;
-  @:html('aria-autocomplete') var ?ariaAutocomplete:ReadonlySignal<String>;
-  @:html('aria-dropeffect') var ?ariaDropEffect:ReadonlySignal<String>;
-  @:html('aria-hidden') var ?ariaHidden:ReadonlySignal<Bool>;
-  @:html('aria-disabled') var ?ariaDisabled:ReadonlySignal<Bool>;
-  @:html('aria-checked') var ?ariaChecked:ReadonlySignal<Bool>;
-  @:html('aria-haspopup') var ?ariaHasPopup:ReadonlySignal<Bool>;
-  @:html('aria-grabbed') var ?ariaGrabbed:ReadonlySignal<Bool>;
-  @:html('aria-valuenow') var ?ariaValuenow:ReadonlySignal<Float>;
-  @:html('aria-valuemin') var ?ariaValuemin:ReadonlySignal<Float>;
-  @:html('aria-valuemax') var ?ariaValuemax:ReadonlySignal<Float>;
-  @:html('aria-valuetext') var ?ariaValuetext:ReadonlySignal<String>;
-  @:html('aria-modal') var ?ariaModal:ReadonlySignal<String>;
+  @:html('aria-label') var ?ariaLabel:ReadOnlySignal<String>;
+  @:html('aria-current') var ?ariaCurrent:ReadOnlySignal<String>;
+  @:html('aria-labeledby') var ?ariaLabelledby:ReadOnlySignal<String>;
+  @:html('aria-describedby') var ?ariaDescribedby:ReadOnlySignal<String>;
+  @:html('aria-autocomplete') var ?ariaAutocomplete:ReadOnlySignal<String>;
+  @:html('aria-dropeffect') var ?ariaDropEffect:ReadOnlySignal<String>;
+  @:html('aria-hidden') var ?ariaHidden:ReadOnlySignal<Bool>;
+  @:html('aria-disabled') var ?ariaDisabled:ReadOnlySignal<Bool>;
+  @:html('aria-checked') var ?ariaChecked:ReadOnlySignal<Bool>;
+  @:html('aria-haspopup') var ?ariaHasPopup:ReadOnlySignal<Bool>;
+  @:html('aria-grabbed') var ?ariaGrabbed:ReadOnlySignal<Bool>;
+  @:html('aria-valuenow') var ?ariaValuenow:ReadOnlySignal<Float>;
+  @:html('aria-valuemin') var ?ariaValuemin:ReadOnlySignal<Float>;
+  @:html('aria-valuemax') var ?ariaValuemax:ReadOnlySignal<Float>;
+  @:html('aria-valuetext') var ?ariaValuetext:ReadOnlySignal<String>;
+  @:html('aria-modal') var ?ariaModal:ReadOnlySignal<String>;
 }
 
 // From https://github.com/haxetink/tink_domspec/blob/master/src/tink/domspec/Attributes.hx
 typedef GlobalAttr = AriaAttributes & {
-  @:html('class') var ?className:ReadonlySignal<String>;
-  var ?id:ReadonlySignal<String>;
-  var ?title:ReadonlySignal<String>;
-  var ?lang:ReadonlySignal<String>;
-  var ?dir:ReadonlySignal<String>;
-  var ?contentEditable:ReadonlySignal<Bool>;
-  var ?inputMode:ReadonlySignal<Bool>;
-  var ?hidden:ReadonlySignal<Bool>;
-  var ?tabIndex:ReadonlySignal<Int>;
-  var ?accessKey:ReadonlySignal<String>;
-  var ?draggable:ReadonlySignal<Bool>;
-  var ?spellcheck:ReadonlySignal<Bool>;
-  var ?style:ReadonlySignal<String>;
-  var ?role:ReadonlySignal<String>;
-  var ?dataset:ReadonlySignal<Map<String, String>>;
+  @:html('class') var ?className:ReadOnlySignal<String>;
+  var ?id:ReadOnlySignal<String>;
+  var ?title:ReadOnlySignal<String>;
+  var ?lang:ReadOnlySignal<String>;
+  var ?dir:ReadOnlySignal<String>;
+  var ?contentEditable:ReadOnlySignal<Bool>;
+  var ?inputMode:ReadOnlySignal<Bool>;
+  var ?hidden:ReadOnlySignal<Bool>;
+  var ?tabIndex:ReadOnlySignal<Int>;
+  var ?accessKey:ReadOnlySignal<String>;
+  var ?draggable:ReadOnlySignal<Bool>;
+  var ?spellcheck:ReadOnlySignal<Bool>;
+  var ?style:ReadOnlySignal<String>;
+  var ?role:ReadOnlySignal<String>;
+  var ?dataset:ReadOnlySignal<Map<String, String>>;
 }
 
 typedef DetailsAttr = GlobalAttr & {
-  var ?open:ReadonlySignal<Bool>;
+  var ?open:ReadOnlySignal<Bool>;
 }
 
 typedef FieldSetAttr = GlobalAttr & {
-  var ?disabled:ReadonlySignal<Bool>;
-  var ?name:ReadonlySignal<String>;
+  var ?disabled:ReadOnlySignal<Bool>;
+  var ?name:ReadOnlySignal<String>;
 }
 
 typedef ObjectAttr = GlobalAttr & {
-  var ?type:ReadonlySignal<String>;
-  var ?data:ReadonlySignal<String>;
-  var ?width:ReadonlySignal<Int>;
-  var ?height:ReadonlySignal<Int>;
+  var ?type:ReadOnlySignal<String>;
+  var ?data:ReadOnlySignal<String>;
+  var ?width:ReadOnlySignal<Int>;
+  var ?height:ReadOnlySignal<Int>;
 }
 
 typedef ParamAttr = GlobalAttr & {
-  var name:ReadonlySignal<String>;
-  var value:ReadonlySignal<String>;
+  var ?name:ReadOnlySignal<String>;
+  var ?value:ReadOnlySignal<String>;
 }
 
 typedef TableCellAttr = GlobalAttr & {
-  var ?abbr:ReadonlySignal<String>;
-  var ?colSpan:ReadonlySignal<Int>;
-  var ?headers:ReadonlySignal<String>;
-  var ?rowSpan:ReadonlySignal<Int>;
-  var ?scope:ReadonlySignal<String>;
-  var ?sorted:ReadonlySignal<String>;
+  var ?abbr:ReadOnlySignal<String>;
+  var ?colSpan:ReadOnlySignal<Int>;
+  var ?headers:ReadOnlySignal<String>;
+  var ?rowSpan:ReadOnlySignal<Int>;
+  var ?scope:ReadOnlySignal<String>;
+  var ?sorted:ReadOnlySignal<String>;
 }
 
 enum abstract InputType(String) to String {
@@ -97,58 +97,58 @@ enum abstract InputType(String) to String {
 }
 
 typedef InputAttr = GlobalAttr & {
-  var ?checked:ReadonlySignal<Bool>;
-  var ?disabled:ReadonlySignal<Bool>;
-  var ?required:ReadonlySignal<Bool>;
-  var ?autofocus:ReadonlySignal<Bool>;
-  var ?autocomplete:ReadonlySignal<String>;
-  var ?value:ReadonlySignal<String>;
-  var ?readOnly:ReadonlySignal<Bool>;
-  @:html('value') var ?defaultValue:ReadonlySignal<String>;
-  var ?type:ReadonlySignal<InputType>;
-  var ?name:ReadonlySignal<String>;
-  var ?placeholder:ReadonlySignal<String>;
-  var ?max:ReadonlySignal<String>;
-  var ?min:ReadonlySignal<String>;
-  var ?step:ReadonlySignal<String>;
-  var ?maxLength:ReadonlySignal<Int>;
-  var ?pattern:ReadonlySignal<String>;
-  var ?accept:ReadonlySignal<String>;
-  var ?multiple:ReadonlySignal<Bool>;
+  var ?checked:ReadOnlySignal<Bool>;
+  var ?disabled:ReadOnlySignal<Bool>;
+  var ?required:ReadOnlySignal<Bool>;
+  var ?autofocus:ReadOnlySignal<Bool>;
+  var ?autocomplete:ReadOnlySignal<String>;
+  var ?value:ReadOnlySignal<String>;
+  var ?readOnly:ReadOnlySignal<Bool>;
+  @:html('value') var ?defaultValue:ReadOnlySignal<String>;
+  var ?type:ReadOnlySignal<InputType>;
+  var ?name:ReadOnlySignal<String>;
+  var ?placeholder:ReadOnlySignal<String>;
+  var ?max:ReadOnlySignal<String>;
+  var ?min:ReadOnlySignal<String>;
+  var ?step:ReadOnlySignal<String>;
+  var ?maxLength:ReadOnlySignal<Int>;
+  var ?pattern:ReadOnlySignal<String>;
+  var ?accept:ReadOnlySignal<String>;
+  var ?multiple:ReadOnlySignal<Bool>;
 }
 
 typedef ButtonAttr = GlobalAttr & {
-  var ?disabled:ReadonlySignal<Bool>;
-  var ?autofocus:ReadonlySignal<Bool>;
-  var ?type:ReadonlySignal<String>;
-  var ?name:ReadonlySignal<String>;
+  var ?disabled:ReadOnlySignal<Bool>;
+  var ?autofocus:ReadOnlySignal<Bool>;
+  var ?type:ReadOnlySignal<String>;
+  var ?name:ReadOnlySignal<String>;
 }
 
 typedef TextAreaAttr = GlobalAttr & {
-  var ?autofocus:ReadonlySignal<Bool>;
-  var ?cols:ReadonlySignal<Int>;
-  var ?dirname:ReadonlySignal<String>;
-  var ?disabled:ReadonlySignal<Bool>;
-  var ?form:ReadonlySignal<String>;
-  var ?maxlength:ReadonlySignal<Int>;
-  var ?name:ReadonlySignal<String>;
-  var ?placeholder:ReadonlySignal<String>;
-  var ?readOnly:ReadonlySignal<Bool>;
-  var ?required:ReadonlySignal<Bool>;
-  var ?rows:ReadonlySignal<Int>;
-  var ?value:ReadonlySignal<String>;
-  var ?defaultValue:ReadonlySignal<String>;
-  var ?wrap:ReadonlySignal<String>;
+  var ?autofocus:ReadOnlySignal<Bool>;
+  var ?cols:ReadOnlySignal<Int>;
+  var ?dirname:ReadOnlySignal<String>;
+  var ?disabled:ReadOnlySignal<Bool>;
+  var ?form:ReadOnlySignal<String>;
+  var ?maxlength:ReadOnlySignal<Int>;
+  var ?name:ReadOnlySignal<String>;
+  var ?placeholder:ReadOnlySignal<String>;
+  var ?readOnly:ReadOnlySignal<Bool>;
+  var ?required:ReadOnlySignal<Bool>;
+  var ?rows:ReadOnlySignal<Int>;
+  var ?value:ReadOnlySignal<String>;
+  var ?defaultValue:ReadOnlySignal<String>;
+  var ?wrap:ReadOnlySignal<String>;
 }
 
 typedef IFrameAttr = GlobalAttr & {
-  var ?sandbox:ReadonlySignal<String>;
-  var ?width:ReadonlySignal<Int>;
-  var ?height:ReadonlySignal<Int>;
-  var ?src:ReadonlySignal<String>;
-  var ?srcdoc:ReadonlySignal<String>;
-  var ?allowFullscreen:ReadonlySignal<Bool>;
-  @:deprecated var ?scrolling:ReadonlySignal<IframeScrolling>;
+  var ?sandbox:ReadOnlySignal<String>;
+  var ?width:ReadOnlySignal<Int>;
+  var ?height:ReadOnlySignal<Int>;
+  var ?src:ReadOnlySignal<String>;
+  var ?srcdoc:ReadOnlySignal<String>;
+  var ?allowFullscreen:ReadOnlySignal<Bool>;
+  @:deprecated var ?scrolling:ReadOnlySignal<IframeScrolling>;
 }
 
 enum abstract IframeScrolling(String) {
@@ -158,82 +158,82 @@ enum abstract IframeScrolling(String) {
 }
 
 typedef ImageAttr = GlobalAttr & {
-  var ?src:ReadonlySignal<String>;
-  var ?width:ReadonlySignal<Int>;
-  var ?height:ReadonlySignal<Int>;
-  var ?alt:ReadonlySignal<String>;
-  var ?srcset:ReadonlySignal<String>;
-  var ?sizes:ReadonlySignal<String>;
+  var ?src:ReadOnlySignal<String>;
+  var ?width:ReadOnlySignal<Int>;
+  var ?height:ReadOnlySignal<Int>;
+  var ?alt:ReadOnlySignal<String>;
+  var ?srcset:ReadOnlySignal<String>;
+  var ?sizes:ReadOnlySignal<String>;
 }
 
 private typedef MediaAttr = GlobalAttr & {
-  var ?src:ReadonlySignal<String>;
-  var ?autoplay:ReadonlySignal<Bool>;
-  var ?controls:ReadonlySignal<Bool>;
-  var ?loop:ReadonlySignal<Bool>;
-  var ?muted:ReadonlySignal<Bool>;
-  var ?preload:ReadonlySignal<String>;
-  var ?volume:ReadonlySignal<Float>;
+  var ?src:ReadOnlySignal<String>;
+  var ?autoplay:ReadOnlySignal<Bool>;
+  var ?controls:ReadOnlySignal<Bool>;
+  var ?loop:ReadOnlySignal<Bool>;
+  var ?muted:ReadOnlySignal<Bool>;
+  var ?preload:ReadOnlySignal<String>;
+  var ?volume:ReadOnlySignal<Float>;
 }
 
 typedef AudioAttr = MediaAttr & {};
 
 typedef VideoAttr = MediaAttr & {
-  var ?height:ReadonlySignal<Int>;
-  var ?poster:ReadonlySignal<String>;
-  var ?width:ReadonlySignal<Int>;
-  var ?playsInline:ReadonlySignal<Bool>;
+  var ?height:ReadOnlySignal<Int>;
+  var ?poster:ReadOnlySignal<String>;
+  var ?width:ReadOnlySignal<Int>;
+  var ?playsInline:ReadOnlySignal<Bool>;
 }
 
 typedef SourceAttr = GlobalAttr & {
-  var ?src:ReadonlySignal<String>;
-  var ?srcset:ReadonlySignal<String>;
-  var ?media:ReadonlySignal<String>;
-  var ?sizes:ReadonlySignal<String>;
-  var ?type:ReadonlySignal<String>;
+  var ?src:ReadOnlySignal<String>;
+  var ?srcset:ReadOnlySignal<String>;
+  var ?media:ReadOnlySignal<String>;
+  var ?sizes:ReadOnlySignal<String>;
+  var ?type:ReadOnlySignal<String>;
 }
 
 typedef LabelAttr = GlobalAttr & {
-  @:html('for') var ?htmlFor:ReadonlySignal<String>;
+  @:html('for') var ?htmlFor:ReadOnlySignal<String>;
 }
 
 typedef SelectAttr = GlobalAttr & {
-  var ?autofocus:ReadonlySignal<Bool>;
-  var ?disabled:ReadonlySignal<Bool>;
-  var ?multiple:ReadonlySignal<Bool>;
-  var ?value:ReadonlySignal<String>;
-  var ?name:ReadonlySignal<String>;
-  var ?required:ReadonlySignal<Bool>;
-  var ?size:ReadonlySignal<Int>;
+  var ?autofocus:ReadOnlySignal<Bool>;
+  var ?disabled:ReadOnlySignal<Bool>;
+  var ?multiple:ReadOnlySignal<Bool>;
+  var ?value:ReadOnlySignal<String>;
+  var ?name:ReadOnlySignal<String>;
+  var ?required:ReadOnlySignal<Bool>;
+  var ?size:ReadOnlySignal<Int>;
 }
 
 typedef FormAttr = GlobalAttr & {
-  var ?method:ReadonlySignal<String>;
-  var ?action:ReadonlySignal<String>;
+  var ?method:ReadOnlySignal<String>;
+  var ?action:ReadOnlySignal<String>;
 }
 
 typedef AnchorAttr = GlobalAttr & {
-  var ?href:ReadonlySignal<String>;
-  var ?target:ReadonlySignal<String>;
-  var ?type:ReadonlySignal<String>;
-  var ?rel:ReadonlySignal<AnchorRel>;
+  var ?href:ReadOnlySignal<String>;
+  var ?target:ReadOnlySignal<String>;
+  var ?type:ReadOnlySignal<String>;
+  var ?rel:ReadOnlySignal<AnchorRel>;
 }
 
 typedef OptionAttr = GlobalAttr & {
-  var ?disabled:ReadonlySignal<Bool>;
-  var ?label:ReadonlySignal<String>;
-  @:jsOnly var ?defaultSelected:ReadonlySignal<Bool>;
-  var ?selected:ReadonlySignal<Bool>;
-  var ?value:ReadonlySignal<String>;
-  var ?text:ReadonlySignal<String>;
-  var ?index:ReadonlySignal<Int>;
+  var ?disabled:ReadOnlySignal<Bool>;
+  var ?label:ReadOnlySignal<String>;
+  @:jsOnly var ?defaultSelected:ReadOnlySignal<Bool>;
+  var ?selected:ReadOnlySignal<Bool>;
+  var ?value:ReadOnlySignal<String>;
+  var ?text:ReadOnlySignal<String>;
+  var ?index:ReadOnlySignal<Int>;
 }
 
 typedef MetaAttr = GlobalAttr & {
-  var ?content:ReadonlySignal<String>;
-  var ?name:ReadonlySignal<String>;
-  var ?charset:ReadonlySignal<String>;
-  var ?httpEquiv:ReadonlySignal<MetaHttpEquiv>;
+  var ?content:ReadOnlySignal<String>;
+  var ?name:ReadOnlySignal<String>;
+  var ?charset:ReadOnlySignal<String>;
+  var ?httpEquiv:ReadOnlySignal<MetaHttpEquiv>;
 }
 
 enum abstract MetaHttpEquiv(String) to String from String {
@@ -243,13 +243,13 @@ enum abstract MetaHttpEquiv(String) to String from String {
 }
 
 typedef LinkAttr = GlobalAttr & {
-  var rel:ReadonlySignal<LinkRel>;
-  var ?crossorigin:ReadonlySignal<LinkCrossOrigin>;
-  var ?href:ReadonlySignal<String>;
-  var ?hreflang:ReadonlySignal<String>;
-  var ?media:ReadonlySignal<String>;
-  var ?sizes:ReadonlySignal<String>;
-  var ?type:ReadonlySignal<String>;
+  var ?rel:ReadOnlySignal<LinkRel>;
+  var ?crossorigin:ReadOnlySignal<LinkCrossOrigin>;
+  var ?href:ReadOnlySignal<String>;
+  var ?hreflang:ReadOnlySignal<String>;
+  var ?media:ReadOnlySignal<String>;
+  var ?sizes:ReadOnlySignal<String>;
+  var ?type:ReadOnlySignal<String>;
 }
 
 enum abstract LinkRel(String) to String from String {
@@ -292,29 +292,29 @@ enum abstract LinkCrossOrigin(String) to String from String {
 }
 
 typedef ScriptAttr = GlobalAttr & {
-  var ?async:ReadonlySignal<Bool>;
-  var ?charset:ReadonlySignal<String>;
-  var ?defer:ReadonlySignal<Bool>;
-  var ?src:ReadonlySignal<String>;
-  var ?type:ReadonlySignal<String>;
+  var ?async:ReadOnlySignal<Bool>;
+  var ?charset:ReadOnlySignal<String>;
+  var ?defer:ReadOnlySignal<Bool>;
+  var ?src:ReadOnlySignal<String>;
+  var ?type:ReadOnlySignal<String>;
 }
 
 typedef StyleAttr = GlobalAttr & {
-  var ?type:ReadonlySignal<String>;
-  var ?media:ReadonlySignal<String>;
-  var ?nonce:ReadonlySignal<String>;
+  var ?type:ReadOnlySignal<String>;
+  var ?media:ReadOnlySignal<String>;
+  var ?nonce:ReadOnlySignal<String>;
 }
 
 typedef CanvasAttr = GlobalAttr & {
-  var ?width:ReadonlySignal<String>;
-  var ?height:ReadonlySignal<String>;
+  var ?width:ReadOnlySignal<String>;
+  var ?height:ReadOnlySignal<String>;
 }
 
 typedef TrackAttr = {
-  var src:ReadonlySignal<String>;
-  var ?kind:ReadonlySignal<TrackKind>;
-  var ?label:ReadonlySignal<String>;
-  var ?srclang:ReadonlySignal<String>;
+  var ?src:ReadOnlySignal<String>;
+  var ?kind:ReadOnlySignal<TrackKind>;
+  var ?label:ReadOnlySignal<String>;
+  var ?srclang:ReadOnlySignal<String>;
 }
 
 enum abstract TrackKind(String) to String from String {
@@ -326,8 +326,8 @@ enum abstract TrackKind(String) to String from String {
 }
 
 typedef EmbedAttr = {
-  var height:ReadonlySignal<Int>;
-  var width:ReadonlySignal<Int>;
-  var src:ReadonlySignal<String>;
-  var typed:ReadonlySignal<String>;
+  var ?height:ReadOnlySignal<Int>;
+  var ?width:ReadOnlySignal<Int>;
+  var ?src:ReadOnlySignal<String>;
+  var ?typed:ReadOnlySignal<String>;
 }

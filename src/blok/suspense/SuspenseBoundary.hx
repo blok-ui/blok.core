@@ -42,8 +42,8 @@ typedef SuspenseBoundaryProps = {
   public final ?onSuspended:()->Void;
 } 
 
-class SuspenseBoundary extends ComponentBase implements Boundary {
-  public static function maybeFrom(context:ComponentBase) {
+class SuspenseBoundary extends View implements Boundary {
+  public static function maybeFrom(context:View) {
     return context.findAncestorOfType(SuspenseBoundary);
   }
 
@@ -57,10 +57,10 @@ class SuspenseBoundary extends ComponentBase implements Boundary {
   var fallback:()->Child;
   var hydrating:Bool = false;
   var suspenseStatus:SuspenseBoundaryStatus = Ok;
-  var hiddenRoot:Null<ComponentBase> = null;
+  var hiddenRoot:Null<View> = null;
   var hiddenSlot:Null<Slot> = null;
-  var realChild:Null<ComponentBase> = null;
-  var currentChild:Null<ComponentBase> = null;
+  var realChild:Null<View> = null;
+  var currentChild:Null<View> = null;
   var onComplete:Null<()->Void>;
   var onSuspended:Null<()->Void>;
   var overridable:Bool;
@@ -109,12 +109,14 @@ class SuspenseBoundary extends ComponentBase implements Boundary {
   }
 
   function setActiveChild() {
+    var adaptor = getAdaptor();
+
     switch suspenseStatus {
       case Suspended(_) if (currentChild != realChild):
       case Suspended(_):
         realChild.updateSlot(hiddenSlot);
         currentChild = fallback().createComponent();
-        currentChild.mount(this, __slot);
+        currentChild.mount(adaptor, this, __slot);
       case Ok if (currentChild != realChild):
         currentChild?.dispose();
         currentChild = realChild;
@@ -125,17 +127,18 @@ class SuspenseBoundary extends ComponentBase implements Boundary {
   }
 
   function setupHiddenRoot() {
-    hiddenRoot = RootComponent.node({
-      target: getAdaptor().createContainerNode({}),
-      child: () -> Placeholder.node(),
-      adaptor: getAdaptor()
+    var adaptor = getAdaptor();
+
+    hiddenRoot = Root.node({
+      target: adaptor.createContainerNode({}),
+      child: () -> Placeholder.node()
     }).createComponent();
     
-    hiddenRoot.mount(null, null);
+    hiddenRoot.mount(adaptor, null, null);
     hiddenSlot = createSlot(1, hiddenRoot.findChildOfType(Placeholder).unwrap());
   }
 
-  public function handle(component:ComponentBase, object:Any) {
+  public function handle(component:View, object:Any) {
     if (!(object is SuspenseException)) {
       this.tryToHandleWithBoundary(object);
       return;
@@ -228,7 +231,7 @@ class SuspenseBoundary extends ComponentBase implements Boundary {
     setupHiddenRoot();
 
     currentChild = realChild = child.createComponent();
-    realChild.mount(this, __slot);
+    realChild.mount(getAdaptor(), this, __slot);
 
     setActiveChild();
   }
@@ -238,7 +241,7 @@ class SuspenseBoundary extends ComponentBase implements Boundary {
     setupHiddenRoot();
 
     currentChild = realChild = child.createComponent();
-    realChild.hydrate(cursor, this, __slot);
+    realChild.hydrate(cursor, getAdaptor(), this, __slot);
     hydrating = false;
   }
 
@@ -269,23 +272,23 @@ class SuspenseBoundary extends ComponentBase implements Boundary {
     currentChild?.updateSlot(newSlot);
   }
 
-  public function getRealNode():Dynamic {
+  public function getPrimitive():Dynamic {
     assert(currentChild != null);
-    return currentChild.getRealNode();
+    return currentChild.getPrimitive();
   }
 
   public function canBeUpdatedByNode(node:VNode):Bool {
     return node.type == componentType;
   }
 
-  public function visitChildren(visitor:(child:ComponentBase) -> Bool) {
+  public function visitChildren(visitor:(child:View) -> Bool) {
     if (currentChild != null) visitor(currentChild);
   }
 }
 
 @:access(blok.suspense)
 class SuspenseLink implements Disposable {
-  public final component:ComponentBase;
+  public final component:View;
   final suspense:SuspenseBoundary;
   
   var link:Null<Cancellable> = null;

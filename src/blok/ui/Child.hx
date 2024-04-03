@@ -6,12 +6,17 @@ import blok.signal.Signal;
 @:forward
 abstract Child(VNode) from Text from VNode to VNode {
   @:from
+  public inline static function ofArray(children:Array<Child>):Child {
+    return Fragment.node(...children);
+  }
+
+  @:from
   public inline static function ofComputationString(content:Computation<String>):Child {
     return Text.ofSignal(content);
   }
 
   @:from
-  public inline static function ofReadonlySignalString(content:ReadonlySignal<String>):Child {
+  public inline static function ofReadonlySignalString(content:ReadOnlySignal<String>):Child {
     return Text.ofSignal(content);
   }
 
@@ -26,7 +31,7 @@ abstract Child(VNode) from Text from VNode to VNode {
   }
 
   @:from
-  public inline static function ofReadonlySignalInt(content:ReadonlySignal<Int>):Child {
+  public inline static function ofReadonlySignalInt(content:ReadOnlySignal<Int>):Child {
     return Text.ofSignal(content.map(Std.string));
   }
 
@@ -41,7 +46,7 @@ abstract Child(VNode) from Text from VNode to VNode {
   }
 
   @:from
-  public inline static function ofReadonlySignalFloat(content:ReadonlySignal<Float>):Child {
+  public inline static function ofReadonlySignalFloat(content:ReadOnlySignal<Float>):Child {
     return Text.ofSignal(content.map(Std.string));
   }
 

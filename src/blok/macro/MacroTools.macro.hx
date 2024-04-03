@@ -134,5 +134,5 @@ function isSignal(t:ComplexType) {
 }
 
 function isComponentBase(t:ComplexType) {
-  return Context.unify(t.toType(), (macro:blok.ui.ComponentBase).toType());
+  return Context.unify(t.toType(), (macro:blok.ui.View).toType());
 }

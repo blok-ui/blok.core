@@ -113,8 +113,8 @@ class Generator {
         var e = switch tag.kind {
           case FunctionCall:
             macro @:pos(name.pos) $p{path};
-          case FromMarkupMethod:
-            path = path.concat([Tag.fromMarkup]);
+          case FromMarkupMethod(name):
+            path = path.concat([name]);
             macro @:pos(name.pos) $p{path};
         }
 

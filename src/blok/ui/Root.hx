@@ -1,48 +1,46 @@
 package blok.ui;
 
 import blok.adaptor.*;
-import blok.signal.Graph;
+import blok.core.Owner;
+import blok.signal.Runtime;
 
-class RootComponent extends ComponentBase implements RealNodeHost {
+class Root extends View implements PrimitiveHost {
   public static final componentType = new UniqueId();
 
   public static function node(props:{
     target:Dynamic, 
-    child:()->Child,
-    adaptor:Adaptor
+    child:()->Child
   }) {
-    return new VComponent(componentType, props, RootComponent.new);
+    return new VComponent(componentType, props, Root.new);
   }
 
   final target:Dynamic;
   final child:()->Child;
 
-  var component:Null<ComponentBase> = null;
+  var component:Null<View> = null;
   
   function new(node) {
     __node = node;
     (node.getProps():{
       target:Dynamic,
-      child:()->Child,
-      adaptor:Adaptor
-    }).extract({ target: target, child: child, adaptor: adaptor });
+      child:()->Child
+    }).extract({ target: target, child: child });
     this.target = target;
     this.child = child;
-    this.__adaptor = adaptor;
   }
 
-  function render() {
-    return withOwnedValue(this, ()-> untrackValue(child));
+  function render():Child {
+    return Owner.with(this, ()-> Runtime.current().untrack(child));
   }
 
   function __initialize() {
     component = render().createComponent();
-    component.mount(this, createSlot(0, null));
+    component.mount(getAdaptor(), this, createSlot(0, null));
   }
 
   function __hydrate(cursor:Cursor) {
     component = render().createComponent();
-    component.hydrate(cursor.currentChildren(), this, createSlot(0, null));
+    component.hydrate(cursor.currentChildren(), getAdaptor(), this, createSlot(0, null));
     cursor.next();
   }
 
@@ -56,7 +54,7 @@ class RootComponent extends ComponentBase implements RealNodeHost {
     component.updateSlot(newSlot);
   }
 
-  public function getRealNode():Dynamic {
+  public function getPrimitive():Dynamic {
     return target;
   }
 
@@ -64,7 +62,7 @@ class RootComponent extends ComponentBase implements RealNodeHost {
     return false;
   }
 
-  public function visitChildren(visitor:(child:ComponentBase) -> Bool) {
+  public function visitChildren(visitor:(child:View) -> Bool) {
     if (component != null) visitor(component);
   }
 }

@@ -8,8 +8,18 @@ typedef PortalProps = {
   public final child:()->Child;
 } 
 
-class Portal extends ComponentBase {
+class Portal extends View {
   public static final componentType = new UniqueId();
+
+  @:fromMarkup
+  @:noUsing
+  @:noCompletion
+  public static inline function fromMarkup(props:{
+    public final target:Dynamic;
+    @:children public final child:()->Child;
+  }) {
+    return wrap(props.target, props.child);
+  };
 
   public inline static function wrap(target:Dynamic, child:()->Child, ?key) {
     return node({
@@ -24,8 +34,8 @@ class Portal extends ComponentBase {
 
   var target:Null<Dynamic> = null;
   var child:Null<()->Child> = null;
-  var marker:Null<ComponentBase> = null;
-  var root:Null<ComponentBase> = null;
+  var marker:Null<View> = null;
+  var root:Null<View> = null;
 
   function new(node) {
     __node = node;
@@ -33,10 +43,9 @@ class Portal extends ComponentBase {
   }
 
   function setupPortalRoot() {
-    root = RootComponent.node({
+    root = Root.node({
       target: target,
-      child: child,
-      adaptor: getAdaptor()
+      child: child
     }).createComponent();
   }
 
@@ -47,25 +56,29 @@ class Portal extends ComponentBase {
   }
 
   function __initialize() {
+    var adaptor = getAdaptor();
+
     marker = Placeholder.node().createComponent();
-    marker.mount(this, __slot);
+    marker.mount(adaptor, this, __slot);
     setupPortalRoot();
-    root.mount(this, null);
+    root.mount(adaptor, this, null);
   }
 
   function __hydrate(cursor:Cursor) {
+    var adaptor = getAdaptor();
+    var cursor = adaptor.createCursor(target);
+
     marker = Placeholder.node().createComponent();
-    marker.mount(this, __slot);
+    marker.mount(adaptor, this, __slot);
     setupPortalRoot();
-    root.hydrate(getAdaptor().createCursor(target), this, null);
+    root.hydrate(cursor, adaptor, this, null);
   }
 
   function __update() {
     updateProps();
-    root.update(RootComponent.node({
+    root.update(Root.node({
       target: target,
-      child: child,
-      adaptor: getAdaptor()
+      child: child
     }));
   }
 
@@ -84,16 +97,16 @@ class Portal extends ComponentBase {
     marker?.updateSlot(newSlot);
   }
 
-  public function getRealNode():Dynamic {
+  public function getPrimitive():Dynamic {
     assert(marker != null);
-    return marker.getRealNode();
+    return marker.getPrimitive();
   }
 
   public function canBeUpdatedByNode(node:VNode):Bool {
     return node.type == componentType;
   }
 
-  public function visitChildren(visitor:(child:ComponentBase) -> Bool) {
+  public function visitChildren(visitor:(child:View) -> Bool) {
     root?.visitChildren(visitor);
   }
 }

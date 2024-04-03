@@ -76,7 +76,6 @@ class TodoContext extends Model implements Context {
     case Active: todos().filter(todo -> !todo.isCompleted());
   }
   
-  @:action
   public function addTodo(description:String) {
     uid.update(id -> id + 1);
     todos.update(todos -> [ new Todo({
@@ -87,13 +86,11 @@ class TodoContext extends Model implements Context {
     }) ].concat(todos));
   }
 
-  @:action
   public function removeTodo(todo:Todo) {
     todo.dispose();
     todos.update(todos -> todos.filter(t -> t != todo));
   }
 
-  @:action
   public function removeCompletedTodos() {
     todos.update(todos -> todos.filter(todo -> {
       if (todo.isCompleted.peek()) {
@@ -246,7 +243,7 @@ class TodoInput extends Component {
   function setup() {
     Observer.track(() -> {
       if (isEditing()) {
-        (getRealNode():js.html.InputElement).focus();
+        (getPrimitive():js.html.InputElement).focus();
       }
     });
   }
@@ -354,10 +351,14 @@ class TodoItem extends Component {
         value: todo.description.peek(),
         clearOnComplete: false,
         onCancel: () -> todo.isEditing.set(false),
-        onSubmit: data -> Action.run(() -> {
+        onSubmit: data -> {
           todo.description.set(data);
           todo.isEditing.set(false);
-        })
+        }
+        // onSubmit: data -> Action.run(() -> {
+        //   todo.description.set(data);
+        //   todo.isEditing.set(false);
+        // })
       })}
     </li>);
   }

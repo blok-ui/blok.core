@@ -1,6 +1,5 @@
 package blok.signal;
 
-import blok.signal.Graph;
 import blok.core.*;
 
 /**
@@ -31,21 +30,17 @@ abstract Isolate<T>(IsolateImpl<T>) to Disposable to DisposableItem {
 class IsolateImpl<T> implements Disposable {
   final scope:()->T;
 
-  var owner:Null<DisposableCollection>;
+  var owner:Owner;
 
   public function new(scope) {
     this.scope = scope;
-    switch getCurrentOwner() {
-      case Some(parent):
-        parent.addDisposable(this);
-      case None:
-    }
+    Owner.current()?.addDisposable(this);
   }
 
   public function get():T {
     cleanup();
-    owner = new DisposableCollection();
-    return withOwnedValue(owner, scope);
+    owner = new Owner();
+    return owner.own(scope);
   }
 
   public function cleanup() {

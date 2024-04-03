@@ -3,15 +3,15 @@ package blok.ui;
 import blok.adaptor.*;
 import blok.diffing.Differ;
 
-class Fragment extends ComponentBase {
+class Fragment extends View {
   public static final componentType = new UniqueId();
 
   public static function node(...children:Child):VNode {
     return new VComponent(componentType, { children: children }, Fragment.new);
   }
 
-  var children:Array<ComponentBase> = [];
-  var marker:Null<ComponentBase> = null;
+  var children:Array<View> = [];
+  var marker:Null<View> = null;
 
   private function new(node) {
     __node = node;
@@ -22,21 +22,23 @@ class Fragment extends ComponentBase {
     return props.children.filter(c -> c != null);
   }
 
-  override function createSlot(localIndex:Int, previous:Null<ComponentBase>):Slot {
+  override function createSlot(localIndex:Int, previous:Null<View>):Slot {
     return new FragmentSlot(__slot?.index ?? 0, localIndex + 1, previous);
   }
 
   function __initialize() {
+    var adaptor = getAdaptor();
+
     marker = Placeholder.node().createComponent();
-    marker.mount(this, __slot);
+    marker.mount(adaptor, this, __slot);
     
     var previous = marker;
     var nodes = render();
-    var newChildren:Array<ComponentBase> = [];
+    var newChildren:Array<View> = [];
 
     for (i => node in nodes) {
       var child = node.createComponent();
-      child.mount(this, createSlot(i, previous));
+      child.mount(adaptor, this, createSlot(i, previous));
       newChildren.push(child);
       previous = child;
     }
@@ -45,16 +47,18 @@ class Fragment extends ComponentBase {
   }
 
   function __hydrate(cursor:Cursor) {
+    var adaptor = getAdaptor();
+
     marker = Placeholder.node().createComponent();
-    marker.mount(this, __slot);
+    marker.mount(adaptor, this, __slot);
     
     var previous = marker;
     var nodes = render();
-    var newChildren:Array<ComponentBase> = [];
+    var newChildren:Array<View> = [];
 
     for (i => node in nodes) {
       var child = node.createComponent();
-      child.hydrate(cursor, this, createSlot(i, previous));
+      child.hydrate(cursor, adaptor, this, createSlot(i, previous));
       newChildren.push(child);
       previous = child;
     }
@@ -86,18 +90,18 @@ class Fragment extends ComponentBase {
     }
   }
 
-  public function getRealNode():Dynamic {
+  public function getPrimitive():Dynamic {
     if (children.length == 0) {
-      return marker?.getRealNode();
+      return marker?.getPrimitive();
     }
-    return children[children.length - 1].getRealNode();
+    return children[children.length - 1].getPrimitive();
   }
 
   public function canBeUpdatedByNode(node:VNode):Bool {
     return node.type == componentType;
   }
 
-  public function visitChildren(visitor:(child:ComponentBase) -> Bool) {
+  public function visitChildren(visitor:(child:View) -> Bool) {
     for (child in children) if (!visitor(child)) return;
   }
 }

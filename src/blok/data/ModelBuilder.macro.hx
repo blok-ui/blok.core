@@ -8,7 +8,6 @@ final builderFactory = new ClassBuilderFactory([
   new SignalFieldBuilder({ updatable: false }),
   new ObservableFieldBuilder({ updatable: false }),
   new ComputedFieldBuilder(),
-  new ActionFieldBuilder(),
   new ConstructorBuilder({ privateConstructor: false }),
   new JsonSerializerBuilder({})
 ]);

@@ -3,9 +3,9 @@ package blok.ui;
 import blok.adaptor.*;
 import blok.debug.Debug;
 
-using blok.adaptor.RealNodeHostTools;
+using blok.adaptor.PrimitiveHostTools;
 
-class Placeholder extends ComponentBase implements RealNodeHost {
+class Placeholder extends View implements PrimitiveHost {
   public static final componentType = new UniqueId();
 
   public static function node(?key):VNode {
@@ -21,7 +21,7 @@ class Placeholder extends ComponentBase implements RealNodeHost {
   function __initialize() {
     var adaptor = getAdaptor();
     realNode = adaptor.createPlaceholderNode();
-    adaptor.insertNode(realNode, __slot, () -> this.findNearestRealNode());
+    adaptor.insertNode(realNode, __slot, () -> this.findNearestPrimitive());
   }
 
   function __hydrate(cursor:Cursor) {
@@ -37,10 +37,10 @@ class Placeholder extends ComponentBase implements RealNodeHost {
   }
   
   function __updateSlot(oldSlot:Null<Slot>, newSlot:Null<Slot>) {
-    getAdaptor().moveNode(getRealNode(), oldSlot, newSlot, () -> this.findNearestRealNode());
+    getAdaptor().moveNode(getPrimitive(), oldSlot, newSlot, () -> this.findNearestPrimitive());
   }
 
-  public function getRealNode():Dynamic {
+  public function getPrimitive():Dynamic {
     assert(realNode != null);
     return realNode;
   }
@@ -49,5 +49,5 @@ class Placeholder extends ComponentBase implements RealNodeHost {
     return node.type == componentType;
   }
 
-  public function visitChildren(visitor:(child:ComponentBase) -> Bool) {}
+  public function visitChildren(visitor:(child:View) -> Bool) {}
 }

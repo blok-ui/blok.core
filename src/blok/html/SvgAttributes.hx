@@ -6,69 +6,69 @@ import blok.signal.Signal;
 // Coppied from: https://github.com/haxetink/tink_svgspec
 // svg attr reference: https://github.com/dumistoklus/svg-xsd-schema/blob/master/svg.xsd
 typedef SvgAttributes = GlobalAttr & {
-  @:optional var width:ReadonlySignal<String>;
-  @:optional var height:ReadonlySignal<String>;
-  @:optional var viewBox:ReadonlySignal<String>;
-  @:optional var xmlns:ReadonlySignal<String>; // Generally unused
+  var ?width:ReadOnlySignal<String>;
+  var ?height:ReadOnlySignal<String>;
+  var ?viewBox:ReadOnlySignal<String>;
+  var ?xmlns:ReadOnlySignal<String>; // Generally unused
 }
 
 typedef BaseAttr = SvgAttributes & {
-  @:optional var transform:ReadonlySignal<String>;
+  var ?transform:ReadOnlySignal<String>;
 }
 
 typedef PathAttr = BaseAttr & {
-  var d:ReadonlySignal<String>;
-  @:optional var pathLength:ReadonlySignal<String>;
+  var ?d:ReadOnlySignal<String>;
+  var ?pathLength:ReadOnlySignal<String>;
 }
 
 typedef PolygonAttr = BaseAttr & {
-  var points:ReadonlySignal<String>;
+  var ?points:ReadOnlySignal<String>;
 }
 
 typedef RectAttr = BaseAttr & {
-  @:optional var x:ReadonlySignal<String>;
-  @:optional var y:ReadonlySignal<String>;
-  var width:ReadonlySignal<String>;
-  var height:ReadonlySignal<String>;
-  @:optional var rx:ReadonlySignal<String>;
-  @:optional var ry:ReadonlySignal<String>;
+  var ?x:ReadOnlySignal<String>;
+  var ?y:ReadOnlySignal<String>;
+  var ?width:ReadOnlySignal<String>;
+  var ?height:ReadOnlySignal<String>;
+  var ?rx:ReadOnlySignal<String>;
+  var ?ry:ReadOnlySignal<String>;
 }
 
 typedef CircleAttr = BaseAttr & {
-  @:optional var cx:ReadonlySignal<String>;
-  @:optional var cy:ReadonlySignal<String>;
-  @:optional var r:ReadonlySignal<String>;
+  var ?cx:ReadOnlySignal<String>;
+  var ?cy:ReadOnlySignal<String>;
+  var ?r:ReadOnlySignal<String>;
 }
 
 typedef EllipseAttr = BaseAttr & {
-  @:optional var cx:ReadonlySignal<String>;
-  @:optional var cy:ReadonlySignal<String>;
-  var rx:ReadonlySignal<String>;
-  var ry:ReadonlySignal<String>;
+  var ?cx:ReadOnlySignal<String>;
+  var ?cy:ReadOnlySignal<String>;
+  var ?rx:ReadOnlySignal<String>;
+  var ?ry:ReadOnlySignal<String>;
 }
 
 typedef PresentationAttributes = Color & Containers & FeFlood & FillStroke & FilterPrimitives & FontSpecification & Gradients & Graphics & Images & LightingEffects & Markers & TextContentElements & TextElements & Viewports;
 
 private typedef Color = {
-  @:optional var color:ReadonlySignal<String>;
-  @:optional var colorInterpolation:ReadonlySignal<String>;
+  var ?color:ReadOnlySignal<String>;
+  var ?colorInterpolation:ReadOnlySignal<String>;
 }
 
 private typedef Containers = {}
 private typedef FeFlood = {}
 
 private typedef FillStroke = {
-  @:optional var fill:ReadonlySignal<String>;
-  @:optional var fillOpacity:ReadonlySignal<String>;
-  @:optional var fillRule:ReadonlySignal<String>;
-  @:optional var stroke:ReadonlySignal<String>;
-  @:optional var strokeDasharray:ReadonlySignal<String>;
-  @:optional var strokeDashoffset:ReadonlySignal<String>;
-  @:optional var strokeLinecap:ReadonlySignal<String>;
-  @:optional var strokeLinejoin:ReadonlySignal<String>;
-  @:optional var strokeMiterlimit:ReadonlySignal<String>;
-  @:optional var strokeOpacity:ReadonlySignal<String>;
-  @:optional var strokeWidth:ReadonlySignal<String>;
+  var ?fill:ReadOnlySignal<String>;
+  var ?fillOpacity:ReadOnlySignal<String>;
+  var ?fillRule:ReadOnlySignal<String>;
+  var ?stroke:ReadOnlySignal<String>;
+  var ?strokeDasharray:ReadOnlySignal<String>;
+  var ?strokeDashoffset:ReadOnlySignal<String>;
+  var ?strokeLinecap:ReadOnlySignal<String>;
+  var ?strokeLinejoin:ReadOnlySignal<String>;
+  var ?strokeMiterlimit:ReadOnlySignal<String>;
+  var ?strokeOpacity:ReadOnlySignal<String>;
+  var ?strokeWidth:ReadOnlySignal<String>;
 }
 
 private typedef FilterPrimitives = {}

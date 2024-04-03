@@ -33,6 +33,11 @@ abstract VHtmlPrimitive(VPrimitive) to Child to VPrimitive to VNode {
   }
 
   @:to
+  public inline function toChildren():Children {
+    return node();
+  }
+
+  @:to
   public inline function node():Child {
     return this;
   }

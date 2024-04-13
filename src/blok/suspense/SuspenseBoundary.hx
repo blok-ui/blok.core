@@ -10,302 +10,303 @@ using Lambda;
 using blok.boundary.BoundaryTools;
 
 enum SuspenseBoundaryStatus {
-  Ok;
-  Suspended(links:Array<SuspenseLink>);
+	Ok;
+	Suspended(links:Array<SuspenseLink>);
 }
 
 typedef SuspenseBoundaryProps = {
-  public final child:Child;
+	public final child:Child;
 
-  /**
-    Fallback to display while the component is suspended.
-  **/
-  public final fallback:()->Child;
+	/**
+		Fallback to display while the component is suspended.
+	**/
+	public final fallback:() -> Child;
 
-  /**
-    If this SuspenseBoundary has a SuspenseBoundary ancestor,
-    suspend using that ancestor instead. Defaults to `false`.
-  **/
-  public final ?overridable:Bool;
+	/**
+		If this SuspenseBoundary has a SuspenseBoundary ancestor,
+		suspend using that ancestor instead. Defaults to `false`.
+	**/
+	public final ?overridable:Bool;
 
-  /**
-    A callback the fires when *all* suspensions inside
-    this Boundary are completed.
-  **/
-  public final ?onComplete:()->Void;
+	/**
+		A callback the fires when *all* suspensions inside
+		this Boundary are completed.
+	**/
+	public final ?onComplete:() -> Void;
 
-  /**
-    Called when the Boundary is suspended. If more suspensions
-    occur while the SuspenseBoundary is already suspended, this
-    callback will *not* be called again.
-  **/
-  public final ?onSuspended:()->Void;
-} 
+	/**
+		Called when the Boundary is suspended. If more suspensions
+		occur while the SuspenseBoundary is already suspended, this
+		callback will *not* be called again.
+	**/
+	public final ?onSuspended:() -> Void;
+}
 
 class SuspenseBoundary extends View implements Boundary {
-  public static function maybeFrom(context:View) {
-    return context.findAncestorOfType(SuspenseBoundary);
-  }
+	public static function maybeFrom(context:View) {
+		return context.findAncestorOfType(SuspenseBoundary);
+	}
 
-  public static final componentType:UniqueId = new UniqueId();
-  
-  public static function node(props:SuspenseBoundaryProps, ?key) {
-    return new VComponent(componentType, props, SuspenseBoundary.new, key);
-  }
-  
-  var child:Child;
-  var fallback:()->Child;
-  var hydrating:Bool = false;
-  var suspenseStatus:SuspenseBoundaryStatus = Ok;
-  var hiddenRoot:Null<View> = null;
-  var hiddenSlot:Null<Slot> = null;
-  var realChild:Null<View> = null;
-  var currentChild:Null<View> = null;
-  var onComplete:Null<()->Void>;
-  var onSuspended:Null<()->Void>;
-  var overridable:Bool;
+	public static final componentType:UniqueId = new UniqueId();
 
-  function new(node) {
-    __node = node;
-    var props:SuspenseBoundaryProps = __node.getProps();
-    this.child = props.child;
-    this.fallback = props.fallback;
-    this.overridable = props.overridable ?? false;
-    this.onComplete = props.onComplete;
-    this.onSuspended = props.onSuspended;
-  }
+	public static function node(props:SuspenseBoundaryProps, ?key) {
+		return new VComponent(componentType, props, SuspenseBoundary.new, key);
+	}
 
-  function updateProps() {
-    var props:SuspenseBoundaryProps = __node.getProps();
-    var changed:Int = 0;
+	var child:Child;
+	var fallback:() -> Child;
+	var hydrating:Bool = false;
+	var suspenseStatus:SuspenseBoundaryStatus = Ok;
+	var hiddenRoot:Null<View> = null;
+	var hiddenSlot:Null<Slot> = null;
+	var realChild:Null<View> = null;
+	var currentChild:Null<View> = null;
+	var onComplete:Null<() -> Void>;
+	var onSuspended:Null<() -> Void>;
+	var overridable:Bool;
 
-    if (child != props.child) {
-      child = props.child;
-      changed++;
-    }
+	function new(node) {
+		__node = node;
+		var props:SuspenseBoundaryProps = __node.getProps();
+		this.child = props.child;
+		this.fallback = props.fallback;
+		this.overridable = props.overridable ?? false;
+		this.onComplete = props.onComplete;
+		this.onSuspended = props.onSuspended;
+	}
 
-    if (fallback != props.fallback) {
-      fallback = props.fallback;
-      changed++;
-    }
+	function updateProps() {
+		var props:SuspenseBoundaryProps = __node.getProps();
+		var changed:Int = 0;
 
-    if (onComplete != props.onComplete) {
-      onComplete = props.onComplete;
-      changed++;
-    }
+		if (child != props.child) {
+			child = props.child;
+			changed++;
+		}
 
-    if (onSuspended != props.onSuspended) {
-      onSuspended = props.onSuspended;
-      changed++;
-    }
+		if (fallback != props.fallback) {
+			fallback = props.fallback;
+			changed++;
+		}
 
-    var newSuspension = props.overridable ?? false;
-    if (overridable != newSuspension) {
-      overridable = newSuspension;
-      changed++;
-    }
+		if (onComplete != props.onComplete) {
+			onComplete = props.onComplete;
+			changed++;
+		}
 
-    return changed > 0;
-  }
+		if (onSuspended != props.onSuspended) {
+			onSuspended = props.onSuspended;
+			changed++;
+		}
 
-  function setActiveChild() {
-    var adaptor = getAdaptor();
+		var newSuspension = props.overridable ?? false;
+		if (overridable != newSuspension) {
+			overridable = newSuspension;
+			changed++;
+		}
 
-    switch suspenseStatus {
-      case Suspended(_) if (currentChild != realChild):
-      case Suspended(_):
-        realChild.updateSlot(hiddenSlot);
-        currentChild = fallback().createComponent();
-        currentChild.mount(adaptor, this, __slot);
-      case Ok if (currentChild != realChild):
-        currentChild?.dispose();
-        currentChild = realChild;
-        realChild.updateSlot(__slot);
-      case Ok:
-        realChild.updateSlot(__slot);
-    }
-  }
+		return changed > 0;
+	}
 
-  function setupHiddenRoot() {
-    var adaptor = getAdaptor();
+	function setActiveChild() {
+		var adaptor = getAdaptor();
 
-    hiddenRoot = Root.node({
-      target: adaptor.createContainerNode({}),
-      child: () -> Placeholder.node()
-    }).createComponent();
-    
-    hiddenRoot.mount(adaptor, null, null);
-    hiddenSlot = createSlot(1, hiddenRoot.findChildOfType(Placeholder).unwrap());
-  }
+		switch suspenseStatus {
+			case Suspended(_) if (currentChild != realChild):
+			case Suspended(_):
+				realChild.updateSlot(hiddenSlot);
+				currentChild = fallback().createComponent();
+				currentChild.mount(adaptor, this, __slot);
+			case Ok if (currentChild != realChild):
+				currentChild?.dispose();
+				currentChild = realChild;
+				realChild.updateSlot(__slot);
+			case Ok:
+				realChild.updateSlot(__slot);
+		}
+	}
 
-  public function handle(component:View, object:Any) {
-    if (!(object is SuspenseException)) {
-      this.tryToHandleWithBoundary(object);
-      return;
-    }
+	function setupHiddenRoot() {
+		var adaptor = getAdaptor();
 
-    if (hydrating) error('SuspenseBoundary suspended during hydration.');
+		hiddenRoot = Root.node({
+			target: adaptor.createContainerNode({}),
+			child: () -> Placeholder.node()
+		}).createComponent();
 
-    if (overridable) switch SuspenseBoundary.maybeFrom(this) {
-      case Some(boundary):
-        boundary.handle(component, object);
-        return;
-      case None:
-    }
+		hiddenRoot.mount(adaptor, null, null);
+		hiddenSlot = createSlot(1, hiddenRoot.findChildOfType(Placeholder).unwrap());
+	}
 
-    var suspense:SuspenseException = object;
-    var link:Null<SuspenseLink> = null;
+	public function handle(component:View, object:Any) {
+		if (!(object is SuspenseException)) {
+			this.tryToHandleWithBoundary(object);
+			return;
+		}
 
-    suspenseStatus = switch suspenseStatus {
-      case Suspended(links):
-        link = links.find(link -> link.component == component);
-        if (link == null) {
-          link = new SuspenseLink(component, this);
-          component.addDisposable(link);
-          links.push(link);
-        }
-        Suspended(links);
-      case Ok:
-        triggerOnSuspended();
-        link = new SuspenseLink(component, this);
-        component.addDisposable(link);
-        Suspended([ link ]);
-    }
+		if (hydrating) error('SuspenseBoundary suspended during hydration.');
 
-    setActiveChild();
-    assert(link != null);
+		if (overridable) switch SuspenseBoundary.maybeFrom(this) {
+			case Some(boundary):
+				boundary.handle(component, object);
+				return;
+			case None:
+		}
 
-    link.set(suspense.task.handle(result -> switch result {
-      case Ok(_):
-        switch __status {
-          case Disposing | Disposed: return;
-          default:
-        }
-        resolveAndRemoveSuspenseLink(link);
-      case Error(error):
-        switch __status {
-          case Disposing | Disposed: return;
-          default:
-        }
-        this.tryToHandleWithBoundary(error);
-    }));
-  }
+		var suspense:SuspenseException = object;
+		var link:Null<SuspenseLink> = null;
 
-  function resolveAndRemoveSuspenseLink(link:SuspenseLink) {
-    suspenseStatus = switch suspenseStatus {
-      case Suspended(links):
-        links.remove(link);
-        link.component.removeDisposable(link);
-        if (links.length == 0) {
-          Ok;
-        } else {
-          Suspended(links);
-        }
-      case Ok: 
-        Ok;
-    }
+		suspenseStatus = switch suspenseStatus {
+			case Suspended(links):
+				link = links.find(link -> link.component == component);
+				if (link == null) {
+					link = new SuspenseLink(component, this);
+					component.addDisposable(link);
+					links.push(link);
+				}
+				Suspended(links);
+			case Ok:
+				triggerOnSuspended();
+				link = new SuspenseLink(component, this);
+				component.addDisposable(link);
+				Suspended([link]);
+		}
 
-    if (suspenseStatus == Ok) {
-      setActiveChild();
-      getAdaptor().schedule(triggerOnComplete);
-    }
-  }
+		setActiveChild();
+		assert(link != null);
 
-  function triggerOnSuspended() {
-    if (onSuspended != null) onSuspended();
-    switch SuspenseBoundaryContext.maybeFrom(this) {
-      case Some(context): context.add(this);
-      case None:
-    }
-  }
+		link.set(suspense.task.handle(result -> switch result {
+			case Ok(_):
+				switch __status {
+					case Disposing | Disposed: return;
+					default:
+				}
+				resolveAndRemoveSuspenseLink(link);
+			case Error(error):
+				switch __status {
+					case Disposing | Disposed: return;
+					default:
+				}
+				this.tryToHandleWithBoundary(error);
+		}));
+	}
 
-  function triggerOnComplete() {
-    if (onComplete != null) onComplete();
-    switch SuspenseBoundaryContext.maybeFrom(this) {
-      case Some(context): context.remove(this);
-      case None:
-    }
-  }
+	function resolveAndRemoveSuspenseLink(link:SuspenseLink) {
+		suspenseStatus = switch suspenseStatus {
+			case Suspended(links):
+				links.remove(link);
+				link.component.removeDisposable(link);
+				if (links.length == 0) {
+					Ok;
+				} else {
+					Suspended(links);
+				}
+			case Ok:
+				Ok;
+		}
 
-  function __initialize() {
-    setupHiddenRoot();
+		if (suspenseStatus == Ok) {
+			setActiveChild();
+			getAdaptor().schedule(triggerOnComplete);
+		}
+	}
 
-    currentChild = realChild = child.createComponent();
-    realChild.mount(getAdaptor(), this, __slot);
+	function triggerOnSuspended() {
+		if (onSuspended != null) onSuspended();
+		switch SuspenseBoundaryContext.maybeFrom(this) {
+			case Some(context): context.add(this);
+			case None:
+		}
+	}
 
-    setActiveChild();
-  }
+	function triggerOnComplete() {
+		if (onComplete != null) onComplete();
+		switch SuspenseBoundaryContext.maybeFrom(this) {
+			case Some(context): context.remove(this);
+			case None:
+		}
+	}
 
-  function __hydrate(cursor:Cursor) {
-    hydrating = true;
-    setupHiddenRoot();
+	function __initialize() {
+		setupHiddenRoot();
 
-    currentChild = realChild = child.createComponent();
-    realChild.hydrate(cursor, getAdaptor(), this, __slot);
-    hydrating = false;
-  }
+		currentChild = realChild = child.createComponent();
+		realChild.mount(getAdaptor(), this, __slot);
 
-  function __update() {
-    if (!updateProps()) return;
-    realChild.update(child);
-    setActiveChild();
-  }
+		setActiveChild();
+	}
 
-  function __validate() {
-    setActiveChild();
-  }
+	function __hydrate(cursor:Cursor) {
+		hydrating = true;
+		setupHiddenRoot();
 
-  function __dispose() {
-    switch SuspenseBoundaryContext.maybeFrom(this) {
-      case Some(context): context.remove(this);
-      case None:
-    }
-    hiddenRoot?.dispose();
-    hiddenRoot = null;
-    hiddenSlot = null;
-    realChild.dispose();
-    if (currentChild != realChild) currentChild?.dispose();
-    currentChild = null;
-  }
+		currentChild = realChild = child.createComponent();
+		realChild.hydrate(cursor, getAdaptor(), this, __slot);
+		hydrating = false;
+	}
 
-  function __updateSlot(oldSlot:Null<Slot>, newSlot:Null<Slot>) {
-    currentChild?.updateSlot(newSlot);
-  }
+	function __update() {
+		if (!updateProps()) return;
+		realChild.update(child);
+		setActiveChild();
+	}
 
-  public function getPrimitive():Dynamic {
-    assert(currentChild != null);
-    return currentChild.getPrimitive();
-  }
+	function __validate() {
+		setActiveChild();
+	}
 
-  public function canBeUpdatedByNode(node:VNode):Bool {
-    return node.type == componentType;
-  }
+	function __dispose() {
+		switch SuspenseBoundaryContext.maybeFrom(this) {
+			case Some(context): context.remove(this);
+			case None:
+		}
+		hiddenRoot?.dispose();
+		hiddenRoot = null;
+		hiddenSlot = null;
+		realChild.dispose();
+		if (currentChild != realChild) currentChild?.dispose();
+		currentChild = null;
+	}
 
-  public function visitChildren(visitor:(child:View) -> Bool) {
-    if (currentChild != null) visitor(currentChild);
-  }
+	function __updateSlot(oldSlot:Null<Slot>, newSlot:Null<Slot>) {
+		currentChild?.updateSlot(newSlot);
+	}
+
+	public function getPrimitive():Dynamic {
+		assert(currentChild != null);
+		return currentChild.getPrimitive();
+	}
+
+	public function canBeUpdatedByNode(node:VNode):Bool {
+		return node.type == componentType;
+	}
+
+	public function visitChildren(visitor:(child:View) -> Bool) {
+		if (currentChild != null) visitor(currentChild);
+	}
 }
 
 @:access(blok.suspense)
 class SuspenseLink implements Disposable {
-  public final component:View;
-  final suspense:SuspenseBoundary;
-  
-  var link:Null<Cancellable> = null;
+	public final component:View;
 
-  public function new(component, suspense) {
-    this.component = component;
-    this.suspense = suspense;
-  }
+	final suspense:SuspenseBoundary;
 
-  public function set(newLink:Cancellable) {
-    link?.cancel();
-    link = newLink;
-  }
+	var link:Null<Cancellable> = null;
 
-  public function dispose() {
-    link?.cancel();
-    link = null;
-    suspense.resolveAndRemoveSuspenseLink(this);
-  }
+	public function new(component, suspense) {
+		this.component = component;
+		this.suspense = suspense;
+	}
+
+	public function set(newLink:Cancellable) {
+		link?.cancel();
+		link = newLink;
+	}
+
+	public function dispose() {
+		link?.cancel();
+		link = null;
+		suspense.resolveAndRemoveSuspenseLink(this);
+	}
 }

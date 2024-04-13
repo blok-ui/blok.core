@@ -3,29 +3,29 @@ package blok.core;
 using Lambda;
 
 final class DisposableCollection implements Disposable implements DisposableHost {
-  var isDisposed:Bool = false;
-  final disposables:List<Disposable> = new List();
+	var isDisposed:Bool = false;
+	final disposables:List<Disposable> = new List();
 
-  public function new() {}
+	public function new() {}
 
-  public function addDisposable(disposable:DisposableItem) {
-    if (isDisposed) {
-      disposable.dispose();
-      return;
-    }
-    if (disposables.has(disposable)) return;
-    disposables.add(disposable);
-  }
+	public function addDisposable(disposable:DisposableItem) {
+		if (isDisposed) {
+			disposable.dispose();
+			return;
+		}
+		if (disposables.has(disposable)) return;
+		disposables.add(disposable);
+	}
 
-  public function removeDisposable(disposable:DisposableItem) {
-    disposables.remove(disposable);
-  }
+	public function removeDisposable(disposable:DisposableItem) {
+		disposables.remove(disposable);
+	}
 
-  public function dispose() {
-    isDisposed = true;
-    for (disposable in disposables) {
-      disposables.remove(disposable);
-      disposable.dispose();
-    }
-  }
+	public function dispose() {
+		isDisposed = true;
+		for (disposable in disposables) {
+			disposables.remove(disposable);
+			disposable.dispose();
+		}
+	}
 }

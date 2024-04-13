@@ -1,4 +1,8 @@
 {
+  "[haxe]": {
+    "editor.formatOnSave": true,
+    "editor.formatOnPaste": true
+  },
   "cSpell.words": [
     "todos"
   ]

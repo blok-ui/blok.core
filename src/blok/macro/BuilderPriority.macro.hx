@@ -1,7 +1,7 @@
 package blok.macro;
 
 enum BuilderPriority {
-  Before;
-  Normal;
-  Late;
+	Before;
+	Normal;
+	Late;
 }

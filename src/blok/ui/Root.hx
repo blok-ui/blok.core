@@ -5,64 +5,64 @@ import blok.core.Owner;
 import blok.signal.Runtime;
 
 class Root extends View implements PrimitiveHost {
-  public static final componentType = new UniqueId();
+	public static final componentType = new UniqueId();
 
-  public static function node(props:{
-    target:Dynamic, 
-    child:()->Child
-  }) {
-    return new VComponent(componentType, props, Root.new);
-  }
+	public static function node(props:{
+		target:Dynamic,
+		child:() -> Child
+	}) {
+		return new VComponent(componentType, props, Root.new);
+	}
 
-  final target:Dynamic;
-  final child:()->Child;
+	final target:Dynamic;
+	final child:() -> Child;
 
-  var component:Null<View> = null;
-  
-  function new(node) {
-    __node = node;
-    (node.getProps():{
-      target:Dynamic,
-      child:()->Child
-    }).extract({ target: target, child: child });
-    this.target = target;
-    this.child = child;
-  }
+	var component:Null<View> = null;
 
-  function render():Child {
-    return Owner.with(this, ()-> Runtime.current().untrack(child));
-  }
+	function new(node) {
+		__node = node;
+		(node.getProps() : {
+			target: Dynamic,
+			child: () -> Child
+		}).extract({target: target, child: child});
+		this.target = target;
+		this.child = child;
+	}
 
-  function __initialize() {
-    component = render().createComponent();
-    component.mount(getAdaptor(), this, createSlot(0, null));
-  }
+	function render():Child {
+		return Owner.with(this, () -> Runtime.current().untrack(child));
+	}
 
-  function __hydrate(cursor:Cursor) {
-    component = render().createComponent();
-    component.hydrate(cursor.currentChildren(), getAdaptor(), this, createSlot(0, null));
-    cursor.next();
-  }
+	function __initialize() {
+		component = render().createComponent();
+		component.mount(getAdaptor(), this, createSlot(0, null));
+	}
 
-  function __update() {}
+	function __hydrate(cursor:Cursor) {
+		component = render().createComponent();
+		component.hydrate(cursor.currentChildren(), getAdaptor(), this, createSlot(0, null));
+		cursor.next();
+	}
 
-  function __validate() {}
+	function __update() {}
 
-  function __dispose() {}
+	function __validate() {}
 
-  function __updateSlot(oldSlot:Null<Slot>, newSlot:Null<Slot>) {
-    component.updateSlot(newSlot);
-  }
+	function __dispose() {}
 
-  public function getPrimitive():Dynamic {
-    return target;
-  }
+	function __updateSlot(oldSlot:Null<Slot>, newSlot:Null<Slot>) {
+		component.updateSlot(newSlot);
+	}
 
-  public function canBeUpdatedByNode(node:VNode):Bool {
-    return false;
-  }
+	public function getPrimitive():Dynamic {
+		return target;
+	}
 
-  public function visitChildren(visitor:(child:View) -> Bool) {
-    if (component != null) visitor(component);
-  }
+	public function canBeUpdatedByNode(node:VNode):Bool {
+		return false;
+	}
+
+	public function visitChildren(visitor:(child:View) -> Bool) {
+		if (component != null) visitor(component);
+	}
 }

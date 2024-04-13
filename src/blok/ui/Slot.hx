@@ -1,15 +1,15 @@
 package blok.ui;
 
 class Slot {
-  public final index:Int;
-  public final previous:Null<View>;
+	public final index:Int;
+	public final previous:Null<View>;
 
-  public function new(index, previous) {
-    this.index = index;
-    this.previous = previous;
-  }
+	public function new(index, previous) {
+		this.index = index;
+		this.previous = previous;
+	}
 
-  public function changed(other:Slot) {
-    return index != other.index;
-  }
+	public function changed(other:Slot) {
+		return index != other.index;
+	}
 }

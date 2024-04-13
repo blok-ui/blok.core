@@ -61,7 +61,8 @@ class Counter extends Component {
 					<path d="m15.125 11.199-1.2012 1.6016 9.5996 7.1992-9.5996 7.1992 1.2012 1.6016 11.732-8.8008z"/>
 				</svg>
 			</CounterButton>
-		</div> </div>);
+		</div>
+	</div>);
 }
 
 class CounterButton extends Component {

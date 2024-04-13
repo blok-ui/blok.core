@@ -27,6 +27,8 @@ class JsonSerializerBuilder implements Builder {
 	}
 
 	public function apply(builder:ClassBuilder) {
+		builder.getClass().meta.add(':blok.jsonSerializable', [], Context.currentPos());
+
 		var ret = options.returnType ?? builder.getComplexType();
 		var fields = builder.getProps('new');
 		var serializer:Array<ObjectField> = [];
@@ -155,7 +157,8 @@ class JsonSerializerBuilder implements Builder {
 									$p{path}.fromJson(value);
 							}
 						};
-					case macro :Array<$t> if (t.isModel()):
+					// case macro :Array<$t> if (t.isModel()):
+					case macro :Array<$t> if (isJsonSerializable(t)):
 						var path = switch t {
 							case TPath(p): p.typePathToArray();
 							default: Context.error('Could not resolve type', field.pos);
@@ -168,7 +171,8 @@ class JsonSerializerBuilder implements Builder {
 								values.map($p{path}.fromJson);
 							}
 						};
-					case t if (t.isModel()):
+					// case t if (t.isModel()):
+					case t if (isJsonSerializable(t)):
 						var path = switch t {
 							case TPath(p): p.typePathToArray();
 							default: Context.error('Could not resolve type', field.pos);
@@ -190,5 +194,13 @@ class JsonSerializerBuilder implements Builder {
 			default:
 				Context.error('Invalid field for json serialization', field.pos);
 		}
+	}
+}
+
+private function isJsonSerializable(type:ComplexType) {
+	return try {
+		type.toType().getClass()?.meta?.has(':blok.jsonSerializable') ?? false;
+	} catch (_) {
+		false;
 	}
 }

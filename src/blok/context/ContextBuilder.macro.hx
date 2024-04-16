@@ -55,7 +55,7 @@ class ContextBuilder implements Builder {
 			}
 
 			@:noUsing
-			public inline static function from(context:blok.ui.View):$ret {
+			public static function from(context:blok.ui.View):$ret {
 				return @:pos(fallback.pos) return maybeFrom(context).or(() -> $fallback);
 			}
 

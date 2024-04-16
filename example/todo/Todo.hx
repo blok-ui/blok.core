@@ -76,7 +76,6 @@ class TodoContext extends Model implements Context {
 			case Active: todos().filter(todo -> !todo.isCompleted());
 		}
 
-	@:action
 	public function addTodo(description:String) {
 		uid.update(id -> id + 1);
 		todos.update(todos -> [new Todo({
@@ -87,13 +86,11 @@ class TodoContext extends Model implements Context {
 		})].concat(todos));
 	}
 
-	@:action
 	public function removeTodo(todo:Todo) {
 		todo.dispose();
 		todos.update(todos -> todos.filter(t -> t != todo));
 	}
 
-	@:action
 	public function removeCompletedTodos() {
 		todos.update(todos -> todos.filter(todo -> {
 			if (todo.isCompleted.peek()) {
@@ -107,143 +104,135 @@ class TodoContext extends Model implements Context {
 
 class TodoRoot extends Component {
 	function render() {
-		return Html.div({
-			className: Breeze.compose(
-				Flex.display(),
-				Flex.justify('center'),
-				Spacing.pad(10),
-			)
-		},
-			Html.div({
-				className: Breeze.compose(
-					Sizing.width('full'),
-					Border.radius(2),
-					Border.width(.5),
-					Breakpoint.viewport('700px', Sizing.width('700px'))
-				)
-			}, TodoContext.provide(TodoContext.instance, _ -> Fragment.node(
-				TodoHeader.node({}),
-				TodoList.node({}),
-				TodoFooter.node({})
-			)))
-		);
+		return Html.view(<div className={Breeze.compose(
+			Flex.display(),
+			Flex.justify('center'),
+			Spacing.pad(10),
+		)}>
+			<div className={Breeze.compose(
+				Sizing.width('full'),
+				Border.radius(2),
+				Border.width(.5),
+				Breakpoint.viewport('700px', Sizing.width('700px'))
+			)}>
+				<Provider create={TodoContext.instance}>
+					{_ -> <>
+						<TodoHeader />
+						<TodoList />
+						<TodoFooter />  
+					</>}
+				</Provider>
+			</div>
+		</div>);
 	}
 }
 
 class TodoHeader extends Component {
 	function render():VNode {
 		var todos = TodoContext.from(this);
-		return Html.header({
-			className: Breeze.compose(
-				Spacing.pad('x', 3)
-			),
-			role: 'header'
-		},
-			Html.div({
-				className: Breeze.compose(
-					Flex.display(),
-					Flex.gap(3),
-					Flex.alignItems('center'),
-					Spacing.pad('y', 3),
-					Border.width('bottom', .5)
-				)
-			},
-				Html.h1({
-					className: Breeze.compose(
-						Typography.fontSize('lg'),
-						Typography.fontWeight('bold'),
-						Spacing.margin('right', 'auto')
-					)
-				}, 'Todos'),
-				TodoInput.node({
-					className: Breeze.compose(
+		return Html.view(<header role="header" className={Breeze.compose(
+			Spacing.pad('x', 3)
+		)}>
+			<div className={Breeze.compose(
+				Flex.display(),
+				Flex.gap(3),
+				Flex.alignItems('center'),
+				Spacing.pad('y', 3),
+				Border.width('bottom', .5)
+			)}>
+				<h1 className={Breeze.compose(
+					Typography.fontSize('lg'),
+					Typography.fontWeight('bold'),
+					Spacing.margin('right', 'auto')
+				)}>'Todos'</h1>
+				<TodoInput 
+					className = {Breeze.compose(
 						'new-todo',
 						Sizing.width('70%')
-					),
-					value: '',
-					clearOnComplete: true,
-					onCancel: () -> null,
-					onSubmit: description -> todos.addTodo(description)
-				})
-			),
-			Html.ul({
-				className: Breeze.compose(
-					Flex.display(),
-					Flex.gap(3),
-					Spacing.pad('y', 3),
-					Border.width('bottom', .5)
-				)
-			},
-				VisibilityControl.node({visibility: All}),
-				VisibilityControl.node({visibility: Active}),
-				VisibilityControl.node({visibility: Completed}),
-			)
-		);
+					)} 
+					value = '' 
+					clearOnComplete
+					onCancel = {() -> null}
+					onSubmit = {description -> todos.addTodo(description)}
+				/>
+			</div>
+			<ul className={Breeze.compose(
+				Flex.display(),
+				Flex.gap(3),
+				Spacing.pad('y', 3),
+				Border.width('bottom', .5)
+			)}>
+				<VisibilityControl visibility=All />
+				<VisibilityControl visibility=Active />
+				<VisibilityControl visibility=Completed />
+			</ul>
+		</header>);
 	}
 }
 
 class TodoFooter extends Component {
+	@:computed final display:String = switch TodoContext.from(this).total() {
+			case 0: 'display:none';
+			default: '';
+		}
+	@:computed final message:String = switch TodoContext.from(this).remaining() {
+			case 1: '1 item left';
+			case remaining: '${remaining} items left';
+		}
+
 	function render() {
-		var todos = TodoContext.from(this);
-		return Html.footer({
-			className: Breeze.compose(
+		return Html.view(<footer
+			className={Breeze.compose(
 				Background.color('black', 0),
 				Typography.textColor('white', 0),
 				Spacing.pad(3)
-			),
-			style: todos.total.map(total -> if (total == 0) 'display: none' else null),
-		},
-			Html.span({},
-				Html.strong({}, todos.remaining.map(remaining -> switch remaining {
-					case 1: '1 item left';
-					default: '${remaining} items left';
-				}))
-			)
-		);
+			)}
+			style=display
+		>
+			<span><strong>message</strong></span>
+		</footer>);
 	}
 }
 
 class VisibilityControl extends Component {
 	@:attribute final visibility:TodoVisibility;
+	@:computed final isSelected:Bool = visibility == TodoContext.from(this).visibility();
 
 	function render() {
 		var todos = TodoContext.from(this);
-		return Html.li({},
-			Button.node({
-				action: () -> todos.visibility.set(visibility),
-				selected: new Computation(() -> visibility == todos.visibility()),
-				label: visibility
-			})
-		);
+		return Html.view(<li>
+			<Button
+				action={() -> todos.visibility.set(visibility)}
+				selected=isSelected
+			>visibility</Button>
+		</li>);
 	}
 }
 
 class Button extends Component {
-	@:attribute final label:String;
 	@:attribute final action:() -> Void;
+	@:children @:attribute final label:String;
 	@:observable final selected:Bool = false;
+	@:computed final className:ClassName = [
+		Spacing.pad('x', 3),
+		Spacing.pad('y', 1),
+		Border.radius(2),
+		Border.width(.5),
+		Border.color('black', 0),
+		if (selected()) Breeze.compose(
+			Background.color('black', 0),
+			Typography.textColor('white', 0)
+		) else Breeze.compose(
+			Background.color('white', 0),
+			Typography.textColor('black', 0),
+			Modifier.hover(
+				Background.color('gray', 200)
+			)
+		)
+	];
 
 	function render() {
-		return Html.button({
-			className: new Computation<ClassName>(() -> [
-				Spacing.pad('x', 3),
-				Spacing.pad('y', 1),
-				Border.radius(2),
-				Border.width(.5),
-				Border.color('black', 0),
-				if (selected()) Breeze.compose(
-					Background.color('black', 0),
-					Typography.textColor('white', 0)
-				) else Breeze.compose(
-					Background.color('white', 0),
-					Typography.textColor('black', 0),
-					Modifier.hover(
-						Background.color('gray', 200)
-					)
-				)
-			]),
-			onClick: _ -> action()
-		}, label);
+		return Html.view(<button className=className onClick={_ -> action()}>label</button>);
 	}
 }
 
@@ -305,24 +294,29 @@ class TodoInput extends Component {
 }
 
 class TodoList extends Component {
+	@:computed final visibleTodos:Array<Todo> = TodoContext.from(this).visibleTodos();
+	@:computed final hidden:Bool = TodoContext.from(this).total() == 0;
+	@:computed final style:Null<String> = hidden() ? 'visibility:hidden' : null;
+
 	function render():VNode {
-		var todos = TodoContext.from(this);
-		return Html.section({
-			className: 'main',
-			ariaHidden: todos.total.map(total -> total == 0),
-			style: todos.total.map(total -> total == 0 ? 'visibility:hidden' : null)
-		},
-			Html.ul({
-				className: Breeze.compose(
-					Flex.display(),
-					Flex.gap(3),
-					Flex.direction('column'),
-					Spacing.pad(3)
-				)
-			}, Scope.wrap(_ -> Fragment.node(...[for (todo in todos.visibleTodos())
-				TodoItem.node({todo: todo}, todo.id)
-				])))
-		);
+		return Html.view(<section 
+			className="main"
+			ariaHidden=hidden
+			style=style
+		>
+			<ul className={Breeze.compose(
+				Flex.display(),
+				Flex.gap(3),
+				Flex.direction('column'),
+				Spacing.pad(3)
+			)}>
+				<Scope>
+					{_ -> <>
+						{...[ for (todo in visibleTodos()) <TodoItem todo=todo key={todo.id} /> ]}
+					</>}
+				</Scope>
+			</ul>
+		</section>);
 	}
 }
 
@@ -333,38 +327,26 @@ class TodoItem extends Component {
 	];
 
 	function render():VNode {
-		return Html.li({
-			id: 'todo-${todo.id}',
-			className: className.map(className -> Breeze.compose(
-				className,
-				Flex.display(),
-				Flex.gap(3),
-				Flex.alignItems('center'),
-				Spacing.pad('y', 3),
-				Border.width('bottom', .5),
-				Border.color('gray', 300),
-				Select.child('last', Border.style('bottom', 'none'))
-			)),
-			onDblClick: _ -> todo.isEditing.set(true),
-		},
-			if (!todo.isEditing()) Fragment.node(
-				Html.input({
-					type: blok.html.HtmlAttributes.InputType.Checkbox,
-					checked: todo.isCompleted,
-					onClick: _ -> todo.isCompleted.update(status -> !status)
-				}),
-				Html.div({
-					className: Spacing.margin('right', 'auto')
-				}, todo.description),
-				Button.node({
-					action: () -> todo.isEditing.set(true),
-					label: 'Edit'
-				}),
-				Button.node({
-					action: () -> TodoContext.from(this).removeTodo(todo),
-					label: 'Remove'
-				})
-			) else TodoInput.node({
+		return Html.view(<li id={'todo-${todo.id}'} className={className.map(className -> Breeze.compose(
+			className,
+			Flex.display(),
+			Flex.gap(3),
+			Flex.alignItems('center'),
+			Spacing.pad('y', 3),
+			Border.width('bottom', .5),
+			Border.color('gray', 300),
+			Select.child('last', Border.style('bottom', 'none'))
+		))} onDblClick={_ -> todo.isEditing.set(true)}>
+			{if (!todo.isEditing()) <>
+				<input 
+					type={blok.html.HtmlAttributes.InputType.Checkbox}
+					checked={todo.isCompleted}
+					onClick={_ -> todo.isCompleted.update(status -> !status)}
+				/>
+				<div className={Spacing.margin('right', 'auto')}>{todo.description}</div>
+				<Button action={() -> todo.isEditing.set(true)}>'Edit'</Button>
+				<Button action={() -> TodoContext.from(this).removeTodo(todo)}>'Remove'</Button>
+			</> else TodoInput.node({
 				className: Breeze.compose(
 					'edit',
 					Sizing.width('full')
@@ -373,11 +355,15 @@ class TodoItem extends Component {
 				value: todo.description.peek(),
 				clearOnComplete: false,
 				onCancel: () -> todo.isEditing.set(false),
-				onSubmit: data -> Action.run(() -> {
+				onSubmit: data -> {
 					todo.description.set(data);
 					todo.isEditing.set(false);
-				})
-			})
-		);
+				}
+				// onSubmit: data -> Action.run(() -> {
+				//   todo.description.set(data);
+				//   todo.isEditing.set(false);
+				// })
+			})}
+		</li>);
 	}
 }

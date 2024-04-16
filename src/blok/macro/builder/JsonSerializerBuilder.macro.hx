@@ -17,6 +17,8 @@ typedef JsonSerializerHook = {
 	public final deserializer:Expr;
 }
 
+final jsonSerializableMarker = ':blok._' + kit.Hash.hash('jsonSerializable');
+
 class JsonSerializerBuilder implements Builder {
 	public final priority:BuilderPriority = Late;
 
@@ -27,7 +29,7 @@ class JsonSerializerBuilder implements Builder {
 	}
 
 	public function apply(builder:ClassBuilder) {
-		builder.getClass().meta.add(':blok.jsonSerializable', [], Context.currentPos());
+		builder.getClass().meta.add(jsonSerializableMarker, [], Context.currentPos());
 
 		var ret = options.returnType ?? builder.getComplexType();
 		var fields = builder.getProps('new');
@@ -199,7 +201,7 @@ class JsonSerializerBuilder implements Builder {
 
 private function isJsonSerializable(type:ComplexType) {
 	return try {
-		type.toType().getClass()?.meta?.has(':blok.jsonSerializable') ?? false;
+		type.toType().getClass()?.meta?.has(jsonSerializableMarker) ?? false;
 	} catch (_) {
 		false;
 	}

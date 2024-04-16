@@ -163,7 +163,7 @@ class PrimitivePropertyUpdater<T> implements Disposable {
 
 	public function dispose() {
 		observer.dispose();
-		// @todo: Not 100% on needing this:
+		// @todo: Not 100% on needing this.
 		// @todo: This seems to be setting the attribute to null,
 		// not removing it (as intended). This can cause weird
 		// things, like triggering a request to the url "null"

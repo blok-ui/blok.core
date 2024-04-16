@@ -29,7 +29,6 @@ class Runtime {
 
 	var status:RuntimeStatus = Idle;
 	var epoch:Int = 1;
-
 	var currentConsumerNode:Null<ReactiveNode> = null;
 
 	public function new(scheduler) {

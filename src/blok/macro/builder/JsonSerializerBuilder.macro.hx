@@ -144,7 +144,7 @@ class JsonSerializerBuilder implements Builder {
 							serializer: access,
 							deserializer: macro Reflect.field(data, $v{name})
 						};
-					case macro :Null<$t> if (t.isModel()):
+					case macro :Null<$t> if (isJsonSerializable(t)):
 						var path = switch t {
 							case TPath(p): p.typePathToArray();
 							default: Context.error('Could not resolve type', field.pos);
@@ -154,12 +154,9 @@ class JsonSerializerBuilder implements Builder {
 							serializer: macro $access?.toJson(),
 							deserializer: macro {
 								var value:Dynamic = Reflect.field(data, $v{name});
-								if (value == null) null
-								else
-									$p{path}.fromJson(value);
+								if (value == null) null else $p{path}.fromJson(value);
 							}
 						};
-					// case macro :Array<$t> if (t.isModel()):
 					case macro :Array<$t> if (isJsonSerializable(t)):
 						var path = switch t {
 							case TPath(p): p.typePathToArray();
@@ -170,10 +167,9 @@ class JsonSerializerBuilder implements Builder {
 							serializer: macro $access.map(item -> item.toJson()),
 							deserializer: macro {
 								var values:Array<Dynamic> = Reflect.field(data, $v{name});
-								values.map($p{path}.fromJson);
+								if (values == null) [] else values.map($p{path}.fromJson);
 							}
 						};
-					// case t if (t.isModel()):
 					case t if (isJsonSerializable(t)):
 						var path = switch t {
 							case TPath(p): p.typePathToArray();

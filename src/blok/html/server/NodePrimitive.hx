@@ -2,16 +2,15 @@ package blok.html.server;
 
 import blok.debug.Debug;
 
-/**
-	A simple object that can be used as the target for a
-	Blok Adaptor, such as for the server-side rendering
-	for blok.html or for testing.
-**/
-abstract class Node {
-	public var parent:Null<Node> = null;
-	public var children:Array<Node> = [];
+typedef NodePrimitiveToStringOptions = {
+	public final ?includeTextMarkers:Bool;
+}
 
-	public function prepend(child:Node) {
+abstract class NodePrimitive {
+	public var parent:Null<NodePrimitive> = null;
+	public var children:Array<NodePrimitive> = [];
+
+	public function prepend(child:NodePrimitive) {
 		assert(child != this);
 
 		if (child.parent != null) child.remove();
@@ -20,7 +19,7 @@ abstract class Node {
 		children.unshift(child);
 	}
 
-	public function append(child:Node) {
+	public function append(child:NodePrimitive) {
 		assert(child != this);
 
 		if (child.parent != null) child.remove();
@@ -29,7 +28,7 @@ abstract class Node {
 		children.push(child);
 	}
 
-	public function insert(pos:Int, child:Node) {
+	public function insert(pos:Int, child:NodePrimitive) {
 		assert(child != this);
 
 		if (child.parent != this && child.parent != null) child.remove();
@@ -73,5 +72,5 @@ abstract class Node {
 		parent = null;
 	}
 
-	abstract public function toString():String;
+	abstract public function toString(?options:NodePrimitiveToStringOptions):String;
 }

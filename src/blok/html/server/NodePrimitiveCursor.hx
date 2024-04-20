@@ -3,8 +3,8 @@ package blok.html.server;
 import blok.adaptor.Cursor;
 import blok.debug.Debug;
 
-class NodeCursor implements Cursor {
-	var node:Null<Node>;
+class NodePrimitiveCursor implements Cursor {
+	var node:Null<NodePrimitive>;
 
 	public function new(node) {
 		this.node = node;
@@ -15,8 +15,8 @@ class NodeCursor implements Cursor {
 	}
 
 	public function currentChildren():Cursor {
-		if (node == null) return new NodeCursor(null);
-		return new NodeCursor(node.children[0]);
+		if (node == null) return new NodePrimitiveCursor(null);
+		return new NodePrimitiveCursor(node.children[0]);
 	}
 
 	public function next() {
@@ -40,6 +40,6 @@ class NodeCursor implements Cursor {
 	}
 
 	public function clone() {
-		return new NodeCursor(node);
+		return new NodePrimitiveCursor(node);
 	}
 }

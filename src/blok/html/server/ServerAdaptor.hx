@@ -7,26 +7,20 @@ import blok.ui.*;
 
 using StringTools;
 
-typedef ServerAdaptorOptions = {
-	?prefixTextWithMarker:Bool
-};
-
 class ServerAdaptor implements Adaptor {
 	final scheduler:Scheduler;
-	final options:ServerAdaptorOptions;
 
-	public function new(?options) {
-		this.options = options ?? {prefixTextWithMarker: true};
+	public function new() {
 		this.scheduler = Scheduler.current();
 	}
 
 	public function createNode(name:String, attrs:{}):Dynamic {
 		if (name.startsWith('svg:')) name = name.substr(4);
-		return new Element(name, attrs);
+		return new ElementPrimitive(name, attrs);
 	}
 
 	public function createTextNode(value:String):Dynamic {
-		return new TextNode(value, options?.prefixTextWithMarker ?? true);
+		return new TextPrimitive(value);
 	}
 
 	public function createContainerNode(props:{}):Dynamic {
@@ -34,19 +28,19 @@ class ServerAdaptor implements Adaptor {
 	}
 
 	public function createPlaceholderNode():Dynamic {
-		return new TextNode('');
+		return new TextPrimitive('');
 	}
 
 	public function createCursor(object:Dynamic):Cursor {
-		return new NodeCursor(object);
+		return new NodePrimitiveCursor(object);
 	}
 
 	public function updateTextNode(object:Dynamic, value:String) {
-		(object : TextNode).updateContent(value);
+		(object : TextPrimitive).updateContent(value);
 	}
 
 	public function updateNodeAttribute(object:Dynamic, name:String, oldValue:Null<Dynamic>, value:Dynamic, ?isHydrating:Bool) {
-		var el:Element = object;
+		var el:ElementPrimitive = object;
 		switch name {
 			case 'className' | 'class':
 				var oldNames = Std.string(oldValue ?? '').split(' ').filter(n -> n != null && n != '');
@@ -69,27 +63,27 @@ class ServerAdaptor implements Adaptor {
 	}
 
 	public function insertNode(object:Dynamic, slot:Null<Slot>, findParent:() -> Dynamic) {
-		var node:Node = object;
+		var node:NodePrimitive = object;
 		if (slot != null && slot.previous != null) {
-			var relative:Node = slot.previous.getPrimitive();
+			var relative:NodePrimitive = slot.previous.getPrimitive();
 			var parent = relative.parent;
 			if (parent != null) {
 				var index = parent.children.indexOf(relative);
 				parent.insert(index + 1, node);
 			} else {
-				var parent:Node = findParent();
+				var parent:NodePrimitive = findParent();
 				assert(parent != null);
 				parent.prepend(node);
 			}
 		} else {
-			var parent:Node = findParent();
+			var parent:NodePrimitive = findParent();
 			assert(parent != null);
 			parent.prepend(node);
 		}
 	}
 
 	public function moveNode(object:Dynamic, from:Null<Slot>, to:Null<Slot>, findParent:() -> Dynamic) {
-		var node:Node = object;
+		var node:NodePrimitive = object;
 		assert(to != null);
 
 		if (to == null) {
@@ -104,13 +98,13 @@ class ServerAdaptor implements Adaptor {
 		}
 
 		if (to.previous == null) {
-			var parent:Node = findParent();
+			var parent:NodePrimitive = findParent();
 			assert(parent != null);
 			parent.prepend(node);
 			return;
 		}
 
-		var relative:Node = to.previous.getPrimitive();
+		var relative:NodePrimitive = to.previous.getPrimitive();
 		var parent = relative.parent;
 
 		assert(parent != null);
@@ -121,7 +115,7 @@ class ServerAdaptor implements Adaptor {
 	}
 
 	public function removeNode(object:Dynamic, slot:Null<Slot>) {
-		var node:Node = object;
+		var node:NodePrimitive = object;
 		node.remove();
 	}
 

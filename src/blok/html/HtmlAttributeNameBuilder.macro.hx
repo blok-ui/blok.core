@@ -19,7 +19,7 @@ function build() {
 									case [{expr: EConst(CString(s, _)), pos: _}]:
 										s;
 									default:
-										field.name;
+										field.name.toLowerCase();
 								}
 							default:
 								field.name.toLowerCase();

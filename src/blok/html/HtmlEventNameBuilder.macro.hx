@@ -22,7 +22,17 @@ function build() {
 						}
 
 						var name = refName.charAt(0).toUpperCase() + refName.substr(1);
-						var value = refName.toLowerCase();
+						var value = switch field.meta.extract(':html') {
+							case [meta]: switch meta.params {
+									case [{expr: EConst(CString(s, _)), pos: _}]:
+										s;
+									default:
+										field.name.toLowerCase();
+								}
+							default:
+								field.name.toLowerCase();
+						}
+
 						enumFields.add(macro class {
 							final $name = $v{value};
 						});

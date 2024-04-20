@@ -3,7 +3,7 @@ package blok.html;
 import blok.ui.*;
 import blok.html.server.*;
 
-function mount(node:Node, child:() -> Child) {
+function mount(node:NodePrimitive, child:() -> Child) {
 	var root = Root.node({
 		target: node,
 		child: child
@@ -13,7 +13,7 @@ function mount(node:Node, child:() -> Child) {
 	return component;
 }
 
-function hydrate(node:Node, child:() -> Child) {
+function hydrate(node:NodePrimitive, child:() -> Child) {
 	var adaptor = new ServerAdaptor();
 	var root = Root.node({
 		target: node,

@@ -1,8 +1,9 @@
 package blok.html.server;
 
+import blok.html.server.NodePrimitive.NodePrimitiveToStringOptions;
 import haxe.DynamicAccess;
 
-class Element extends Node {
+class ElementPrimitive extends NodePrimitive {
 	static final VOID_ELEMENTS = [
 		'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'keygen', 'link', 'meta', 'param', 'source', 'track', 'wbr',
 	];
@@ -30,9 +31,11 @@ class Element extends Node {
 		Reflect.setField(attributes, name, value);
 	}
 
-	public function toString():String {
+	public function toString(?options:NodePrimitiveToStringOptions):String {
 		var attrs:Map<String, String> = getFilteredAttributes();
-		var children:Array<String> = children.filter(c -> c != null).map(c -> c.toString());
+		var children:Array<String> = children
+			.filter(c -> c != null)
+			.map(c -> c.toString(options));
 
 		if (tag == '#document' || tag == '#fragment') {
 			return children.join('');

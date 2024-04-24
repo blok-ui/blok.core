@@ -7,7 +7,7 @@ class Fragment extends View {
 	public static final componentType = new UniqueId();
 
 	public static function node(...children:Child):VNode {
-		return new VComponent(componentType, {children: children}, Fragment.new);
+		return new VComponent(componentType, {children: children.toArray()}, Fragment.new);
 	}
 
 	var children:Array<View> = [];

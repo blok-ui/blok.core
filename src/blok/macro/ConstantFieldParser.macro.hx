@@ -1,10 +1,11 @@
-package blok.macro.builder;
+package blok.macro;
 
 import haxe.macro.Expr;
 import haxe.macro.Context;
+import kit.macro.*;
 
-class ConstantFieldBuilder implements Builder {
-	public final priority:BuilderPriority = Normal;
+class ConstantFieldParser implements Parser {
+	public final priority:Priority = Normal;
 
 	public function new() {}
 
@@ -23,12 +24,13 @@ class ConstantFieldBuilder implements Builder {
 
 				var name = field.name;
 
-				builder.addProp('new', {name: name, type: t, optional: e != null});
-				builder.addHook('init', if (e == null) {
-					macro this.$name = props.$name;
-				} else {
-					macro if (props.$name != null) this.$name = props.$name;
-				});
+				builder.hook(Init)
+					.addProp({name: name, type: t, optional: e != null})
+					.addExpr(if (e == null) {
+						macro this.$name = props.$name;
+					} else {
+						macro if (props.$name != null) this.$name = props.$name;
+					});
 			default:
 				Context.error('Invalid field for :constant', field.pos);
 		}

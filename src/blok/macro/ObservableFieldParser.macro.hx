@@ -1,15 +1,16 @@
-package blok.macro.builder;
+package blok.macro;
 
 import haxe.macro.Expr;
+import kit.macro.*;
 
-using blok.macro.MacroTools;
+using kit.macro.Tools;
 
 typedef ObservableFieldBuilderOptions = {
 	public final updatable:Bool;
 }
 
-class ObservableFieldBuilder implements Builder {
-	public final priority:BuilderPriority = Normal;
+class ObservableFieldParser implements Parser {
+	public final priority:Priority = Normal;
 
 	final options:ObservableFieldBuilderOptions;
 
@@ -64,17 +65,28 @@ class ObservableFieldBuilder implements Builder {
 					}
 				];
 
-				builder.addProp('new', {
-					name: name,
-					type: type,
-					optional: isOptional
+				field.meta.push({
+					name: ':json',
+					params: [
+						macro from = value,
+						macro to = value.get()
+					],
+					pos: field.pos
 				});
-				builder.addHook('init:late', macro @:mergeBlock $b{init});
-				builder.addHook('update', if (isOptional) {
-					macro if (props.$name != null) this.$backingName.set(props.$name);
-				} else {
-					macro this.$backingName.set(props.$name);
-				});
+
+				builder.hook(LateInit)
+					.addProp({
+						name: name,
+						type: type,
+						optional: isOptional
+					})
+					.addExpr(macro @:mergeBlock $b{init});
+				builder.hook('update')
+					.addExpr(if (isOptional) {
+						macro if (props.$name != null) this.$backingName.set(props.$name);
+					} else {
+						macro this.$backingName.set(props.$name);
+					});
 			case FVar(t, e):
 				var type = switch t {
 					case macro :Null<$t>: macro :blok.signal.Signal.ReadOnlySignal<Null<$t>>;
@@ -86,16 +98,17 @@ class ObservableFieldBuilder implements Builder {
 					default: e;
 				});
 
-				builder.addProp('new', {
-					name: name,
-					type: type,
-					optional: e != null
-				});
-				builder.addHook('init:late', if (e == null) {
-					macro this.$name = props.$name;
-				} else {
-					macro if (props.$name != null) this.$name = props.$name;
-				});
+				builder.hook(LateInit)
+					.addProp({
+						name: name,
+						type: type,
+						optional: e != null
+					})
+					.addExpr(if (e == null) {
+						macro this.$name = props.$name;
+					} else {
+						macro if (props.$name != null) this.$name = props.$name;
+					});
 			default:
 				meta.pos.error(':observable cannot be used here');
 		}

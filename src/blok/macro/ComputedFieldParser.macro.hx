@@ -1,11 +1,12 @@
-package blok.macro.builder;
+package blok.macro;
 
 import haxe.macro.Expr;
+import kit.macro.*;
 
-using blok.macro.MacroTools;
+using kit.macro.Tools;
 
-class ComputedFieldBuilder implements Builder {
-	public final priority:BuilderPriority = Normal;
+class ComputedFieldParser implements Parser {
+	public final priority:Priority = Normal;
 
 	public function new() {}
 
@@ -48,7 +49,7 @@ class ComputedFieldBuilder implements Builder {
 					pos: (macro null).pos
 				});
 
-				builder.addHook('init', macro this.$name = this.$createName());
+				builder.hook(Init).addExpr(macro this.$name = this.$createName());
 			default:
 				meta.pos.error('Invalid field for :computed');
 		}

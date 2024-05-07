@@ -1,10 +1,12 @@
-package blok.macro.builder;
+package blok.macro;
+
+import kit.macro.*;
 
 using Lambda;
-using blok.macro.MacroTools;
+using kit.macro.Tools;
 
-class ChildrenFieldBuilder implements Builder {
-	public final priority:BuilderPriority = Late;
+class ChildrenFieldParser implements Parser {
+	public final priority:Priority = Late;
 
 	public function new() {}
 
@@ -12,7 +14,7 @@ class ChildrenFieldBuilder implements Builder {
 		var children = builder.findFieldsByMeta(':children');
 		switch children {
 			case [field]:
-				var prop = builder.getProps('new').find(p -> p.name == field.name);
+				var prop = builder.hook(Init).getProps().find(prop -> prop.name == field.name);
 				if (prop == null) {
 					field.pos.error('Invalid target for :children');
 				}

@@ -3,20 +3,21 @@ package blok.context;
 import blok.macro.*;
 import haxe.macro.Context;
 import haxe.macro.Expr;
+import kit.macro.*;
 
-using blok.macro.MacroTools;
 using haxe.macro.Tools;
+using kit.macro.Tools;
 
 final builderFactory = new ClassBuilderFactory([
-	new ContextBuilder()
+	new ContextParser()
 ]);
 
 function build() {
 	return builderFactory.fromContext().export();
 }
 
-class ContextBuilder implements Builder {
-	public final priority:BuilderPriority = Late;
+class ContextParser implements Parser {
+	public final priority:Priority = Late;
 
 	public function new() {}
 

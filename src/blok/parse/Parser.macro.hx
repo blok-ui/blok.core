@@ -5,8 +5,8 @@ import blok.parse.Node;
 import haxe.macro.Context;
 import haxe.macro.Expr;
 
-using blok.macro.MacroTools;
 using haxe.macro.Tools;
+using kit.macro.Tools;
 
 typedef ParserOptions = {
 	public final generateExpr:(nodes:Array<Node>) -> Expr;
@@ -209,8 +209,9 @@ class Parser {
 
 	function reenter(e:Expr):Expr {
 		return switch e {
-			case macro @:markup ${{expr: EConst(CString(_))}
-			} :
+			case macro @:markup ${
+				{expr: EConst(CString(_))}
+			}:
 				new Parser(e, options).toExpr();
 			default:
 				e.map(reenter);

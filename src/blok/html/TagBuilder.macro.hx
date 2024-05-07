@@ -1,9 +1,9 @@
 package blok.html;
 
-import blok.macro.ClassBuilder;
 import haxe.macro.Context;
 import haxe.macro.Expr;
 import haxe.macro.Type;
+import kit.macro.ClassBuilder;
 
 using Lambda;
 using haxe.macro.Tools;

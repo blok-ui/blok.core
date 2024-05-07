@@ -1,21 +1,22 @@
 package blok.ui;
 
 import blok.macro.*;
-import blok.macro.builder.*;
 import haxe.macro.Expr;
+import kit.macro.*;
+import kit.macro.parser.*;
 
-using blok.macro.MacroTools;
+using kit.macro.Tools;
 
-final builderFactory = new ClassBuilderFactory([
-	new AttributeFieldBuilder(),
-	new SignalFieldBuilder({updatable: true}),
-	new ObservableFieldBuilder({updatable: true}),
-	new ComputedFieldBuilder(),
-	new ResourceFieldBuilder(),
-	new ChildrenFieldBuilder(),
-	new ConstructorBuilder({
+final factory = new ClassBuilderFactory([
+	new AttributeFieldParser(),
+	new SignalFieldParser({updatable: true}),
+	new ObservableFieldParser({updatable: true}),
+	new ComputedFieldParser(),
+	new ResourceFieldParser(),
+	new ChildrenFieldParser(),
+	new ConstructorParser({
 		privateConstructor: true,
-		customBuilder: options -> {
+		customParser: options -> {
 			var propType = options.props;
 			return (macro function(node:blok.ui.VNode) {
 				__node = node;
@@ -40,19 +41,19 @@ final builderFactory = new ClassBuilderFactory([
 ]);
 
 function build() {
-	return builderFactory.fromContext().export();
+	return factory.fromContext().export();
 }
 
-class ComponentBuilder implements Builder {
-	public final priority:BuilderPriority = Late;
+class ComponentBuilder implements Parser {
+	public final priority:Priority = Late;
 
 	public function new() {}
 
 	public function apply(builder:ClassBuilder) {
 		var cls = builder.getClass();
 		var createParams = cls.params.toTypeParamDecl();
-		var updates = builder.getHook('update');
-		var props = builder.getProps('new');
+		var updates = builder.hook('update').getExprs();
+		var props = builder.hook(Init).getProps().concat(builder.hook(LateInit).getProps());
 		var propType:ComplexType = TAnonymous(props);
 		var markupType = TAnonymous(props.concat((macro class {
 			@:optional public final key:blok.diffing.Key;

@@ -47,7 +47,6 @@ class Primitive extends View implements PrimitiveHost {
 			var signal:ReadOnlySignal<Any> = Reflect.field(props, name);
 			var updater = updaters.get(name);
 
-			// @todo: Investigate this null case a bit more.
 			if (signal == null) signal = new Signal(null);
 
 			if (updater == null) {

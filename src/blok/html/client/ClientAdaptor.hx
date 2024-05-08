@@ -125,18 +125,23 @@ class ClientAdaptor implements Adaptor {
 	function setAttribute(element:Element, name:String, ?value:Dynamic, ?namespace:String) {
 		var shouldRemove = value == null || (value is Bool && value == false);
 
+		name = normalizeAttributeName(name);
+
 		// if (shouldRemove) return if (namespace != null) {
 		//   element.removeAttributeNS(namespace, name);
 		// } else {
 		//   element.removeAttribute(name);
 		// }
 
-		if (shouldRemove) return element.removeAttribute(name);
+		if (shouldRemove) {
+			element.removeAttribute(name);
+			return;
+		}
 
 		if (value is Bool && value == true) value = name;
 
 		switch name {
-			case 'class' | 'className':
+			case 'class':
 				updateClassList(element, value);
 			case 'dataset':
 				updateDataset(element, value);
@@ -198,6 +203,19 @@ class ClientAdaptor implements Adaptor {
 		if (name.startsWith('aria')) {
 			return 'aria-' + name.substr(4).toLowerCase();
 		}
+		return name;
+	}
+
+	function normalizeAttributeName(name:String) {
+		name = name.trim();
+
+		if (name == 'className') {
+			name = 'class';
+		}
+		if (name == 'htmlFor') {
+			name = 'for';
+		}
+
 		return name;
 	}
 }

@@ -49,7 +49,7 @@ class ClientAdaptor implements Adaptor {
 		var isSvg = el.namespaceURI == svgNamespace;
 		var namespace = isSvg ? svgNamespace : null;
 
-		name = getHtmlName(name);
+		name = normalizeAttributeName(name);
 
 		if (isHydrating) {
 			if (name.startsWith('on')) {
@@ -125,8 +125,6 @@ class ClientAdaptor implements Adaptor {
 	function setAttribute(element:Element, name:String, ?value:Dynamic, ?namespace:String) {
 		var shouldRemove = value == null || (value is Bool && value == false);
 
-		name = normalizeAttributeName(name);
-
 		// if (shouldRemove) return if (namespace != null) {
 		//   element.removeAttributeNS(namespace, name);
 		// } else {
@@ -198,17 +196,14 @@ class ClientAdaptor implements Adaptor {
 		}
 	}
 
-	// @todo: Figure out how to use the @:html attributes for this instead.
-	function getHtmlName(name:String) {
-		if (name.startsWith('aria')) {
-			return 'aria-' + name.substr(4).toLowerCase();
-		}
-		return name;
-	}
-
 	function normalizeAttributeName(name:String) {
 		name = name.trim();
 
+		// @todo: Figure out how to use the @:html attributes for this instead.
+		if (name.startsWith('aria')) {
+			name = 'aria-' + name.substr(4).toLowerCase();
+		}
+		
 		if (name == 'className') {
 			name = 'class';
 		}

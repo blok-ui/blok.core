@@ -1,11 +1,12 @@
-package blok.macro.builder;
+package blok.macro;
 
 import haxe.macro.Expr;
+import kit.macro.*;
 
-using blok.macro.MacroTools;
+using kit.macro.Tools;
 
-class AttributeFieldBuilder implements Builder {
-	public final priority:BuilderPriority = Normal;
+class AttributeFieldParser implements Parser {
+	public final priority:Priority = Normal;
 
 	public function new() {}
 
@@ -43,21 +44,23 @@ class AttributeFieldBuilder implements Builder {
 					}
 				});
 
-				builder.addProp('new', {
-					name: name,
-					type: t,
-					optional: e != null
-				});
-				builder.addHook('init', if (e == null) {
-					macro this.$backingName = props.$name;
-				} else {
-					macro @:pos(e.pos) this.$backingName = props.$name ?? $e;
-				});
-				builder.addHook('update', if (e == null) {
-					macro this.$backingName.set(props.$name);
-				} else {
-					macro @:pos(e.pos) this.$backingName.set(props.$name ?? $e);
-				});
+				builder.hook(Init)
+					.addProp({
+						name: name,
+						type: t,
+						optional: e != null
+					})
+					.addExpr(if (e == null) {
+						macro this.$backingName = props.$name;
+					} else {
+						macro @:pos(e.pos) this.$backingName = props.$name ?? $e;
+					});
+				builder.hook('update')
+					.addExpr(if (e == null) {
+						macro this.$backingName.set(props.$name);
+					} else {
+						macro @:pos(e.pos) this.$backingName.set(props.$name ?? $e);
+					});
 			default:
 				meta.pos.error('Invalid field for :attribute');
 		}

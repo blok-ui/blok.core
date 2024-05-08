@@ -1,10 +1,10 @@
 package blok.html;
 
 import haxe.macro.Context;
-import blok.macro.FieldBuilder;
+import kit.macro.ClassFieldCollection;
 
 function build() {
-	var enumFields = new FieldBuilder(Context.getBuildFields());
+	var enumFields = new ClassFieldCollection(Context.getBuildFields());
 	var names = Context.getType('blok.html.HtmlAttributes.GlobalAttr');
 
 	switch names {

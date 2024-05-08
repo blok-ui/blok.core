@@ -1,11 +1,12 @@
-package blok.macro.builder;
+package blok.macro;
 
 import haxe.macro.Expr;
+import kit.macro.*;
 
-using blok.macro.MacroTools;
+using kit.macro.Tools;
 
-class ResourceFieldBuilder implements Builder {
-	public final priority:BuilderPriority = Normal;
+class ResourceFieldParser implements Parser {
+	public final priority:Priority = Normal;
 
 	public function new() {}
 
@@ -51,7 +52,7 @@ class ResourceFieldBuilder implements Builder {
 					}
 				});
 
-				builder.addHook('init:late', macro this.$backingName = this.$createName());
+				builder.hook(LateInit).addExpr(macro this.$backingName = this.$createName());
 			default:
 				meta.pos.error(':resource fields cannot be methods');
 		}

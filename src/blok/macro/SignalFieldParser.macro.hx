@@ -1,16 +1,17 @@
-package blok.macro.builder;
+package blok.macro;
 
 import haxe.macro.Expr;
+import kit.macro.*;
 
 using Lambda;
-using blok.macro.MacroTools;
+using kit.macro.Tools;
 
 typedef SignalFieldBuilderOptions = {
 	public final updatable:Bool;
 }
 
-class SignalFieldBuilder implements Builder {
-	public final priority:BuilderPriority = Normal;
+class SignalFieldParser implements Parser {
+	public final priority:Priority = Normal;
 
 	final options:SignalFieldBuilderOptions;
 
@@ -45,20 +46,29 @@ class SignalFieldBuilder implements Builder {
 					case macro null: macro new blok.signal.Signal(null);
 					default: e;
 				});
+				field.meta.push({
+					name: ':json',
+					params: [
+						macro from = value,
+						macro to = value.get()
+					],
+					pos: field.pos
+				});
 
-				builder.addProp('new', {
-					name: name,
-					type: t,
-					optional: isOptional
-				});
-				builder.addHook('init', if (isOptional) {
-					macro if (props.$name != null) this.$name = props.$name;
-				} else {
-					macro this.$name = props.$name;
-				});
+				builder.hook(Init)
+					.addProp({
+						name: name,
+						type: t,
+						optional: isOptional
+					})
+					.addExpr(if (isOptional) {
+						macro if (props.$name != null) this.$name = props.$name;
+					} else {
+						macro this.$name = props.$name;
+					});
 
 				if (options.updatable) {
-					builder.addHook('update', if (isOptional) {
+					builder.hook('update').addExpr(if (isOptional) {
 						macro if (props.$name != null) this.$name.set(props.$name);
 					} else {
 						macro this.$name.set(props.$name);

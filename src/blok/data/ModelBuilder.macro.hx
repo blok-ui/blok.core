@@ -1,17 +1,18 @@
 package blok.data;
 
 import blok.macro.*;
-import blok.macro.builder.*;
+import kit.macro.*;
+import kit.macro.parser.*;
 
-final builderFactory = new ClassBuilderFactory([
-	new ConstantFieldBuilder(),
-	new SignalFieldBuilder({updatable: false}),
-	new ObservableFieldBuilder({updatable: false}),
-	new ComputedFieldBuilder(),
-	new ConstructorBuilder({privateConstructor: false}),
-	new JsonSerializerBuilder({})
+final factory = new ClassBuilderFactory([
+	new ConstantFieldParser(),
+	new SignalFieldParser({updatable: false}),
+	new ObservableFieldParser({updatable: false}),
+	new ComputedFieldParser(),
+	new ConstructorParser({privateConstructor: false}),
+	new JsonSerializerParser({})
 ]);
 
 function build() {
-	return builderFactory.fromContext().export();
+	return factory.fromContext().export();
 }

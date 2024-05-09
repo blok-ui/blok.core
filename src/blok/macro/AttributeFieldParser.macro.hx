@@ -31,7 +31,7 @@ class AttributeFieldParser implements Parser {
 
 				field.kind = FProp('get', 'never', t);
 
-				var expr = switch e {
+				e = switch e {
 					case macro null: macro new blok.signal.Signal(null);
 					default: e;
 				};

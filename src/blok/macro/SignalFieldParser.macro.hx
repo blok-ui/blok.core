@@ -46,14 +46,6 @@ class SignalFieldParser implements Parser {
 					case macro null: macro new blok.signal.Signal(null);
 					default: e;
 				});
-				field.meta.push({
-					name: ':json',
-					params: [
-						macro from = value,
-						macro to = value.get()
-					],
-					pos: field.pos
-				});
 
 				builder.hook(Init)
 					.addProp({

@@ -65,15 +65,6 @@ class ObservableFieldParser implements Parser {
 					}
 				];
 
-				field.meta.push({
-					name: ':json',
-					params: [
-						macro from = value,
-						macro to = value.get()
-					],
-					pos: field.pos
-				});
-
 				builder.hook(LateInit)
 					.addProp({
 						name: name,

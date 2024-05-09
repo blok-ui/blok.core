@@ -14,10 +14,11 @@ final factory = new ClassBuilderFactory([
 	new ComputedFieldParser(),
 	new ConstructorParser({privateConstructor: false}),
 	new JsonSerializerParser({
-		customParser: (name, t, parser) -> switch t.toType().toComplexType() {
+		customParser: options -> switch options.type.toType().toComplexType() {
 			case macro :blok.signal.Signal<$wrappedType>:
 				// Unwrap any signals and then let the base parser take over.
-				Some(parser(macro this.$name.get(), name, wrappedType));
+				var name = options.name;
+				Some(options.parser(macro this.$name.get(), name, wrappedType));
 			default:
 				None;
 		}

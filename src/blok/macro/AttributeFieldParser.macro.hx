@@ -31,10 +31,11 @@ class AttributeFieldParser implements Parser {
 
 				field.kind = FProp('get', 'never', t);
 
-				e = switch e {
-					case macro null: macro new blok.signal.Signal(null);
-					default: e;
-				};
+				// // @:todo This seems to only break things:
+				// e = switch e {
+				// 	case macro null: macro @:pos(e.pos) new blok.signal.Signal(null);
+				// 	default: e;
+				// };
 
 				builder.add(macro class {
 					@:noCompletion final $backingName:blok.signal.Signal<$t>;

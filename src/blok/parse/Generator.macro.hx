@@ -27,8 +27,8 @@ class Generator {
 	public function generateNode(node:Node):Expr {
 		return switch node.value {
 			case NFragment(children):
-				var components = children.map(generateNode);
-				macro blok.ui.Fragment.node($a{components});
+				var children = children.map(generateNode);
+				macro blok.ui.Fragment.of([$a{children}]);
 			case NNode(name, attributes, children):
 				var prevContext = context;
 				var tag = context.resolve(name);

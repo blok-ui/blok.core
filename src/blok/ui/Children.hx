@@ -6,6 +6,10 @@ abstract Children(Array<Child>) from Array<Child> to Array<Child> {
 		return [child];
 	}
 
+	@:from public inline static function ofVNodeArray(children:Array<VNode>):Children {
+		return children.map(item -> (item : Child));
+	}
+
 	@:from public inline static function ofChild(child:Child):Children {
 		return [child];
 	}
@@ -19,6 +23,6 @@ abstract Children(Array<Child>) from Array<Child> to Array<Child> {
 	}
 
 	@:to public inline function toChild():Child {
-		return Fragment.node(...this);
+		return Fragment.of(this);
 	}
 }

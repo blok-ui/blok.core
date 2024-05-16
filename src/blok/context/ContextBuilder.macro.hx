@@ -48,6 +48,7 @@ class ContextParser implements Parser {
 		});
 		var constructors = macro class {
 			@:noUsing
+			@:deprecated('Use blok.context.Provider.provide(...) instead')
 			public static function provide(create:() -> $ret, child:(value:$ret) -> blok.ui.Child, ?key:blok.diffing.Key):blok.ui.VNode {
 				return blok.context.Provider.node({
 					create: create,

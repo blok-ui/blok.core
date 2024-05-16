@@ -111,6 +111,8 @@ abstract ReadOnlySignal<T>(ReadOnlySignalObject<T>) from SignalObject<T> from Co
 		this = new StaticSignalObject(value);
 	}
 
+	// @todo: Using `map` inside render methods is going to be super
+	// inefficient. We need to go around an remove it.
 	public inline function map<R>(transform:(value:T) -> R):ReadOnlySignal<R> {
 		return new Computation(() -> transform(get()));
 	}

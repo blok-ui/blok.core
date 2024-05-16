@@ -6,6 +6,11 @@ import blok.diffing.Differ;
 class Fragment extends View {
 	public static final componentType = new UniqueId();
 
+	public static function of(children:Children) {
+		return new VComponent(componentType, {children: children.toArray()}, Fragment.new);
+	}
+
+	@:deprecated('Use Fragment.of instead')
 	public static function node(...children:Child):VNode {
 		return new VComponent(componentType, {children: children.toArray()}, Fragment.new);
 	}

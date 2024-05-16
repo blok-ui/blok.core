@@ -312,7 +312,7 @@ class TodoList extends Component {
 			)}>
 				<Scope>
 					{_ -> <>
-						{...[ for (todo in visibleTodos()) <TodoItem todo=todo key={todo.id} /> ]}
+						{for (todo in visibleTodos()) <TodoItem todo=todo key={todo.id} />}
 					</>}
 				</Scope>
 			</ul>
@@ -323,20 +323,18 @@ class TodoList extends Component {
 class TodoItem extends Component {
 	@:attribute final todo:Todo;
 	@:computed final className:ClassName = [
-		if (todo.isCompleted() && !todo.isEditing()) Typography.textColor('gray', 500) else null
+		if (todo.isCompleted() && !todo.isEditing()) Typography.textColor('gray', 500) else null,
+		Flex.display(),
+		Flex.gap(3),
+		Flex.alignItems('center'),
+		Spacing.pad('y', 3),
+		Border.width('bottom', .5),
+		Border.color('gray', 300),
+		Select.child('last', Border.style('bottom', 'none'))
 	];
 
 	function render():VNode {
-		return Html.view(<li id={'todo-${todo.id}'} className={className.map(className -> Breeze.compose(
-			className,
-			Flex.display(),
-			Flex.gap(3),
-			Flex.alignItems('center'),
-			Spacing.pad('y', 3),
-			Border.width('bottom', .5),
-			Border.color('gray', 300),
-			Select.child('last', Border.style('bottom', 'none'))
-		))} onDblClick={_ -> todo.isEditing.set(true)}>
+		return Html.view(<li id={'todo-${todo.id}'} className={className} onDblClick={_ -> todo.isEditing.set(true)}>
 			{if (!todo.isEditing()) <>
 				<input 
 					type={blok.html.HtmlAttributes.InputType.Checkbox}

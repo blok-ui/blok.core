@@ -29,11 +29,18 @@ class Tag {
 					reject('it does not have a [$fromMarkupMeta] static method.');
 				}
 
+				var kind:TagKind = switch field.kind {
+					case FMethod(MethMacro):
+						FromMarkupMethodMacro(field.name);
+					default:
+						FromMarkupMethod(field.name);
+				}
+
 				processType(
 					name,
 					cls.pack.concat([cls.name]).join('.'),
 					field.type,
-					FromMarkupMethod(field.name),
+					kind,
 					isBuiltin,
 					pos
 				);
@@ -63,7 +70,7 @@ class Tag {
 
 @:structInit
 class TagAttributes {
-	public final fields:Map<String, ClassField>;
+	public final fields:Map<String, Type>;
 	public final attributesType:Type;
 	public final childrenAttribute:TagChildrenAttribute;
 
@@ -76,9 +83,17 @@ class TagAttributes {
 	}
 }
 
+@:structInit
+class DynamicTagAttributes extends TagAttributes {
+	override function getAttribute(name:Located<String>):Null<Type> {
+		return Context.getType('Dynamic');
+	}
+}
+
 enum TagKind {
 	FunctionCall;
 	FromMarkupMethod(name:String);
+	FromMarkupMethodMacro(name:String);
 }
 
 enum TagChildrenAttribute {
@@ -113,11 +128,11 @@ private function processType(name:String, path:String, type:Type, kind:TagKind, 
 					switch t {
 						case TAnonymous(a):
 							var obj = a.get();
-							var fields:Map<String, ClassField> = [];
+							var fields:Map<String, Type> = [];
 							var childrenAttr:TagChildrenAttribute = None;
 
 							for (field in obj.fields) {
-								fields.set(field.name, field);
+								fields.set(field.name, field.type);
 								if (field.meta.has(':children')) switch childrenAttr {
 									case None:
 										childrenAttr = Field(field.name, field);
@@ -144,6 +159,12 @@ private function processType(name:String, path:String, type:Type, kind:TagKind, 
 								attributesType: props.t,
 								childrenAttribute: childrenAttr
 							}, isBuiltin);
+						case t if (kind.match(FromMarkupMethodMacro(_))):
+							return new Tag(name, path, kind, ({
+								fields: [],
+								attributesType: (macro :Dynamic).toType(),
+								childrenAttribute: Rest
+							} : DynamicTagAttributes), isBuiltin);
 						case _ if (kind.match(FromMarkupMethod(_))):
 							reject('its ${Tag.fromMarkupMeta} method must have a first argument that is an anonymous object');
 						default:

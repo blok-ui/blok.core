@@ -20,7 +20,7 @@ class Generator {
 		return switch exprs {
 			case []: macro null;
 			case [expr]: expr;
-			case exprs: macro blok.ui.Fragment.node($a{exprs});
+			case exprs: macro [$a{exprs}];
 		}
 	}
 
@@ -51,7 +51,7 @@ class Generator {
 					if (attrType == null) {
 						Context.error('Invalid attribute: ${attr.name.value}', attr.name.pos);
 					}
-					// @todo: We can do type checking here too
+					// @todo: We can do type checking here too?
 					addProp(attr);
 				}
 
@@ -111,7 +111,7 @@ class Generator {
 				var e = switch tag.kind {
 					case FunctionCall:
 						macro @:pos(name.pos) $p{path};
-					case FromMarkupMethod(name):
+					case FromMarkupMethod(name) | FromMarkupMethodMacro(name):
 						path = path.concat([name]);
 						macro @:pos(name.pos) $p{path};
 				}

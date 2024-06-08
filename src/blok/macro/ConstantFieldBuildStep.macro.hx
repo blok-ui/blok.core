@@ -4,7 +4,7 @@ import haxe.macro.Expr;
 import haxe.macro.Context;
 import kit.macro.*;
 
-class ConstantFieldParser implements Parser {
+class ConstantFieldBuildStep implements BuildStep {
 	public final priority:Priority = Normal;
 
 	public function new() {}

@@ -5,7 +5,7 @@ import kit.macro.*;
 
 using kit.macro.Tools;
 
-class ResourceFieldParser implements Parser {
+class ResourceFieldBuildStep implements BuildStep {
 	public final priority:Priority = Normal;
 
 	public function new() {}

@@ -1,10 +1,8 @@
-Blok Core
-=========
+# Blok Core
 
 Blok is a reactive UI framework built for the web but flexible enough to be used elsewhere.
 
-Getting Started
----------------
+## Getting Started
 
 Blok is not yet on haxelib, but you can install it using [Lix](https://github.com/lix-pm/lix.client).
 
@@ -40,8 +38,7 @@ class Counter extends Component {
 }
 ```
 
-Signals
--------
+## Signals
 
 > Note: this section is a work in progress.
 
@@ -95,8 +92,7 @@ Note that when signals change their Observers will update *asynchronously* since
 
 > Todo: Explain `Computation`, especially the fact that it *can* update synchronously when it's accessed.
 
-Components
-----------
+## Components
 
 > Note: this section is a work in progress.
 
@@ -120,6 +116,15 @@ class Counter extends Component {
   @:signal final count:Int = 0;
   @:computed final className = 'counter-${count()}';
 
+  @:effect function traceWhenCountChanges() {
+    trace('Count is currently ${count()}');
+    return () -> trace(
+      'This is a clean-up function, run when '
+      + 'the Component is disposed or the effect ' 
+      + 'is re-computed.'
+    );
+  }
+
   function decrement(_:blok.html.HtmlEvents.Event) {
     count.update(count -> count > 0 ? count - increment : 0);
   }
@@ -140,12 +145,40 @@ class Counter extends Component {
 
 In our `Counter` class, you'll note that we have a bunch of class fields marked with metadata. These are fairly self-explanatory, but let's go over them one by one.
 
-> Todo: ...I'll get to that.
+> Note: this is still very much in progress and these descriptions are probably not very helpful yet.
 
-> Todo: Also explain @:resource fields and how they work with SuspenseBoundaries.
+### @:attribute
 
-Models
-------
+Attributes are (mostly) immutable properties passed into a component.  
 
-> Note: this section is a work in progress.
+### @:signal
 
+Signal fields create readable/writeable Signals (see the previous section). This is somewhat similar to `useState` in React.
+
+### @:observable
+
+Observable fields are read-only Signals passed in from some outside source (such as a parent component).
+
+### @:computed
+
+Computed fields allow you to derive reactive values from any number of Signals.
+
+### @:resource
+
+Resource fields allow you to use async values (such as HTTP requests) in conjunction with [SuspenseBoundaries](#suspense-boundaries-and-resources). 
+
+### @:effect
+
+Effect methods allow you to create reactive side-effects that track reactive Signals.
+
+## Models
+
+> Note: this section is coming soon.
+
+## Suspense Boundaries and Resources
+
+> Note: this section is coming soon.
+
+## Context
+
+> Note: this section is coming soon.

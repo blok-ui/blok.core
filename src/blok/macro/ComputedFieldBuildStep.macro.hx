@@ -5,7 +5,7 @@ import kit.macro.*;
 
 using kit.macro.Tools;
 
-class ComputedFieldParser implements Parser {
+class ComputedFieldBuildStep implements BuildStep {
 	public final priority:Priority = Normal;
 
 	public function new() {}

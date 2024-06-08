@@ -5,7 +5,7 @@ import kit.macro.*;
 
 using kit.macro.Tools;
 
-class AttributeFieldParser implements Parser {
+class AttributeFieldBuildStep implements BuildStep {
 	public final priority:Priority = Normal;
 
 	public function new() {}

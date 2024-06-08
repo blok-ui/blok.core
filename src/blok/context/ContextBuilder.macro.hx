@@ -9,14 +9,14 @@ using haxe.macro.Tools;
 using kit.macro.Tools;
 
 final builderFactory = new ClassBuilderFactory([
-	new ContextParser()
+	new ContextBuildStep()
 ]);
 
 function build() {
 	return builderFactory.fromContext().export();
 }
 
-class ContextParser implements Parser {
+class ContextBuildStep implements BuildStep {
 	public final priority:Priority = Late;
 
 	public function new() {}

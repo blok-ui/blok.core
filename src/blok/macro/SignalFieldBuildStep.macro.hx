@@ -10,7 +10,7 @@ typedef SignalFieldBuilderOptions = {
 	public final updatable:Bool;
 }
 
-class SignalFieldParser implements Parser {
+class SignalFieldBuildStep implements BuildStep {
 	public final priority:Priority = Normal;
 
 	final options:SignalFieldBuilderOptions;

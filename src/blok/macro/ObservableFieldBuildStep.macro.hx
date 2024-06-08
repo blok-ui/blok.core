@@ -9,7 +9,7 @@ typedef ObservableFieldBuilderOptions = {
 	public final updatable:Bool;
 }
 
-class ObservableFieldParser implements Parser {
+class ObservableFieldBuildStep implements BuildStep {
 	public final priority:Priority = Normal;
 
 	final options:ObservableFieldBuilderOptions;

@@ -5,7 +5,7 @@ import kit.macro.*;
 using Lambda;
 using kit.macro.Tools;
 
-class ChildrenFieldParser implements Parser {
+class ChildrenFieldBuildStep implements BuildStep {
 	public final priority:Priority = Late;
 
 	public function new() {}

@@ -3,18 +3,19 @@ package blok.ui;
 import blok.macro.*;
 import haxe.macro.Expr;
 import kit.macro.*;
-import kit.macro.parser.*;
+import kit.macro.step.*;
 
 using kit.macro.Tools;
 
 final factory = new ClassBuilderFactory([
-	new AttributeFieldParser(),
-	new SignalFieldParser({updatable: true}),
-	new ObservableFieldParser({updatable: true}),
-	new ComputedFieldParser(),
-	new ResourceFieldParser(),
-	new ChildrenFieldParser(),
-	new ConstructorParser({
+	new AttributeFieldBuildStep(),
+	new SignalFieldBuildStep({updatable: true}),
+	new ObservableFieldBuildStep({updatable: true}),
+	new ComputedFieldBuildStep(),
+	new ResourceFieldBuildStep(),
+	new ChildrenFieldBuildStep(),
+	new EffectBuildStep(),
+	new ConstructorBuildStep({
 		privateConstructor: true,
 		customParser: options -> {
 			var propType = options.props;
@@ -44,7 +45,7 @@ function build() {
 	return factory.fromContext().export();
 }
 
-class ComponentBuilder implements Parser {
+class ComponentBuilder implements BuildStep {
 	public final priority:Priority = Late;
 
 	public function new() {}
@@ -72,11 +73,23 @@ class ComponentBuilder implements Parser {
 			}
 		};
 
+		var setup = builder.hook('setup').getExprs();
 		switch builder.findField('setup') {
-			case Some(_):
+			case Some(field):
+				switch field.kind {
+					case FFun(f):
+						var expr = f.expr;
+						f.expr = macro {
+							@:mergeBlock $b{setup};
+							$expr;
+						}
+					default:
+				}
 			case None:
 				builder.add(macro class {
-					function setup() {}
+					function setup() {
+						@:mergeBlock $b{setup};
+					}
 				});
 		}
 

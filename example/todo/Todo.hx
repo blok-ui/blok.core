@@ -244,12 +244,10 @@ class TodoInput extends Component {
 	@:signal final value:String;
 	@:observable final isEditing:Bool = false;
 
-	function setup() {
-		Observer.track(() -> {
-			if (isEditing()) {
-				(getPrimitive() : js.html.InputElement).focus();
-			}
-		});
+	@:effect function trackEditing():Void {
+		if (isEditing()) {
+			(getPrimitive() : js.html.InputElement).focus();
+		}
 	}
 
 	function render():VNode {

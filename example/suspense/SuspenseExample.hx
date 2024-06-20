@@ -104,10 +104,14 @@ class SuspenseItem extends Component {
 
 	function render() {
 		return Html.div()
-			.child(str()) // Suspense is potentially triggered here.
+			.attr(ClassName, Breeze.compose(
+				Flex.display()
+			))
+				// .child(str())
+			.child(SubItem.node({str: str})) // Resources can be passed as ReadOnlySignals
 			.child(
 				Html.button()
-					.attr(HtmlAttributeName.ClassName, Breeze.compose(
+					.attr(ClassName, Breeze.compose(
 						Background.color('white', 0),
 						Typography.textColor('red', 500),
 						Typography.fontWeight('bold'),
@@ -118,5 +122,17 @@ class SuspenseItem extends Component {
 					.on(Click, _ -> delay.update(delay -> delay + 1))
 					.child('Reload')
 			);
+	}
+}
+
+class SubItem extends Component {
+	@:observable final str:String;
+
+	function render():Child {
+		return Html.div()
+			.attr(ClassName, Breeze.compose(
+				Background.color('red', 300)
+			))
+			.child(str);
 	}
 }

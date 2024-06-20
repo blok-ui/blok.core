@@ -88,7 +88,7 @@ typedef ReadOnlySignalObject<T> = {
 	public function peek():T;
 }
 
-abstract ReadOnlySignal<T>(ReadOnlySignalObject<T>) from SignalObject<T> from ComputationObject<T> {
+abstract ReadOnlySignal<T>(ReadOnlySignalObject<T>) from ReadOnlySignalObject<T> from SignalObject<T> from ComputationObject<T> {
 	@:from public inline static function ofSignal<T>(signal:Signal<T>):ReadOnlySignal<T> {
 		return signal;
 	}

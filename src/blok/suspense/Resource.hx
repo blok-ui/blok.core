@@ -16,6 +16,11 @@ abstract Resource<T, E = kit.Error>(ResourceObject<T, E>) from ResourceObject<T,
 		this = new DefaultResourceObject(fetch);
 	}
 
+	@:to
+	public function toReadOnlySignal():ReadOnlySignal<T> {
+		return this;
+	}
+
 	@:op(a())
 	public inline function get() {
 		return this.get();
@@ -33,6 +38,7 @@ interface ResourceObject<T, E = kit.Error> extends Disposable {
 	public final data:ReadOnlySignal<ResourceStatus<T, E>>;
 	public final loading:ReadOnlySignal<Bool>;
 	public function get():T;
+	public function peek():T;
 }
 
 class DefaultResourceObject<T, E = kit.Error> implements ResourceObject<T, E> {
@@ -65,8 +71,7 @@ class DefaultResourceObject<T, E = kit.Error> implements ResourceObject<T, E> {
 		// we don't trigger dependencies more than once.
 		switch data.peek() {
 			case Pending:
-				var prevOwner = Owner.setCurrent(disposables);
-				Observer.track(() -> {
+				Owner.with(disposables, () -> Observer.track(() -> {
 					link?.cancel();
 
 					var handled = false;
@@ -82,8 +87,7 @@ class DefaultResourceObject<T, E = kit.Error> implements ResourceObject<T, E> {
 					});
 
 					if (!handled) data.set(Loading(task));
-				});
-				Owner.setCurrent(prevOwner);
+				}));
 			default:
 		}
 
@@ -97,6 +101,11 @@ class DefaultResourceObject<T, E = kit.Error> implements ResourceObject<T, E> {
 			case Error(e):
 				throw e;
 		}
+	}
+
+	public function peek():T {
+		// @todo: how should we handle this?
+		throw 'Not allowed on Resources';
 	}
 
 	public function dispose() {

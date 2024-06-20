@@ -34,6 +34,7 @@ class ObservableFieldBuildStep implements BuildStep {
 		switch field.kind {
 			case FVar(t, e) if (options.updatable):
 				var backingName = '__backing_$name';
+				var getterName = 'get_$name';
 				var type = switch t {
 					case macro :Null<$t>: macro :blok.signal.Signal.ReadOnlySignal<Null<$t>>;
 					default: macro :blok.signal.Signal.ReadOnlySignal<$t>;
@@ -45,10 +46,12 @@ class ObservableFieldBuildStep implements BuildStep {
 					default: macro cast($e : blok.signal.Signal.ReadOnlySignal<$t>);
 				};
 
-				field.kind = FVar(type, null);
+				field.kind = FProp('get', 'never', type);
 
 				builder.add(macro class {
 					@:noCompletion final $backingName:blok.signal.Signal<$type>;
+
+					function $getterName():$type return this.$backingName.get();
 				});
 
 				var init:Array<Expr> = [
@@ -56,12 +59,6 @@ class ObservableFieldBuildStep implements BuildStep {
 						macro this.$backingName = props.$name;
 					} else {
 						macro this.$backingName = props.$name ?? $expr;
-					},
-					switch t {
-						case macro :Null<$_>:
-							macro this.$name = new blok.signal.Computation(() -> this.$backingName.get()?.get());
-						default:
-							macro this.$name = new blok.signal.Computation(() -> this.$backingName.get().get());
 					}
 				];
 

@@ -9,7 +9,7 @@ class Scheduler {
 		return prev;
 	}
 
-	public static function current() {
+	public static function current():Scheduler {
 		if (instance == null) {
 			instance = new Scheduler();
 		}

@@ -34,7 +34,7 @@ abstract class View implements Disposable implements DisposableHost {
 	final __disposables:DisposableCollection = new DisposableCollection();
 
 	public function mount(adaptor:Adaptor, parent:Null<View>, slot:Null<Slot>) {
-		__init(adaptor, parent, slot);
+		attachToViewTree(adaptor, parent, slot);
 
 		__status = Rendering;
 		__renderMode = Normal;
@@ -48,7 +48,7 @@ abstract class View implements Disposable implements DisposableHost {
 	}
 
 	public function hydrate(cursor:Cursor, adaptor:Adaptor, parent:Null<View>, slot:Null<Slot>) {
-		__init(adaptor, parent, slot);
+		attachToViewTree(adaptor, parent, slot);
 
 		__status = Rendering;
 		__renderMode = Hydrating;
@@ -61,7 +61,7 @@ abstract class View implements Disposable implements DisposableHost {
 		__cleanupAfterValidation();
 	}
 
-	function __init(adaptor:Adaptor, parent:Null<View>, slot:Null<Slot>) {
+	function attachToViewTree(adaptor:Adaptor, parent:Null<View>, slot:Null<Slot>) {
 		assert(__mounted == Unmounted, 'Attempted to initialize a component that has already been mounted');
 
 		__mounted = Mounted(parent, adaptor);

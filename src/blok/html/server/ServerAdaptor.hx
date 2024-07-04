@@ -10,8 +10,8 @@ using StringTools;
 class ServerAdaptor implements Adaptor {
 	final scheduler:Scheduler;
 
-	public function new() {
-		this.scheduler = Scheduler.current();
+	public function new(?scheduler) {
+		this.scheduler = scheduler ?? Scheduler.current();
 	}
 
 	public function createNode(name:String, attrs:{}):Dynamic {

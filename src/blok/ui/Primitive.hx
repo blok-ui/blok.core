@@ -10,6 +10,17 @@ import blok.signal.Signal;
 using blok.adaptor.PrimitiveHostTools;
 
 class Primitive extends View implements PrimitiveHost {
+	static final tagMappings:Map<String, UniqueId> = [];
+
+	public static function getTypeForTag(tag:String) {
+		var id = tagMappings.get(tag);
+		if (id == null) {
+			id = new UniqueId();
+			tagMappings.set(tag, id);
+		}
+		return id;
+	}
+
 	final tag:String;
 	final type:UniqueId;
 	final updaters:Map<String, PrimitivePropertyUpdater<Any>> = [];

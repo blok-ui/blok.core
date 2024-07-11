@@ -2,11 +2,7 @@ package blok.html;
 
 private final tags:Map<String, UniqueId> = [];
 
-function getTypeForTag(tag:String) {
-	var id = tags.get(tag);
-	if (id == null) {
-		id = new UniqueId();
-		tags.set(tag, id);
-	}
-	return id;
+@:deprecated("Use blok.ui.Primitive.getTypeForTag")
+inline function getTypeForTag(tag:String) {
+	return blok.ui.Primitive.getTypeForTag(tag);
 }

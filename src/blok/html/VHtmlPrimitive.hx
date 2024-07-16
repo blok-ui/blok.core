@@ -27,12 +27,7 @@ abstract VHtmlPrimitive(VPrimitive) to Child to VPrimitive to VNode {
 		return abstract;
 	}
 
-	public inline function child(child:Child) {
-		this.children.push(child);
-		return abstract;
-	}
-
-	public inline function children(children:Children) {
+	public inline function child(...children:Child) {
 		for (child in children) this.children.push(child);
 		return abstract;
 	}

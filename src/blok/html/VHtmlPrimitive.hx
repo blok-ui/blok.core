@@ -1,5 +1,6 @@
 package blok.html;
 
+import blok.ui.Fragment.VFragment;
 import blok.html.HtmlEvents;
 import blok.signal.Signal;
 import blok.ui.*;
@@ -28,7 +29,10 @@ abstract VHtmlPrimitive(VPrimitive) to Child to VPrimitive to VNode {
 	}
 
 	public inline function child(...children:Child) {
-		for (child in children) this.children.push(child);
+		for (child in children) switch Std.downcast(child, VFragment) {
+			case null: this.children.push(child);
+			case fragment: abstract.child(...fragment.unwrap());
+		}
 		return abstract;
 	}
 

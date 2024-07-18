@@ -8,12 +8,12 @@ class Fragment extends View {
 	public static final componentType = new UniqueId();
 
 	public static function of(children:Children) {
-		return new VFragment(componentType, children);
+		return new VComponent(componentType, {children: children.toArray()}, Fragment.new);
 	}
 
 	@:deprecated('Use Fragment.of instead')
 	public static function node(...children:Child):VNode {
-		return of(children.toArray());
+		return new VComponent(componentType, {children: children.toArray()}, Fragment.new);
 	}
 
 	var children:Array<View> = [];
@@ -129,31 +129,5 @@ class FragmentSlot extends Slot {
 			return localIndex != otherFragment.localIndex;
 		}
 		return false;
-	}
-}
-
-@:access(blok.ui.Fragment)
-class VFragment implements VNode {
-	public final type:UniqueId;
-	public final key:Null<Key>;
-
-	final children:Array<VNode>;
-
-	public function new(type, children, ?key) {
-		this.type = type;
-		this.children = children;
-		this.key = key;
-	}
-
-	public function unwrap():Array<VNode> {
-		return children;
-	}
-
-	public function getProps<T:{}>():T {
-		return cast {children: children};
-	}
-
-	public function createComponent():View {
-		return new Fragment(this);
 	}
 }

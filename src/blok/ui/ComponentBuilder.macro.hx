@@ -15,6 +15,7 @@ final factory = new ClassBuilderFactory([
 	new ResourceFieldBuildStep(),
 	new ChildrenFieldBuildStep(),
 	new EffectBuildStep(),
+	new ContextFieldBuildStep(),
 	new ConstructorBuildStep({
 		privateConstructor: true,
 		customParser: options -> {

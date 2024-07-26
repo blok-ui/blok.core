@@ -1,5 +1,6 @@
 package blok.html;
 
+import blok.diffing.Key;
 import blok.html.HtmlEvents;
 import blok.signal.Signal;
 import blok.ui.*;
@@ -8,7 +9,7 @@ using Reflect;
 
 abstract VHtmlPrimitive(VPrimitive) to Child to VPrimitive to VNode {
 	public function new(type, tag, ?props, ?children, ?key) {
-		this = new VPrimitive(type, tag, props, children);
+		this = new VPrimitive(type, tag, props, children, key);
 	}
 
 	public inline function attr(name:HtmlAttributeName, value:ReadOnlySignal<String>) {

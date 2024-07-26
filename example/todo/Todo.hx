@@ -128,8 +128,9 @@ class TodoRoot extends Component {
 }
 
 class TodoHeader extends Component {
+	@:context final todos:TodoContext;
+
 	function render():VNode {
-		var todos = TodoContext.from(this);
 		return Html.view(<header role="header" className={Breeze.compose(
 			Spacing.pad('x', 3)
 		)}>
@@ -171,11 +172,12 @@ class TodoHeader extends Component {
 }
 
 class TodoFooter extends Component {
-	@:computed final display:String = switch TodoContext.from(this).total() {
+	@:context final todos:TodoContext;
+	@:computed final display:String = switch todos.total() {
 			case 0: 'display:none';
 			default: '';
 		}
-	@:computed final message:String = switch TodoContext.from(this).remaining() {
+	@:computed final message:String = switch todos.remaining() {
 			case 1: '1 item left';
 			case remaining: '${remaining} items left';
 		}
@@ -195,11 +197,11 @@ class TodoFooter extends Component {
 }
 
 class VisibilityControl extends Component {
+	@:context final todos:TodoContext;
 	@:attribute final visibility:TodoVisibility;
-	@:computed final isSelected:Bool = visibility == TodoContext.from(this).visibility();
+	@:computed final isSelected:Bool = visibility == todos.visibility();
 
 	function render() {
-		var todos = TodoContext.from(this);
 		return Html.view(<li>
 			<Button
 				action={() -> todos.visibility.set(visibility)}
@@ -292,8 +294,9 @@ class TodoInput extends Component {
 }
 
 class TodoList extends Component {
-	@:computed final visibleTodos:Array<Todo> = TodoContext.from(this).visibleTodos();
-	@:computed final hidden:Bool = TodoContext.from(this).total() == 0;
+	@:context final todos:TodoContext;
+	@:computed final visibleTodos:Array<Todo> = todos.visibleTodos();
+	@:computed final hidden:Bool = todos.total() == 0;
 	@:computed final style:Null<String> = hidden() ? 'visibility:hidden' : null;
 
 	function render():VNode {
@@ -319,6 +322,7 @@ class TodoList extends Component {
 }
 
 class TodoItem extends Component {
+	@:context final todos:TodoContext;
 	@:attribute final todo:Todo;
 	@:computed final className:ClassName = [
 		if (todo.isCompleted() && !todo.isEditing()) Typography.textColor('gray', 500) else null,
@@ -341,7 +345,7 @@ class TodoItem extends Component {
 				/>
 				<div className={Spacing.margin('right', 'auto')}>{todo.description}</div>
 				<Button action={() -> todo.isEditing.set(true)}>'Edit'</Button>
-				<Button action={() -> TodoContext.from(this).removeTodo(todo)}>'Remove'</Button>
+				<Button action={() -> todos.removeTodo(todo)}>'Remove'</Button>
 			</> else TodoInput.node({
 				className: Breeze.compose(
 					'edit',

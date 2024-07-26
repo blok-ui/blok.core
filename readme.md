@@ -171,6 +171,10 @@ Resource fields allow you to use async values (such as HTTP requests) in conjunc
 
 Effect methods allow you to create reactive side-effects that track reactive Signals.
 
+### @:context
+
+Use the given Context.
+
 ## Models
 
 > Note: this section is coming soon.

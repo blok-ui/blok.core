@@ -19,31 +19,31 @@ class ClientAdaptor implements Adaptor {
 		this.scheduler = scheduler ?? Scheduler.current();
 	}
 
-	public function createNode(name:String, initialAttrs:{}):Dynamic {
+	public function createPrimitive(name:String, initialAttrs:{}):Dynamic {
 		return name.startsWith('svg:') ? Browser.document.createElementNS(svgNamespace, name.substr(4)) : Browser.document.createElement(name);
 	}
 
-	public function createTextNode(value:String):Dynamic {
+	public function createTextPrimitive(value:String):Dynamic {
 		return Browser.document.createTextNode(value);
 	}
 
-	public function createContainerNode(props:{}):Dynamic {
-		return createNode('div', props);
+	public function createContainerPrimitive(props:{}):Dynamic {
+		return createPrimitive('div', props);
 	}
 
-	public function createPlaceholderNode():Dynamic {
-		return createTextNode('');
+	public function createPlaceholderPrimitive():Dynamic {
+		return createTextPrimitive('');
 	}
 
 	public function createCursor(object:Dynamic):Cursor {
 		return new ClientCursor(object);
 	}
 
-	public function updateTextNode(object:Dynamic, value:String) {
+	public function updateTextPrimitive(object:Dynamic, value:String) {
 		(object : js.html.Text).textContent = value;
 	}
 
-	public function updateNodeAttribute(object:Dynamic, name:String, oldValue:Null<Dynamic>, value:Null<Dynamic>, ?isHydrating:Bool) {
+	public function updatePrimitiveAttribute(object:Dynamic, name:String, oldValue:Null<Dynamic>, value:Null<Dynamic>, ?isHydrating:Bool) {
 		var el:Element = object;
 		var isSvg = el.namespaceURI == svgNamespace;
 		var namespace = isSvg ? svgNamespace : null;
@@ -71,7 +71,7 @@ class ClientAdaptor implements Adaptor {
 		}
 	}
 
-	public function insertNode(object:Dynamic, slot:Null<Slot>, findParent:() -> Dynamic) {
+	public function insertPrimitive(object:Dynamic, slot:Null<Slot>, findParent:() -> Dynamic) {
 		var el:js.html.Element = object;
 		if (slot != null && slot.previous != null) {
 			var relative:js.html.Element = slot.previous.getPrimitive();
@@ -83,12 +83,12 @@ class ClientAdaptor implements Adaptor {
 		}
 	}
 
-	public function moveNode(object:Dynamic, from:Null<Slot>, to:Null<Slot>, findParent:() -> Dynamic) {
+	public function movePrimitive(object:Dynamic, from:Null<Slot>, to:Null<Slot>, findParent:() -> Dynamic) {
 		var el:js.html.Element = object;
 
 		if (to == null) {
 			if (from != null) {
-				removeNode(object, from);
+				removePrimitive(object, from);
 			}
 			return;
 		}
@@ -113,7 +113,7 @@ class ClientAdaptor implements Adaptor {
 		relative.after(el);
 	}
 
-	public function removeNode(object:Dynamic, slot:Null<Slot>) {
+	public function removePrimitive(object:Dynamic, slot:Null<Slot>) {
 		(object : Element).remove();
 	}
 

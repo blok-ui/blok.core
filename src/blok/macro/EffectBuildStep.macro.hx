@@ -1,9 +1,9 @@
 package blok.macro;
 
-import haxe.macro.Context;
 import haxe.macro.Expr;
 import kit.macro.*;
 
+using blok.macro.Tools;
 using kit.macro.Tools;
 
 class EffectBuildStep implements BuildStep {
@@ -47,7 +47,7 @@ class EffectBuildStep implements BuildStep {
 						}
 				}
 
-				builder.hook('setup').addExpr(macro this.$name());
+				builder.setupHook().addExpr(macro this.$name());
 			default:
 				field.pos.error(':effect fields must be methods');
 		}

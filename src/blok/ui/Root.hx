@@ -24,7 +24,10 @@ class Root extends View implements PrimitiveHost {
 		(node.getProps() : {
 			target: Dynamic,
 			child: () -> Child
-		}).extract({target: target, child: child});
+		}).extract(try {
+			target: target,
+			child: child
+		});
 		this.target = target;
 		this.child = child;
 	}

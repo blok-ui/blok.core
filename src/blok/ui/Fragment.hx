@@ -1,6 +1,5 @@
 package blok.ui;
 
-import blok.diffing.Key;
 import blok.adaptor.*;
 import blok.diffing.Differ;
 

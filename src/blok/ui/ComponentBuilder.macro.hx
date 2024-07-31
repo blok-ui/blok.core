@@ -5,45 +5,44 @@ import haxe.macro.Expr;
 import kit.macro.*;
 import kit.macro.step.*;
 
+using blok.macro.Tools;
 using kit.macro.Tools;
 
-final factory = new ClassBuilderFactory([
-	new AttributeFieldBuildStep(),
-	new SignalFieldBuildStep({updatable: true}),
-	new ObservableFieldBuildStep({updatable: true}),
-	new ComputedFieldBuildStep(),
-	new ResourceFieldBuildStep(),
-	new ChildrenFieldBuildStep(),
-	new EffectBuildStep(),
-	new ContextFieldBuildStep(),
-	new ConstructorBuildStep({
-		privateConstructor: true,
-		customParser: options -> {
-			var propType = options.props;
-			return (macro function(node:blok.ui.VNode) {
-				__node = node;
-				var props:$propType = __node.getProps();
-				${options.inits};
-				var prevOwner = blok.core.Owner.setCurrent(this);
-				try ${options.lateInits} catch (e) {
-					blok.core.Owner.setCurrent(prevOwner);
-					throw e;
-				}
-				blok.core.Owner.setCurrent(prevOwner);
-				${
-					switch options.previousExpr {
-						case Some(expr): macro blok.signal.Observer.untrack(() -> $expr);
-						case None: macro null;
-					}
-				}
-			}).extractFunction();
-		}
-	}),
-	new ComponentBuilder()
-]);
-
 function build() {
-	return factory.fromContext().export();
+	return ClassBuilder.fromContext()
+		.step(new AttributeFieldBuildStep())
+		.step(new SignalFieldBuildStep({updatable: true}))
+		.step(new ObservableFieldBuildStep({updatable: true}))
+		.step(new ComputedFieldBuildStep())
+		.step(new ResourceFieldBuildStep())
+		.step(new ChildrenFieldBuildStep())
+		.step(new EffectBuildStep())
+		.step(new ContextFieldBuildStep())
+		.step(new ConstructorBuildStep({
+			privateConstructor: true,
+			customParser: options -> {
+				var propType = options.props;
+				return (macro function(node:blok.ui.VNode) {
+					__node = node;
+					var props:$propType = __node.getProps();
+					${options.inits};
+					var prevOwner = blok.core.Owner.setCurrent(this);
+					try ${options.lateInits} catch (e) {
+						blok.core.Owner.setCurrent(prevOwner);
+						throw e;
+					}
+					blok.core.Owner.setCurrent(prevOwner);
+					${
+						switch options.previousExpr {
+							case Some(expr): macro blok.signal.Observer.untrack(() -> $expr);
+							case None: macro null;
+						}
+					}
+				}).extractFunction();
+			}
+		}))
+		.step(new ComponentBuilder())
+		.export();
 }
 
 class ComponentBuilder implements BuildStep {
@@ -54,7 +53,7 @@ class ComponentBuilder implements BuildStep {
 	public function apply(builder:ClassBuilder) {
 		var cls = builder.getClass();
 		var createParams = cls.params.toTypeParamDecl();
-		var updates = builder.hook('update').getExprs();
+		var updates = builder.updateHook().getExprs();
 		var props = builder.hook(Init).getProps().concat(builder.hook(LateInit).getProps());
 		var propType:ComplexType = TAnonymous(props);
 		var markupType = TAnonymous(props.concat((macro class {
@@ -74,7 +73,7 @@ class ComponentBuilder implements BuildStep {
 			}
 		};
 
-		var setup = builder.hook('setup').getExprs();
+		var setup = builder.setupHook().getExprs();
 		switch builder.findField('setup') {
 			case Some(field):
 				switch field.kind {

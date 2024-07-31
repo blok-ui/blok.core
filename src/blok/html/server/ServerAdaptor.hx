@@ -14,20 +14,20 @@ class ServerAdaptor implements Adaptor {
 		this.scheduler = scheduler ?? Scheduler.current();
 	}
 
-	public function createNode(name:String, attrs:{}):Dynamic {
+	public function createPrimitive(name:String, attrs:{}):Dynamic {
 		if (name.startsWith('svg:')) name = name.substr(4);
 		return new ElementPrimitive(name, attrs);
 	}
 
-	public function createTextNode(value:String):Dynamic {
+	public function createTextPrimitive(value:String):Dynamic {
 		return new TextPrimitive(value);
 	}
 
-	public function createContainerNode(props:{}):Dynamic {
-		return createNode('div', props);
+	public function createContainerPrimitive(props:{}):Dynamic {
+		return createPrimitive('div', props);
 	}
 
-	public function createPlaceholderNode():Dynamic {
+	public function createPlaceholderPrimitive():Dynamic {
 		return new TextPrimitive('');
 	}
 
@@ -35,11 +35,11 @@ class ServerAdaptor implements Adaptor {
 		return new NodePrimitiveCursor(object);
 	}
 
-	public function updateTextNode(object:Dynamic, value:String) {
+	public function updateTextPrimitive(object:Dynamic, value:String) {
 		(object : TextPrimitive).updateContent(value);
 	}
 
-	public function updateNodeAttribute(object:Dynamic, name:String, oldValue:Null<Dynamic>, value:Dynamic, ?isHydrating:Bool) {
+	public function updatePrimitiveAttribute(object:Dynamic, name:String, oldValue:Null<Dynamic>, value:Dynamic, ?isHydrating:Bool) {
 		var el:ElementPrimitive = object;
 		switch name {
 			case 'className' | 'class':
@@ -62,7 +62,7 @@ class ServerAdaptor implements Adaptor {
 		}
 	}
 
-	public function insertNode(object:Dynamic, slot:Null<Slot>, findParent:() -> Dynamic) {
+	public function insertPrimitive(object:Dynamic, slot:Null<Slot>, findParent:() -> Dynamic) {
 		var node:NodePrimitive = object;
 		if (slot != null && slot.previous != null) {
 			var relative:NodePrimitive = slot.previous.getPrimitive();
@@ -82,13 +82,13 @@ class ServerAdaptor implements Adaptor {
 		}
 	}
 
-	public function moveNode(object:Dynamic, from:Null<Slot>, to:Null<Slot>, findParent:() -> Dynamic) {
+	public function movePrimitive(object:Dynamic, from:Null<Slot>, to:Null<Slot>, findParent:() -> Dynamic) {
 		var node:NodePrimitive = object;
 		assert(to != null);
 
 		if (to == null) {
 			if (from != null) {
-				removeNode(object, from);
+				removePrimitive(object, from);
 			}
 			return;
 		}
@@ -114,7 +114,7 @@ class ServerAdaptor implements Adaptor {
 		parent.insert(index + 1, node);
 	}
 
-	public function removeNode(object:Dynamic, slot:Null<Slot>) {
+	public function removePrimitive(object:Dynamic, slot:Null<Slot>) {
 		var node:NodePrimitive = object;
 		node.remove();
 	}

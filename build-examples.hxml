@@ -2,7 +2,6 @@
 -cp example
 
 -lib kit
--lib kit.macro
 -lib breeze
 
 --debug

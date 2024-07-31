@@ -3,6 +3,7 @@ package blok.macro;
 import haxe.macro.Expr;
 import kit.macro.*;
 
+using blok.macro.Tools;
 using kit.macro.Tools;
 
 typedef ObservableFieldBuilderOptions = {
@@ -69,7 +70,7 @@ class ObservableFieldBuildStep implements BuildStep {
 						optional: isOptional
 					})
 					.addExpr(macro @:mergeBlock $b{init});
-				builder.hook('update')
+				builder.updateHook()
 					.addExpr(if (isOptional) {
 						macro if (props.$name != null) this.$backingName.set(props.$name);
 					} else {

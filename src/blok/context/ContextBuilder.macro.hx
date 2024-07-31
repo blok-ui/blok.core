@@ -1,6 +1,5 @@
 package blok.context;
 
-import blok.macro.*;
 import haxe.macro.Context;
 import haxe.macro.Expr;
 import kit.macro.*;
@@ -8,12 +7,8 @@ import kit.macro.*;
 using haxe.macro.Tools;
 using kit.macro.Tools;
 
-final builderFactory = new ClassBuilderFactory([
-	new ContextBuildStep()
-]);
-
 function build() {
-	return builderFactory.fromContext().export();
+	return ClassBuilder.fromContext().step(new ContextBuildStep()).export();
 }
 
 class ContextBuildStep implements BuildStep {

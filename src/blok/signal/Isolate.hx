@@ -2,14 +2,6 @@ package blok.signal;
 
 import blok.core.*;
 
-/**
-	An Isolate wraps a given scope and disposes any signals/observers/etc.
-	that are used within it every time it's called.
-
-	This is used, for example, inside Component `render` methods to ensure
-	that any observers or computations created there are properly removed
-	when the component renders again.
-**/
 @:forward
 abstract Isolate<T>(IsolateImpl<T>) to Disposable to DisposableItem {
 	@:from

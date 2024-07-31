@@ -4,6 +4,7 @@ import haxe.macro.Expr;
 import kit.macro.*;
 
 using Lambda;
+using blok.macro.Tools;
 using kit.macro.Tools;
 
 typedef SignalFieldBuilderOptions = {
@@ -60,7 +61,7 @@ class SignalFieldBuildStep implements BuildStep {
 					});
 
 				if (options.updatable) {
-					builder.hook('update').addExpr(if (isOptional) {
+					builder.updateHook().addExpr(if (isOptional) {
 						macro if (props.$name != null) this.$name.set(props.$name);
 					} else {
 						macro this.$name.set(props.$name);

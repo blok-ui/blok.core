@@ -40,7 +40,7 @@ class TextComponent extends View implements PrimitiveHost {
 		return new VComponent(componentType, {value: value}, TextComponent.new, key);
 	}
 
-	var realNode:Null<Dynamic> = null;
+	var primitive:Null<Dynamic> = null;
 
 	function new(node) {
 		__node = node;
@@ -49,20 +49,20 @@ class TextComponent extends View implements PrimitiveHost {
 	function __initialize() {
 		var adaptor = getAdaptor();
 		var props:{value:String} = __node.getProps();
-		realNode = adaptor.createTextNode(props.value);
-		adaptor.insertNode(realNode, __slot, () -> this.findNearestPrimitive());
+		primitive = adaptor.createTextPrimitive(props.value);
+		adaptor.insertPrimitive(primitive, __slot, () -> this.findNearestPrimitive());
 	}
 
 	function __hydrate(cursor:Cursor) {
-		realNode = cursor.current();
-		assert(realNode != null, 'Hydration failed');
+		primitive = cursor.current();
+		assert(primitive != null, 'Hydration failed');
 		cursor.next();
 	}
 
 	function __update() {
 		var adaptor = getAdaptor();
 		var props:{value:String} = __node.getProps();
-		adaptor.updateTextNode(realNode, props.value);
+		adaptor.updateTextPrimitive(primitive, props.value);
 	}
 
 	function __validate() {
@@ -70,16 +70,16 @@ class TextComponent extends View implements PrimitiveHost {
 	}
 
 	function __dispose() {
-		getAdaptor().removeNode(realNode, __slot);
+		getAdaptor().removePrimitive(primitive, __slot);
 	}
 
 	function __updateSlot(oldSlot:Null<Slot>, newSlot:Null<Slot>) {
-		getAdaptor().moveNode(realNode, oldSlot, newSlot, () -> this.findNearestPrimitive());
+		getAdaptor().movePrimitive(primitive, oldSlot, newSlot, () -> this.findNearestPrimitive());
 	}
 
 	public function getPrimitive():Dynamic {
-		assert(realNode != null);
-		return realNode;
+		assert(primitive != null);
+		return primitive;
 	}
 
 	public function canBeUpdatedByNode(node:VNode):Bool {

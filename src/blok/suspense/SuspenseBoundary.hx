@@ -130,7 +130,7 @@ class SuspenseBoundary extends View implements Boundary {
 		var adaptor = getAdaptor();
 
 		hiddenRoot = Root.node({
-			target: adaptor.createContainerNode({}),
+			target: adaptor.createContainerPrimitive({}),
 			child: () -> Placeholder.node()
 		}).createComponent();
 

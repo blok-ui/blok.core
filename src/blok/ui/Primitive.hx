@@ -25,7 +25,7 @@ class Primitive extends View implements PrimitiveHost {
 	final type:UniqueId;
 	final updaters:Map<String, PrimitivePropertyUpdater<Any>> = [];
 
-	var realNode:Null<Dynamic> = null;
+	var primitive:Null<Dynamic> = null;
 	var children:Array<View> = [];
 
 	public function new(node:VPrimitive) {
@@ -41,7 +41,7 @@ class Primitive extends View implements PrimitiveHost {
 
 	function observeAttributes() {
 		function applyAttribute(name:String, oldValue:Any, value:Any) {
-			getAdaptor().updateNodeAttribute(getPrimitive(), name, oldValue, value, __renderMode == Hydrating);
+			getAdaptor().updatePrimitiveAttribute(getPrimitive(), name, oldValue, value, __renderMode == Hydrating);
 		}
 
 		var props = __node.getProps();
@@ -70,7 +70,7 @@ class Primitive extends View implements PrimitiveHost {
 	}
 
 	function __initialize() {
-		realNode = createPrimitive();
+		primitive = createPrimitive();
 		observeAttributes();
 
 		var nodes = render();
@@ -82,11 +82,11 @@ class Primitive extends View implements PrimitiveHost {
 			previous = child;
 			child;
 		}];
-		getAdaptor().insertNode(realNode, __slot, () -> this.findNearestPrimitive());
+		getAdaptor().insertPrimitive(primitive, __slot, () -> this.findNearestPrimitive());
 	}
 
 	function __hydrate(cursor:Cursor) {
-		realNode = cursor.current();
+		primitive = cursor.current();
 		observeAttributes();
 
 		var nodes = render();
@@ -119,20 +119,20 @@ class Primitive extends View implements PrimitiveHost {
 			updater.dispose();
 		}
 		updaters.clear();
-		getAdaptor().removeNode(getPrimitive(), __slot);
+		getAdaptor().removePrimitive(getPrimitive(), __slot);
 	}
 
 	function __updateSlot(oldSlot:Null<Slot>, newSlot:Null<Slot>) {
-		getAdaptor().moveNode(getPrimitive(), oldSlot, newSlot, () -> this.findNearestPrimitive());
+		getAdaptor().movePrimitive(getPrimitive(), oldSlot, newSlot, () -> this.findNearestPrimitive());
 	}
 
 	function createPrimitive() {
-		return getAdaptor().createNode(tag, {});
+		return getAdaptor().createPrimitive(tag, {});
 	}
 
 	public function getPrimitive():Dynamic {
-		assert(realNode != null);
-		return realNode;
+		assert(primitive != null);
+		return primitive;
 	}
 
 	public function canBeUpdatedByNode(node:VNode):Bool {

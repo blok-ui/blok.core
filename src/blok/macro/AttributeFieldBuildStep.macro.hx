@@ -4,6 +4,7 @@ import haxe.macro.Expr;
 import kit.macro.*;
 
 using kit.macro.Tools;
+using blok.macro.Tools;
 
 class AttributeFieldBuildStep implements BuildStep {
 	public final priority:Priority = Normal;
@@ -56,7 +57,7 @@ class AttributeFieldBuildStep implements BuildStep {
 					} else {
 						macro @:pos(e.pos) this.$backingName = props.$name ?? $e;
 					});
-				builder.hook('update')
+				builder.updateHook()
 					.addExpr(if (e == null) {
 						macro this.$backingName.set(props.$name);
 					} else {

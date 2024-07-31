@@ -12,7 +12,7 @@ class Placeholder extends View implements PrimitiveHost {
 		return new VComponent(componentType, {}, Placeholder.new, key);
 	}
 
-	var realNode:Null<Dynamic> = null;
+	var primitive:Null<Dynamic> = null;
 
 	public function new(node:VNode) {
 		__node = node;
@@ -20,8 +20,8 @@ class Placeholder extends View implements PrimitiveHost {
 
 	function __initialize() {
 		var adaptor = getAdaptor();
-		realNode = adaptor.createPlaceholderNode();
-		adaptor.insertNode(realNode, __slot, () -> this.findNearestPrimitive());
+		primitive = adaptor.createPlaceholderPrimitive();
+		adaptor.insertPrimitive(primitive, __slot, () -> this.findNearestPrimitive());
 	}
 
 	function __hydrate(cursor:Cursor) {
@@ -33,16 +33,16 @@ class Placeholder extends View implements PrimitiveHost {
 	function __validate() {}
 
 	function __dispose() {
-		getAdaptor().removeNode(realNode, __slot);
+		getAdaptor().removePrimitive(primitive, __slot);
 	}
 
 	function __updateSlot(oldSlot:Null<Slot>, newSlot:Null<Slot>) {
-		getAdaptor().moveNode(getPrimitive(), oldSlot, newSlot, () -> this.findNearestPrimitive());
+		getAdaptor().movePrimitive(getPrimitive(), oldSlot, newSlot, () -> this.findNearestPrimitive());
 	}
 
 	public function getPrimitive():Dynamic {
-		assert(realNode != null);
-		return realNode;
+		assert(primitive != null);
+		return primitive;
 	}
 
 	public function canBeUpdatedByNode(node:VNode):Bool {

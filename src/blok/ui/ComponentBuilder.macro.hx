@@ -9,7 +9,7 @@ using blok.macro.Tools;
 using kit.macro.Tools;
 
 function build() {
-	return ClassBuilder.fromContext().use(new ComponentBuilder()).export();
+	return ClassBuilder.fromContext().addBundle(new ComponentBuilder()).export();
 }
 
 class ComponentBuilder implements BuildBundle implements BuildStep {

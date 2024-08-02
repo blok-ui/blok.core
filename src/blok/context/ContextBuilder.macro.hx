@@ -8,7 +8,7 @@ using haxe.macro.Tools;
 using kit.macro.Tools;
 
 function build() {
-	return ClassBuilder.fromContext().step(new ContextBuildStep()).export();
+	return ClassBuilder.fromContext().addStep(new ContextBuildStep()).export();
 }
 
 class ContextBuildStep implements BuildStep {

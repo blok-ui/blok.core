@@ -8,7 +8,7 @@ import kit.macro.step.*;
 using haxe.macro.Tools;
 
 function build() {
-	return ClassBuilder.fromContext().use(new ModelBuilder()).export();
+	return ClassBuilder.fromContext().addBundle(new ModelBuilder()).export();
 }
 
 class ModelBuilder implements BuildBundle {

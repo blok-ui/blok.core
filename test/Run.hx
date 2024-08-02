@@ -1,3 +1,5 @@
+import blok.*;
+
 function main() {
-	Runner.fromDefaults().addPackage('blok').run();
+	Runner.fromDefaults().add(SignalSuite).run();
 }

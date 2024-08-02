@@ -1,2 +1,2 @@
 using Kit;
-using KitSpec;
+using kit.Testing;

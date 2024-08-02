@@ -8,7 +8,5 @@
 -dce full
 
 -lib kit
--lib kit.macro
--lib kit.spec
 
 -main Run

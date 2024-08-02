@@ -1,6 +1,5 @@
 package suspense;
 
-import blok.boundary.*;
 import blok.context.*;
 import blok.html.*;
 import blok.suspense.*;
@@ -8,9 +7,9 @@ import blok.ui.*;
 import haxe.Timer;
 import js.Browser;
 
-using blok.boundary.BoundaryModifiers;
 using Breeze;
 using Kit;
+using blok.boundary.BoundaryModifiers;
 
 function suspense() {
 	Client.mount(Browser.document.getElementById('suspense-root'), () -> SuspenseExample.node({}));
@@ -33,7 +32,7 @@ class SuspenseExample extends Component {
 				)
 			}).child(SuspenseBoundary.node({
 				child: SuspenseItem.node({delay: 1000}),
-				fallback: () -> Html.p({}, 'Loading...')
+				fallback: () -> Html.p().child('Loading...')
 			})).node(),
 			Html.div({
 				className: Breeze.compose(
@@ -55,7 +54,7 @@ class SuspenseExample extends Component {
 					SuspenseItem.node({delay: 2000}),
 					SuspenseItem.node({delay: 3000}),
 				]),
-				fallback: () -> Html.p({}, 'Loading...')
+				fallback: () -> Html.p().child('Loading...')
 			}))
 		]));
 

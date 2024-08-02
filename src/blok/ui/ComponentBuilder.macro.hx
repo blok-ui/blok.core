@@ -8,7 +8,7 @@ import kit.macro.step.*;
 using blok.macro.Tools;
 using kit.macro.Tools;
 
-function build() {
+function createComponentBuilder() {
 	return ClassBuilder.fromContext()
 		.step(new AttributeFieldBuildStep())
 		.step(new SignalFieldBuildStep({updatable: true}))
@@ -41,8 +41,11 @@ function build() {
 				}).extractFunction();
 			}
 		}))
-		.step(new ComponentBuilder())
-		.export();
+		.step(new ComponentBuilder());
+}
+
+function build() {
+	return createComponentBuilder().export();
 }
 
 class ComponentBuilder implements BuildStep {

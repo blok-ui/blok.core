@@ -7,7 +7,7 @@ import kit.macro.step.*;
 
 using haxe.macro.Tools;
 
-function build() {
+function createModelBuilder() {
 	return ClassBuilder.fromContext()
 		.step(new ConstantFieldBuildStep())
 		.step(new SignalFieldBuildStep({updatable: false}))
@@ -23,6 +23,9 @@ function build() {
 				default:
 					None;
 			}
-		}))
-		.export();
+		}));
+}
+
+function build() {
+	return createModelBuilder().export();
 }

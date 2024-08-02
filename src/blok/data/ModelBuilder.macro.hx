@@ -7,14 +7,20 @@ import kit.macro.step.*;
 
 using haxe.macro.Tools;
 
-function createModelBuilder() {
-	return ClassBuilder.fromContext()
-		.step(new ConstantFieldBuildStep())
-		.step(new SignalFieldBuildStep({updatable: false}))
-		.step(new ObservableFieldBuildStep({updatable: false}))
-		.step(new ComputedFieldBuildStep())
-		.step(new ConstructorBuildStep({privateConstructor: false}))
-		.step(new JsonSerializerBuildStep({
+function build() {
+	return ClassBuilder.fromContext().use(new ModelBuilder()).export();
+}
+
+class ModelBuilder implements BuildBundle {
+	public function new() {}
+
+	public function steps():Array<BuildStep> return [
+		new ConstantFieldBuildStep(),
+		new SignalFieldBuildStep({updatable: false}),
+		new ObservableFieldBuildStep({updatable: false}),
+		new ComputedFieldBuildStep(),
+		new ConstructorBuildStep({privateConstructor: false}),
+		new JsonSerializerBuildStep({
 			customParser: options -> switch options.type.toType().toComplexType() {
 				case macro :blok.signal.Signal<$wrappedType>:
 					// Unwrap any signals and then let the base parser take over.
@@ -23,9 +29,6 @@ function createModelBuilder() {
 				default:
 					None;
 			}
-		}));
-}
-
-function build() {
-	return createModelBuilder().export();
+		})
+	];
 }

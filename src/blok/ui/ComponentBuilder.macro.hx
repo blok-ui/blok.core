@@ -8,17 +8,25 @@ import kit.macro.step.*;
 using blok.macro.Tools;
 using kit.macro.Tools;
 
-function createComponentBuilder() {
-	return ClassBuilder.fromContext()
-		.step(new AttributeFieldBuildStep())
-		.step(new SignalFieldBuildStep({updatable: true}))
-		.step(new ObservableFieldBuildStep({updatable: true}))
-		.step(new ComputedFieldBuildStep())
-		.step(new ResourceFieldBuildStep())
-		.step(new ChildrenFieldBuildStep())
-		.step(new EffectBuildStep())
-		.step(new ContextFieldBuildStep())
-		.step(new ConstructorBuildStep({
+function build() {
+	return ClassBuilder.fromContext().use(new ComponentBuilder()).export();
+}
+
+class ComponentBuilder implements BuildBundle implements BuildStep {
+	public final priority:Priority = Late;
+
+	public function new() {}
+
+	public function steps():Array<BuildStep> return [
+		new AttributeFieldBuildStep(),
+		new SignalFieldBuildStep({updatable: true}),
+		new ObservableFieldBuildStep({updatable: true}),
+		new ComputedFieldBuildStep(),
+		new ResourceFieldBuildStep(),
+		new ChildrenFieldBuildStep(),
+		new EffectBuildStep(),
+		new ContextFieldBuildStep(),
+		new ConstructorBuildStep({
 			privateConstructor: true,
 			customParser: options -> {
 				var propType = options.props;
@@ -40,18 +48,9 @@ function createComponentBuilder() {
 					}
 				}).extractFunction();
 			}
-		}))
-		.step(new ComponentBuilder());
-}
-
-function build() {
-	return createComponentBuilder().export();
-}
-
-class ComponentBuilder implements BuildStep {
-	public final priority:Priority = Late;
-
-	public function new() {}
+		}),
+		this
+	];
 
 	public function apply(builder:ClassBuilder) {
 		var cls = builder.getClass();

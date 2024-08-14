@@ -12,9 +12,9 @@ class ElementPrimitive extends NodePrimitive {
 	public final attributes:{};
 	public final classList:List<String> = new List();
 
-	public function new(tag, attributes) {
+	public function new(tag, ?attributes) {
 		this.tag = tag;
-		this.attributes = attributes;
+		this.attributes = attributes ?? {};
 	}
 
 	public function setAttribute(name:String, value:Dynamic) {

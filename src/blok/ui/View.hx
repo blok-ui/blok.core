@@ -17,7 +17,7 @@ enum abstract ViewLifecycleStatus(#if debug String #else Int #end) {
 	final Disposed;
 }
 
-enum abstract ViewRenderMode(Int) {
+enum abstract ViewRenderMode(#if debug String #else Int #end) {
 	final Normal;
 	final Hydrating;
 }
@@ -267,7 +267,7 @@ abstract class View implements Disposable implements DisposableHost {
 
 	public function dispose() {
 		assert(__mounted != Unmounted, 'Attempted to dispose a view that was never mounted');
-		assert(__status != Rendering, 'Attempted to dispose a view while it was building');
+		assert(__status != Rendering, 'Attempted to dispose a view while it was rendering');
 		assert(__status != Disposing, 'Attempted to dispose a view that is already disposing');
 		assert(__status != Disposed, 'Attempted to dispose a view that was already disposed');
 

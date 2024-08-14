@@ -5,6 +5,8 @@ import blok.html.server.NodePrimitive;
 using StringTools;
 
 class TextPrimitive extends NodePrimitive {
+	public static final marker = '<!--#__BLOK_TEXT-->';
+
 	var content:String;
 
 	public function new(content) {
@@ -17,7 +19,8 @@ class TextPrimitive extends NodePrimitive {
 	}
 
 	public function toString(?options:NodePrimitiveToStringOptions):String {
-		var includeMarker = options?.includeTextMarkers ?? true;
-		return includeMarker ? '<!--#__BLOK_TEXT-->' + content.htmlEscape() : content;
+		options.extract({includeTextMarkers: includeMarker = true});
+		var escaped = content.htmlEscape();
+		return includeMarker ? marker + escaped : escaped;
 	}
 }

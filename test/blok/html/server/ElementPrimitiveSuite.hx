@@ -30,4 +30,14 @@ class ElementPrimitiveSuite extends Suite {
 		// @todo: I think self-closing tags are actually invalid HTML! Look into this.
 		input.toString().equals('<input name="hi" value="world"/>');
 	}
+
+	@:test(expects = 1)
+	function canGetChildNodes() {
+		var div = new ElementPrimitive('div');
+		div.append(new ElementPrimitive('div', {id: 'foo'}));
+		div.append(new ElementPrimitive('div', {id: 'bar'}));
+
+		div.find(el -> el.as(ElementPrimitive)?.getAttribute('id') == 'bar')
+			.inspect(_ -> Assert.pass());
+	}
 }

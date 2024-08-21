@@ -10,6 +10,23 @@ abstract class NodePrimitive {
 	public var parent:Null<NodePrimitive> = null;
 	public var children:Array<NodePrimitive> = [];
 
+	public function find(query:(child:NodePrimitive) -> Bool, recursive:Bool = false):Maybe<NodePrimitive> {
+		for (child in children) {
+			if (query(child)) return Some(child);
+		}
+
+		if (recursive) for (child in children) switch child.find(query, recursive) {
+			case Some(value): return Some(value);
+			case None:
+		}
+
+		return None;
+	}
+
+	public function filter(filter:(child:NodePrimitive) -> Bool):Array<NodePrimitive> {
+		return children.filter(filter);
+	}
+
 	public function prepend(child:NodePrimitive) {
 		assert(child != this);
 

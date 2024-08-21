@@ -31,6 +31,10 @@ class ElementPrimitive extends NodePrimitive {
 		Reflect.setField(attributes, name, value);
 	}
 
+	public function getAttribute(name:String):Null<Dynamic> {
+		return Reflect.field(attributes, name);
+	}
+
 	public function toString(?options:NodePrimitiveToStringOptions):String {
 		var attrs:Map<String, String> = getFilteredAttributes();
 		var children:Array<String> = children

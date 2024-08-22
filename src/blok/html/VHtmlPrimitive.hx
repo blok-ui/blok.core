@@ -1,6 +1,5 @@
 package blok.html;
 
-import blok.diffing.Key;
 import blok.html.HtmlEvents;
 import blok.signal.Signal;
 import blok.ui.*;
@@ -12,7 +11,7 @@ abstract VHtmlPrimitive(VPrimitive) to Child to VPrimitive to VNode {
 		this = new VPrimitive(type, tag, props, children, key);
 	}
 
-	public inline function attr(name:HtmlAttributeName, value:ReadOnlySignal<String>) {
+	public function attr(name:HtmlAttributeName, value:ReadOnlySignal<String>) {
 		if (this.props.hasField(HtmlAttributeName.ClassName) && name == HtmlAttributeName.ClassName) {
 			var prev:ReadOnlySignal<String> = this.props.field(name);
 			this.props.setField(name, prev.map(prev -> prev + ' ' + value()));
@@ -28,7 +27,7 @@ abstract VHtmlPrimitive(VPrimitive) to Child to VPrimitive to VNode {
 		return abstract;
 	}
 
-	public inline function child(...children:Child) {
+	public function child(...children:Child) {
 		for (child in children) if (child.type == Fragment.componentType) {
 			abstract.child(...child.getProps().children);
 		} else {

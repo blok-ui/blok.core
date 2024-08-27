@@ -1,4 +1,5 @@
 import blok.*;
+import blok.data.*;
 import blok.html.server.*;
 
 // Yeah we're really just getting started here.
@@ -7,5 +8,6 @@ function main() {
 		.add(SignalSuite)
 		.add(TextPrimitiveSuite)
 		.add(ElementPrimitiveSuite)
+		.add(StructureTest)
 		.run();
 }

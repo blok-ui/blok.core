@@ -2,12 +2,8 @@ package blok.data;
 
 import blok.core.*;
 
-/**
-	A class with reactive properties that can also be serialized into json
-	(if you don't need this feature you can also use the `UnserializableModel`).
-**/
-@:autoBuild(blok.data.ModelBuilder.buildWithJsonSerializer())
-abstract class Model implements Disposable implements DisposableHost {
+@:autoBuild(blok.data.ModelBuilder.buildWithoutJsonSerializer())
+abstract class UnserializableModel implements Disposable implements DisposableHost {
 	final disposables:DisposableCollection = new DisposableCollection();
 
 	abstract public function toJson():Dynamic;

@@ -9,6 +9,7 @@ import blok.ui.*;
 import haxe.Json;
 import js.Browser;
 
+using Kit;
 using Reflect;
 
 function todos() {
@@ -248,7 +249,7 @@ class TodoInput extends Component {
 
 	@:effect function trackEditing():Void {
 		if (isEditing()) {
-			(getPrimitive() : js.html.InputElement).focus();
+			getPrimitive().as(js.html.InputElement)?.focus();
 		}
 	}
 

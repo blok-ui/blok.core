@@ -4,6 +4,7 @@ import haxe.macro.Context;
 import haxe.macro.Expr;
 
 using Lambda;
+using kit.macro.Tools;
 using haxe.macro.Tools;
 using blok.parse.ParseTools;
 
@@ -36,7 +37,7 @@ class Generator {
 
 				function addProp(attr:Attribute) {
 					if (props.exists(p -> p.field == attr.name.value)) {
-						Context.error('Attribute already exists', attr.name.pos);
+						attr.name.pos.error('Attribute already exists');
 					}
 					props.push({
 						field: attr.name.value,
@@ -51,7 +52,6 @@ class Generator {
 					if (attrType == null) {
 						Context.error('Invalid attribute: ${attr.name.value}', attr.name.pos);
 					}
-					// @todo: We can do type checking here too?
 					addProp(attr);
 				}
 
@@ -69,7 +69,7 @@ class Generator {
 					case NNode(name, attributes, children):
 						if (attributes.length > 0) {
 							// @todo: This error message is confusing.
-							Context.error('Cannot use attributes on attribute nodes', attributes[0].name.pos);
+							attributes[0].name.pos.error('Cannot use attributes on attribute nodes');
 						}
 						addProp({
 							name: name,
@@ -82,7 +82,7 @@ class Generator {
 
 				switch tag.attributes.childrenAttribute {
 					case None if (nodeChildren.length > 0):
-						Context.error('The tag ${tag.name} does not allow children', nodeChildren[0].pos);
+						nodeChildren[0].pos.error('The tag ${tag.name} does not allow children');
 					case Rest:
 						restArgs = [for (child in children) generateNode(child)];
 					case Field(name, field) if (nodeChildren.length > 0):

@@ -44,6 +44,35 @@ class Tag {
 					isBuiltin,
 					pos
 				);
+			case TAbstract(t, _):
+				var abs = t.get();
+				var statics = abs.impl?.get()?.statics?.get();
+
+				if (statics == null) {
+					reject('it is not an abstract with a valid implementation.');
+				}
+
+				var field = statics.find(f -> f.meta.has(fromMarkupMeta));
+
+				if (field == null) {
+					reject('it does not have a [$fromMarkupMeta] static method.');
+				}
+
+				var kind:TagKind = switch field.kind {
+					case FMethod(MethMacro):
+						FromMarkupMethodMacro(field.name);
+					default:
+						FromMarkupMethod(field.name);
+				}
+
+				processType(
+					name,
+					abs.pack.concat([abs.name]).join('.'),
+					field.type,
+					kind,
+					isBuiltin,
+					pos
+				);
 			case TType(_.get() => {pack: [], name: t}, []) if (t.startsWith('Class<')):
 				return fromType(locatedName, Context.getType(name), isBuiltin);
 			case TFun(_, _):

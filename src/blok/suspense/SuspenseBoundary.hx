@@ -30,7 +30,8 @@ typedef SuspenseBoundaryProps = {
 
 	/**
 		A callback the fires when *all* suspensions inside
-		this Boundary are completed.
+		this Boundary are completed. It will also run if the component is
+		mounted and no suspensions occur.
 	**/
 	public final ?onComplete:() -> Void;
 
@@ -234,6 +235,8 @@ class SuspenseBoundary extends View implements Boundary {
 		realChild.mount(getAdaptor(), this, __slot);
 
 		setActiveChild();
+
+		if (suspenseStatus.equals(Ok)) triggerOnComplete();
 	}
 
 	function __hydrate(cursor:Cursor) {
@@ -243,6 +246,8 @@ class SuspenseBoundary extends View implements Boundary {
 		currentChild = realChild = child.createComponent();
 		realChild.hydrate(cursor, getAdaptor(), this, __slot);
 		hydrating = false;
+
+		if (suspenseStatus.equals(Ok)) triggerOnComplete();
 	}
 
 	function __update() {

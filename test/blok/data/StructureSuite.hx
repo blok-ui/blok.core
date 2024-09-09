@@ -1,6 +1,6 @@
 package blok.data;
 
-class StructureTest extends Suite {
+class StructureSuite extends Suite {
 	@:test(expects = 3)
 	function setsUpConstructorCorrectly() {
 		var simple = new SimpleStructure({name: 'Foo', lastName: 'Bar'});

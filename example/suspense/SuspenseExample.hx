@@ -55,7 +55,18 @@ class SuspenseExample extends Component {
 					SuspenseItem.node({delay: 3000}),
 				]),
 				fallback: () -> Html.p().child('Loading...')
-			}))
+			})),
+			Html.div()
+				.child(SuspenseBoundary.node({
+					onComplete: () -> {
+						trace('This component never suspends, so onComplete is called right away');
+					},
+					onSuspended: () -> {
+						throw "Oh no.";
+					},
+					fallback: () -> Html.p().child('You should not see this'),
+					child: 'Never suspends'
+				}))
 		]));
 
 		return Html.div({

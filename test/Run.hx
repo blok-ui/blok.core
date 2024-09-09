@@ -8,6 +8,6 @@ function main() {
 		.add(SignalSuite)
 		.add(TextPrimitiveSuite)
 		.add(ElementPrimitiveSuite)
-		.add(StructureTest)
+		.add(StructureSuite)
 		.run();
 }

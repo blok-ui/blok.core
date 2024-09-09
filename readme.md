@@ -181,7 +181,82 @@ Use the given Context.
 
 ## Suspense Boundaries and Resources
 
-> Note: this section is coming soon.
+> Note: This section will be expanded and improved soon.
+
+When dealing with asynchronous code you'll want to use Blok's Suspense apis.
+
+### Resources
+
+First, you'll need to set up a Resource. A resource is a reactive object (a bit like a Computation) that resolves some async Task. Here's a simple example:
+
+```haxe
+final resource = new blok.suspense.Resource<String>(() -> {
+  new kit.Task(activate -> haxe.Timer.delay(() -> activate(Ok('loaded')), 1000));
+});
+```
+
+As previously mentioned, Resources are reactive, so we can cause our Resource to recompute if we use a Signal:
+
+```haxe
+final delay:Signal<Int> = 1000;
+final resource = new blok.suspense.Resource<String>(() -> {
+  // Note that we have to use our Signal here for the Resource to capture it:
+  var time = delay(); 
+  new kit.Task(activate -> haxe.Timer.delay(() -> activate(Ok('loaded')), time));
+});
+```
+
+As with other features in Blok, you'll almost never need to create a resource this way. Instead, you'll be using `@:resource` fields on components:
+
+```haxe
+class TimerExample extends Component {
+  @:resource final timer:String = new kit.Task(activate -> {
+    haxe.Timer.delay(() -> activate(Ok('loaded')), 1000);
+  });
+
+  function render():Child {
+    return Html.p().child(timer());
+  }
+}
+```
+
+### SuspenseBoundaries
+
+If you try to use the component created above, you'll get an uncaught `SuspenseException` and your app will break. To fix this, we need to add a SuspenseBoundary.
+
+```haxe
+class TimerWrapper extends Component {
+  function render():Child {
+    return blok.suspense.SuspenseBoundary.node({
+      onComplete: () -> trace('Done!'),
+      onSuspended: () -> trace('Suspending!'),
+      children: TimerExample.node({}),
+      fallback: () -> Html.p().child('Suspended...')
+    });
+  }
+}
+```
+
+Now instead of breaking the component will display `<p>Suspended...</p>` until the `TimerExample`'s resource is activated.
+
+### SuspenseBoundaryContext
+
+SuspenseBoundaries do *not* propagate suspensions upwards (unless you set their `overridable` properties to `true`, in which case they will defer suspension to their closest ancestor, if any). If you want to take some action when multiple suspensions occur, you can use a `SuspenseBoundaryContext`.
+
+```haxe
+class TimerApp extends Component {
+  function render():Child {
+    return blok.context.Provider
+      .provide(() -> new blok.suspense.SuspenseBoundaryContext({
+        onComplete: () -> trace('All suspensions complete')
+      }))
+      .child(_ -> Fragment.of([
+        TimeWrapper.node({}),
+        TimeWrapper.node({})
+      ]));
+  }
+}
+```
 
 ## Context
 

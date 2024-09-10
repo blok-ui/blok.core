@@ -26,7 +26,6 @@ class SuspenseBoundaryContext implements Context {
 	}
 
 	public function remove(boundary:SuspenseBoundary) {
-		if (!suspendedBoundaries.contains(boundary)) return;
 		suspendedBoundaries.remove(boundary);
 		if (suspendedBoundaries.length == 0) {
 			onComplete.dispatch();

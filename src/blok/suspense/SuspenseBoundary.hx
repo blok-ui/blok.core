@@ -236,7 +236,9 @@ class SuspenseBoundary extends View implements Boundary {
 
 		setActiveChild();
 
-		if (suspenseStatus.equals(Ok)) triggerOnComplete();
+		if (suspenseStatus.equals(Ok)) {
+			getAdaptor().schedule(triggerOnComplete);
+		}
 	}
 
 	function __hydrate(cursor:Cursor) {
@@ -247,7 +249,9 @@ class SuspenseBoundary extends View implements Boundary {
 		realChild.hydrate(cursor, getAdaptor(), this, __slot);
 		hydrating = false;
 
-		if (suspenseStatus.equals(Ok)) triggerOnComplete();
+		if (suspenseStatus.equals(Ok)) {
+			getAdaptor().schedule(triggerOnComplete);
+		}
 	}
 
 	function __update() {

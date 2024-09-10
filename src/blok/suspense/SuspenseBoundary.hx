@@ -127,6 +127,10 @@ class SuspenseBoundary extends View implements Boundary {
 		}
 	}
 
+	function scheduleSetActiveChild() {
+		getAdaptor().schedule(setActiveChild);
+	}
+
 	function setupHiddenRoot() {
 		var adaptor = getAdaptor();
 
@@ -207,8 +211,11 @@ class SuspenseBoundary extends View implements Boundary {
 		}
 
 		if (suspenseStatus == Ok) {
-			setActiveChild();
-			getAdaptor().schedule(triggerOnComplete);
+			getAdaptor().schedule(() -> if (suspenseStatus == Ok) {
+				// Schedule again to ensure all Components have updated.
+				scheduleSetActiveChild();
+				scheduleOnComplete();
+			});
 		}
 	}
 
@@ -228,6 +235,10 @@ class SuspenseBoundary extends View implements Boundary {
 		}
 	}
 
+	function scheduleOnComplete() {
+		getAdaptor().schedule(triggerOnComplete);
+	}
+
 	function __initialize() {
 		setupHiddenRoot();
 
@@ -236,9 +247,7 @@ class SuspenseBoundary extends View implements Boundary {
 
 		setActiveChild();
 
-		if (suspenseStatus.equals(Ok)) {
-			getAdaptor().schedule(triggerOnComplete);
-		}
+		if (suspenseStatus.equals(Ok)) scheduleOnComplete();
 	}
 
 	function __hydrate(cursor:Cursor) {
@@ -249,9 +258,7 @@ class SuspenseBoundary extends View implements Boundary {
 		realChild.hydrate(cursor, getAdaptor(), this, __slot);
 		hydrating = false;
 
-		if (suspenseStatus.equals(Ok)) {
-			getAdaptor().schedule(triggerOnComplete);
-		}
+		if (suspenseStatus.equals(Ok)) scheduleOnComplete();
 	}
 
 	function __update() {

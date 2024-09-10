@@ -1,6 +1,7 @@
 import blok.*;
 import blok.data.*;
 import blok.html.server.*;
+import blok.suspense.*;
 
 // Yeah we're really just getting started here.
 function main() {
@@ -9,5 +10,6 @@ function main() {
 		.add(TextPrimitiveSuite)
 		.add(ElementPrimitiveSuite)
 		.add(StructureSuite)
+		.add(SuspenseSuite)
 		.run();
 }

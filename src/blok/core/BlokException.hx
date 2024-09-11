@@ -26,10 +26,10 @@ function getComponentDebugName(component:View) {
 
 function getComponentDescription(component:View):String {
 	var name = getComponentDebugName(component);
-	var ancestor = component.getParent().unwrap();
+	var ancestor = try component.getParent().unwrap() catch (e) null;
 	var stack = [while (ancestor != null) {
 		var name = getComponentDebugName(ancestor);
-		ancestor = ancestor.getParent().unwrap();
+		ancestor = try ancestor.getParent().unwrap() catch (e) null;
 		name;
 	}];
 	stack.reverse();

@@ -112,6 +112,18 @@ abstract class View implements Disposable implements DisposableHost {
 		__cleanupAfterValidation();
 	}
 
+	inline final function viewIsMounted() {
+		return __mounted != Unmounted;
+	}
+
+	inline final function viewIsHydrating() {
+		return __renderMode == Hydrating;
+	}
+
+	inline final function viewIsRendering() {
+		return __status == Rendering;
+	}
+
 	abstract function __initialize():Void;
 
 	abstract function __hydrate(cursor:Cursor):Void;

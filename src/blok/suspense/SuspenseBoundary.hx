@@ -15,7 +15,7 @@ enum SuspenseBoundaryStatus {
 }
 
 typedef SuspenseBoundaryProps = {
-	public final child:Child;
+	@:children public final child:Child;
 
 	/**
 		Fallback to display while the component is suspended.
@@ -44,11 +44,18 @@ typedef SuspenseBoundaryProps = {
 }
 
 class SuspenseBoundary extends View implements Boundary {
+	public static final componentType:UniqueId = new UniqueId();
+
 	public static function maybeFrom(context:View) {
 		return context.findAncestorOfType(SuspenseBoundary);
 	}
 
-	public static final componentType:UniqueId = new UniqueId();
+	@:fromMarkup
+	@:noUsing
+	@:noCompletion
+	public inline static function fromMarkup(props:SuspenseBoundaryProps) {
+		return node(props);
+	}
 
 	public static function node(props:SuspenseBoundaryProps, ?key) {
 		return new VComponent(componentType, props, SuspenseBoundary.new, key);
@@ -211,8 +218,12 @@ class SuspenseBoundary extends View implements Boundary {
 		}
 
 		if (suspenseStatus == Ok) {
+			// Note that we're scheduling things *twice* here. Scheduling once
+			// just adds the callback to the same queue as the components getting
+			// validated, meaning we might mount our child component before it has
+			// rendered completely. Scheduling our callbacks again ensures that
+			// we wait until everything is ready.
 			getAdaptor().schedule(() -> if (suspenseStatus == Ok) {
-				// Schedule again to ensure all Components have updated.
 				scheduleSetActiveChild();
 				scheduleOnComplete();
 			});

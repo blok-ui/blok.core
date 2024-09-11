@@ -11,9 +11,9 @@ enum ErrorBoundaryStatus {
 }
 
 class ErrorBoundary extends Component implements Boundary {
-	@:attribute final child:Child;
 	@:attribute final fallback:(component:View, e:Exception) -> Child;
 	@:signal final status:ErrorBoundaryStatus = Ok;
+	@:children @:attribute final child:Child;
 
 	public function handle(component:View, object:Any) {
 		if (object is Exception) {

@@ -9,6 +9,7 @@ function main() {
 		.add(SignalSuite)
 		.add(TextPrimitiveSuite)
 		.add(ElementPrimitiveSuite)
+		.add(UnescapedTextPrimitiveSuite)
 		.add(StructureSuite)
 		.add(SuspenseSuite)
 		.run();

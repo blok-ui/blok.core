@@ -26,21 +26,21 @@ typedef SuspenseBoundaryProps = {
 		If this SuspenseBoundary has a SuspenseBoundary ancestor,
 		suspend using that ancestor instead. Defaults to `false`.
 	**/
-	public final ?overridable:Bool;
+	public var ?overridable:Bool;
 
 	/**
 		A callback the fires when *all* suspensions inside
 		this Boundary are completed. It will also run if the component is
 		mounted and no suspensions occur.
 	**/
-	public final ?onComplete:() -> Void;
+	public var ?onComplete:() -> Void;
 
 	/**
 		Called when the Boundary is suspended. If more suspensions
 		occur while the SuspenseBoundary is already suspended, this
 		callback will *not* be called again.
 	**/
-	public final ?onSuspended:() -> Void;
+	public var ?onSuspended:() -> Void;
 }
 
 class SuspenseBoundary extends View implements Boundary {
@@ -117,6 +117,8 @@ class SuspenseBoundary extends View implements Boundary {
 	}
 
 	function setActiveChild() {
+		if (!viewIsMounted()) return;
+
 		var adaptor = getAdaptor();
 
 		switch suspenseStatus {
@@ -135,6 +137,7 @@ class SuspenseBoundary extends View implements Boundary {
 	}
 
 	function scheduleSetActiveChild() {
+		if (!viewIsMounted()) return;
 		getAdaptor().schedule(setActiveChild);
 	}
 
@@ -204,6 +207,8 @@ class SuspenseBoundary extends View implements Boundary {
 	}
 
 	function resolveAndRemoveSuspenseLink(link:SuspenseLink) {
+		if (!viewIsMounted()) return;
+
 		suspenseStatus = switch suspenseStatus {
 			case Suspended(links):
 				links.remove(link);
@@ -239,6 +244,8 @@ class SuspenseBoundary extends View implements Boundary {
 	}
 
 	function triggerOnComplete() {
+		if (!viewIsMounted()) return;
+
 		if (onComplete != null) onComplete();
 		switch SuspenseBoundaryContext.maybeFrom(this) {
 			case Some(context): context.remove(this);
@@ -247,6 +254,8 @@ class SuspenseBoundary extends View implements Boundary {
 	}
 
 	function scheduleOnComplete() {
+		if (!viewIsMounted()) return;
+
 		getAdaptor().schedule(triggerOnComplete);
 	}
 

@@ -10,6 +10,7 @@ import js.Browser;
 using Breeze;
 using Kit;
 using blok.boundary.BoundaryModifiers;
+using blok.suspense.SuspenseModifiers;
 
 function suspense() {
 	Client.mount(Browser.document.getElementById('suspense-root'), () -> SuspenseExample.node({}));
@@ -30,10 +31,10 @@ class SuspenseExample extends Component {
 					Flex.gap(3),
 					Sizing.width('50%')
 				)
-			}).child(SuspenseBoundary.node({
-				child: SuspenseItem.node({delay: 1000}),
-				fallback: () -> Html.p().child('Loading...')
-			})).node(),
+			}).child(
+				SuspenseItem.node({delay: 1000})
+					.inSuspense(() -> Html.p().child('Loading...'))
+			).node(),
 			Html.div({
 				className: Breeze.compose(
 					Flex.display(),
@@ -57,16 +58,13 @@ class SuspenseExample extends Component {
 				fallback: () -> Html.p().child('Loading...')
 			})),
 			Html.div()
-				.child(SuspenseBoundary.node({
-					onComplete: () -> {
-						trace('This component never suspends, so onComplete is called right away');
-					},
-					onSuspended: () -> {
-						throw "Oh no.";
-					},
-					fallback: () -> Html.p().child('You should not see this'),
-					child: 'Never suspends'
-				}))
+				.child(
+					Html.p()
+						.child('Never suspends')
+						.inSuspense(() -> Html.p().child('You should not see this'))
+						.onComplete(() -> trace('This component never suspends, so onComplete is called right away'))
+						.onSuspended(() -> throw 'oh no')
+				)
 		]));
 
 		return Html.div({

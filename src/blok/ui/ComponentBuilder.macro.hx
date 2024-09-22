@@ -12,10 +12,18 @@ function build() {
 	return ClassBuilder.fromContext().addBundle(new ComponentBuilder()).export();
 }
 
+typedef ComponentBuilderOptions = {
+	public final ?createFromMarkupMethod:Bool;
+}
+
 class ComponentBuilder implements BuildBundle implements BuildStep {
 	public final priority:Priority = Late;
 
-	public function new() {}
+	final options:ComponentBuilderOptions;
+
+	public function new(?options:ComponentBuilderOptions) {
+		this.options = options ?? {createFromMarkupMethod: true};
+	}
 
 	public function steps():Array<BuildStep> return [
 		new AttributeFieldBuildStep(),
@@ -99,11 +107,14 @@ class ComponentBuilder implements BuildBundle implements BuildStep {
 			.getField('node')
 			.unwrap()
 			.applyParameters(createParams));
-		builder.addField(constructors
-			.getField('__fromMarkup')
-			.unwrap()
-			.withPos(cls.pos)
-			.applyParameters(createParams));
+
+		if (options.createFromMarkupMethod) {
+			builder.addField(constructors
+				.getField('__fromMarkup')
+				.unwrap()
+				.withPos(cls.pos)
+				.applyParameters(createParams));
+		}
 
 		builder.add(macro class {
 			public static final componentType = new kit.UniqueId();

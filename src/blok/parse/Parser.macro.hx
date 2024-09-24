@@ -79,7 +79,7 @@ class Parser {
 			var value:Expr = if (match('=')) {
 				whitespace();
 				expression();
-			} else macro true;
+			} else macro @:pos(name.pos) true;
 
 			whitespace();
 

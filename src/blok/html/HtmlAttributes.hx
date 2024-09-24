@@ -287,8 +287,8 @@ enum abstract AnchorRel(String) to String from String {
 }
 
 enum abstract LinkCrossOrigin(String) to String from String {
-	var Anonymous = "anonymous";
-	var UseCredentials = "use-credentials";
+	final Anonymous = "anonymous";
+	final UseCredentials = "use-credentials";
 }
 
 typedef ScriptAttr = GlobalAttr & {

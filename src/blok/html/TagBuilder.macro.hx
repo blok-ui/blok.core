@@ -23,8 +23,8 @@ function build(typeName:String, ?isSvg:Bool) {
 				builder.add(macro class {
 					private static final $nameType = blok.ui.Primitive.getTypeForTag($v{name});
 
-					public static function $name(?props : $props & blok.html.HtmlEvents, ?key) {
-						return new blok.html.VHtmlPrimitive($i{nameType}, $v{tagName}, props ?? {}, null, key);
+					public static function $name(?props : $props & blok.html.HtmlEvents & {?key:blok.diffing.Key}) {
+						return new blok.html.VHtmlPrimitive($i{nameType}, $v{tagName}, props ?? {}, null, props?.key);
 					}
 				});
 			default:

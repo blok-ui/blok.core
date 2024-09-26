@@ -9,7 +9,7 @@ import blok.signal.Signal;
 
 using blok.adaptor.PrimitiveHostTools;
 
-class Primitive extends View implements PrimitiveHost {
+class PrimitiveView extends View implements PrimitiveHost {
 	static final tagMappings:Map<String, UniqueId> = [];
 
 	public static function getTypeForTag(tag:String) {
@@ -28,14 +28,14 @@ class Primitive extends View implements PrimitiveHost {
 	var primitive:Null<Dynamic> = null;
 	var children:Array<View> = [];
 
-	public function new(node:VPrimitive) {
+	public function new(node:VPrimitiveView) {
 		tag = node.tag;
 		type = node.type;
 		__node = node;
 	}
 
 	function render() {
-		var vn:VPrimitive = cast __node;
+		var vn:VPrimitiveView = cast __node;
 		return vn.children?.filter(n -> n != null) ?? [];
 	}
 
@@ -77,7 +77,7 @@ class Primitive extends View implements PrimitiveHost {
 		var previous:View = null;
 
 		children = [for (i => node in nodes) {
-			var child = node.createComponent();
+			var child = node.createView();
 			child.mount(getAdaptor(), this, createSlot(i, previous));
 			previous = child;
 			child;
@@ -94,7 +94,7 @@ class Primitive extends View implements PrimitiveHost {
 		var previous:View = null;
 
 		children = [for (i => node in nodes) {
-			var child = node.createComponent();
+			var child = node.createView();
 			child.hydrate(localCursor, getAdaptor(), this, createSlot(i, previous));
 			previous = child;
 			child;

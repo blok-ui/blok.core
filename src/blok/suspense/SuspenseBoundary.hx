@@ -125,7 +125,7 @@ class SuspenseBoundary extends View implements Boundary {
 			case Suspended(_) if (currentChild != realChild):
 			case Suspended(_):
 				realChild.updateSlot(hiddenSlot);
-				currentChild = fallback().createComponent();
+				currentChild = fallback().createView();
 				currentChild.mount(adaptor, this, __slot);
 			case Ok if (currentChild != realChild):
 				currentChild?.dispose();
@@ -147,7 +147,7 @@ class SuspenseBoundary extends View implements Boundary {
 		hiddenRoot = Root.node({
 			target: adaptor.createContainerPrimitive({}),
 			child: () -> Placeholder.node()
-		}).createComponent();
+		}).createView();
 
 		hiddenRoot.mount(adaptor, null, null);
 		hiddenSlot = createSlot(1, hiddenRoot.findChildOfType(Placeholder).unwrap());
@@ -262,7 +262,7 @@ class SuspenseBoundary extends View implements Boundary {
 	function __initialize() {
 		setupHiddenRoot();
 
-		currentChild = realChild = child.createComponent();
+		currentChild = realChild = child.createView();
 		realChild.mount(getAdaptor(), this, __slot);
 
 		setActiveChild();
@@ -274,7 +274,7 @@ class SuspenseBoundary extends View implements Boundary {
 		hydrating = true;
 		setupHiddenRoot();
 
-		currentChild = realChild = child.createComponent();
+		currentChild = realChild = child.createView();
 		realChild.hydrate(cursor, getAdaptor(), this, __slot);
 		hydrating = false;
 

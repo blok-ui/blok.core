@@ -37,12 +37,12 @@ class Root extends View implements PrimitiveHost {
 	}
 
 	function __initialize() {
-		component = render().createComponent();
+		component = render().createView();
 		component.mount(getAdaptor(), this, createSlot(0, null));
 	}
 
 	function __hydrate(cursor:Cursor) {
-		component = render().createComponent();
+		component = render().createView();
 		component.hydrate(cursor.currentChildren(), getAdaptor(), this, createSlot(0, null));
 		cursor.next();
 	}

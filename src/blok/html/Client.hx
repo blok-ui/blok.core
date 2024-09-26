@@ -9,7 +9,7 @@ function mount(el:Element, child:() -> Child) {
 		target: el,
 		child: child
 	});
-	var component = root.createComponent();
+	var component = root.createView();
 	component.mount(new ClientAdaptor(), null, null);
 	return component;
 }
@@ -20,7 +20,7 @@ function hydrate(el:Element, child:() -> Child) {
 		target: el,
 		child: child
 	});
-	var component = root.createComponent();
+	var component = root.createView();
 	component.hydrate(adaptor.createCursor(el), adaptor, null, null);
 	return component;
 }

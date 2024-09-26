@@ -20,10 +20,10 @@ function updateChild(parent:View, child:Null<View>, node:Null<VNode>, slot:Null<
 			child;
 		} else {
 			child.dispose();
-			createComponentForVNode(parent, node, slot);
+			createViewForVNode(parent, node, slot);
 		}
 	} else {
-		createComponentForVNode(parent, node, slot);
+		createViewForVNode(parent, node, slot);
 	}
 }
 
@@ -144,15 +144,15 @@ function diffChildren(parent:View, oldChildren:Array<View>, newNodes:Array<VNode
 function hydrateChildren(parent:View, cursor:Cursor, children:Array<VNode>) {
 	var previous:Null<View> = null;
 	return [for (i => node in children) {
-		var child = node.createComponent();
+		var child = node.createView();
 		child.hydrate(cursor, parent.getAdaptor(), parent, parent.createSlot(i, previous));
 		previous = child;
 		child;
 	}];
 }
 
-private function createComponentForVNode(parent:View, node:VNode, ?slot:Slot) {
-	var element = node.createComponent();
+private function createViewForVNode(parent:View, node:VNode, ?slot:Slot) {
+	var element = node.createView();
 	element.mount(parent.getAdaptor(), parent, slot);
 	return element;
 }

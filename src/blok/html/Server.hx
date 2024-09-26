@@ -8,7 +8,7 @@ function mount(node:NodePrimitive, child:() -> Child) {
 		target: node,
 		child: child
 	});
-	var component = root.createComponent();
+	var component = root.createView();
 	component.mount(new ServerAdaptor(), null, null);
 	return component;
 }
@@ -19,7 +19,7 @@ function hydrate(node:NodePrimitive, child:() -> Child) {
 		target: node,
 		child: child
 	});
-	var component = root.createComponent();
+	var component = root.createView();
 	component.hydrate(adaptor.createCursor(node), adaptor, null, null);
 	return component;
 }

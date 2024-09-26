@@ -6,9 +6,9 @@ import blok.ui.*;
 
 using Reflect;
 
-abstract VHtmlPrimitive(VPrimitive) to Child to VPrimitive to VNode {
+abstract VHtmlPrimitive(VPrimitiveView) to Child to VPrimitiveView to VNode {
 	public function new(type, tag, ?props, ?children, ?key) {
-		this = new VPrimitive(type, tag, props, children, key);
+		this = new VPrimitiveView(type, tag, props, children, key);
 	}
 
 	public function attr(name:HtmlAttributeName, value:ReadOnlySignal<String>) {

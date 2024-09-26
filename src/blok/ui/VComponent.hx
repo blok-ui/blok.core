@@ -19,7 +19,7 @@ class VComponent<Props:{}> implements VNode {
 		return cast props;
 	}
 
-	public function createComponent():View {
+	public function createView():View {
 		return factory(this);
 	}
 }

@@ -21,7 +21,7 @@ function build(typeName:String, ?isSvg:Bool) {
 		switch tag.kind {
 			case TagVoid:
 				builder.add(macro class {
-					private static final $nameType = blok.ui.Primitive.getTypeForTag($v{name});
+					private static final $nameType = blok.ui.PrimitiveView.getTypeForTag($v{name});
 
 					public static function $name(?props : $props & blok.html.HtmlEvents & {?key:blok.diffing.Key}) {
 						return new blok.html.VHtmlPrimitive($i{nameType}, $v{tagName}, props ?? {}, null, props?.key);
@@ -29,7 +29,7 @@ function build(typeName:String, ?isSvg:Bool) {
 				});
 			default:
 				builder.add(macro class {
-					private static final $nameType = blok.ui.Primitive.getTypeForTag($v{name});
+					private static final $nameType = blok.ui.PrimitiveView.getTypeForTag($v{name});
 
 					public static function $name(?props : $props & blok.html.HtmlEvents & {?key:blok.diffing.Key}, ...children : blok.ui.Child) {
 						return new blok.html.VHtmlPrimitive($i{nameType}, $v{tagName}, props ?? {}, children.toArray(), props?.key);

@@ -2,7 +2,7 @@ package blok.ui;
 
 import blok.diffing.Key;
 
-class VPrimitive implements VNode {
+class VPrimitiveView implements VNode {
 	public final type:UniqueId;
 	public final key:Null<Key>;
 	public final tag:String;
@@ -21,7 +21,7 @@ class VPrimitive implements VNode {
 		return cast props;
 	}
 
-	public function createComponent():View {
-		return new Primitive(this);
+	public function createView():View {
+		return new PrimitiveView(this);
 	}
 }

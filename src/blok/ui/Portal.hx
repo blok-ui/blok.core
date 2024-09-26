@@ -46,7 +46,7 @@ class Portal extends View {
 		root = Root.node({
 			target: target,
 			child: child
-		}).createComponent();
+		}).createView();
 	}
 
 	function updateProps() {
@@ -58,7 +58,7 @@ class Portal extends View {
 	function __initialize() {
 		var adaptor = getAdaptor();
 
-		marker = Placeholder.node().createComponent();
+		marker = Placeholder.node().createView();
 		marker.mount(adaptor, this, __slot);
 		setupPortalRoot();
 		root.mount(adaptor, this, null);
@@ -68,7 +68,7 @@ class Portal extends View {
 		var adaptor = getAdaptor();
 		var cursor = adaptor.createCursor(target);
 
-		marker = Placeholder.node().createComponent();
+		marker = Placeholder.node().createView();
 		marker.mount(adaptor, this, __slot);
 		setupPortalRoot();
 		root.hydrate(cursor, adaptor, this, null);

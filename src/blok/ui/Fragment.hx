@@ -34,7 +34,7 @@ class Fragment extends View {
 	function __initialize() {
 		var adaptor = getAdaptor();
 
-		marker = Placeholder.node().createComponent();
+		marker = Placeholder.node().createView();
 		marker.mount(adaptor, this, __slot);
 
 		var previous = marker;
@@ -42,7 +42,7 @@ class Fragment extends View {
 		var newChildren:Array<View> = [];
 
 		for (i => node in nodes) {
-			var child = node.createComponent();
+			var child = node.createView();
 			child.mount(adaptor, this, createSlot(i, previous));
 			newChildren.push(child);
 			previous = child;
@@ -54,7 +54,7 @@ class Fragment extends View {
 	function __hydrate(cursor:Cursor) {
 		var adaptor = getAdaptor();
 
-		marker = Placeholder.node().createComponent();
+		marker = Placeholder.node().createView();
 		marker.mount(adaptor, this, __slot);
 
 		var previous = marker;
@@ -62,7 +62,7 @@ class Fragment extends View {
 		var newChildren:Array<View> = [];
 
 		for (i => node in nodes) {
-			var child = node.createComponent();
+			var child = node.createView();
 			child.hydrate(cursor, adaptor, this, createSlot(i, previous));
 			newChildren.push(child);
 			previous = child;

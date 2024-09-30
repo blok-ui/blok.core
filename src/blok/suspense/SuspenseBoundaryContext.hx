@@ -10,7 +10,6 @@ class SuspenseBoundaryContext implements Context {
 
 	final scheduler:Scheduler;
 	final suspendedBoundaries:Array<SuspenseBoundary> = [];
-	var locked:Bool = false;
 
 	public function new(?props:{
 		?onComplete:() -> Void,

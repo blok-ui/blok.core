@@ -1,7 +1,7 @@
 package blok.boundary;
 
-import haxe.Exception;
 import blok.ui.*;
+import haxe.Exception;
 
 using blok.boundary.BoundaryTools;
 

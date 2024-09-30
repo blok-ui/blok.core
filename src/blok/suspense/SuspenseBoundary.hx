@@ -11,6 +11,7 @@ using blok.boundary.BoundaryTools;
 
 enum SuspenseBoundaryStatus {
 	Ok;
+	Errored;
 	Suspended(links:Array<SuspenseLink>);
 }
 
@@ -127,11 +128,11 @@ class SuspenseBoundary extends View implements Boundary {
 				realChild.updateSlot(hiddenSlot);
 				currentChild = fallback().createView();
 				currentChild.mount(adaptor, this, __slot);
-			case Ok if (currentChild != realChild):
+			case Ok | Errored if (currentChild != realChild):
 				currentChild?.dispose();
 				currentChild = realChild;
 				realChild.updateSlot(__slot);
-			case Ok:
+			case Ok | Errored:
 				realChild.updateSlot(__slot);
 		}
 	}
@@ -155,10 +156,13 @@ class SuspenseBoundary extends View implements Boundary {
 
 	public function handle(component:View, object:Any) {
 		if (!(object is SuspenseException)) {
+			suspenseStatus = Errored;
+			triggerOnErrored();
 			this.tryToHandleWithBoundary(object);
 			return;
 		}
 
+		// @todo: Allow this in the future? Somehow?
 		if (hydrating) error('SuspenseBoundary suspended during hydration.');
 
 		if (overridable) switch SuspenseBoundary.maybeFrom(this) {
@@ -180,7 +184,7 @@ class SuspenseBoundary extends View implements Boundary {
 					links.push(link);
 				}
 				Suspended(links);
-			case Ok:
+			case Ok | Errored:
 				triggerOnSuspended();
 				link = new SuspenseLink(component, this);
 				component.addDisposable(link);
@@ -197,12 +201,7 @@ class SuspenseBoundary extends View implements Boundary {
 					default:
 				}
 				resolveAndRemoveSuspenseLink(link);
-			case Error(error):
-				switch __status {
-					case Disposing | Disposed: return;
-					default:
-				}
-				this.tryToHandleWithBoundary(error);
+			case Error(_):
 		}));
 	}
 
@@ -218,6 +217,8 @@ class SuspenseBoundary extends View implements Boundary {
 				} else {
 					Suspended(links);
 				}
+			case Errored:
+				Errored;
 			case Ok:
 				Ok;
 		}
@@ -235,22 +236,25 @@ class SuspenseBoundary extends View implements Boundary {
 		}
 	}
 
+	function triggerOnErrored() {
+		SuspenseBoundaryContext
+			.maybeFrom(this)
+			.inspect(context -> context.addErrored(this));
+	}
+
 	function triggerOnSuspended() {
 		if (onSuspended != null) onSuspended();
-		switch SuspenseBoundaryContext.maybeFrom(this) {
-			case Some(context): context.add(this);
-			case None:
-		}
+		SuspenseBoundaryContext
+			.maybeFrom(this)
+			.inspect(context -> context.add(this));
 	}
 
 	function triggerOnComplete() {
 		if (!viewIsMounted()) return;
-
 		if (onComplete != null) onComplete();
-		switch SuspenseBoundaryContext.maybeFrom(this) {
-			case Some(context): context.remove(this);
-			case None:
-		}
+		SuspenseBoundaryContext
+			.maybeFrom(this)
+			.inspect(context -> context.remove(this));
 	}
 
 	function scheduleOnComplete() {

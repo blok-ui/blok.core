@@ -33,6 +33,11 @@ class SuspenseBoundaryContext implements Context {
 		suspendedBoundaries.push(boundary);
 	}
 
+	public function addErrored(boundary:SuspenseBoundary) {
+		if (suspendedBoundaries.contains(boundary)) return;
+		suspendedBoundaries.push(boundary);
+	}
+
 	public function remove(boundary:SuspenseBoundary) {
 		if (!suspendedBoundaries.contains(boundary)) return;
 		suspendedBoundaries.remove(boundary);

@@ -89,5 +89,7 @@ abstract class NodePrimitive {
 		parent = null;
 	}
 
+	abstract public function clone():NodePrimitive;
+
 	abstract public function toString(?options:NodePrimitiveToStringOptions):String;
 }

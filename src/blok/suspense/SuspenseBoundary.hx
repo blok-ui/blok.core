@@ -123,16 +123,16 @@ class SuspenseBoundary extends View implements Boundary {
 		var adaptor = getAdaptor();
 
 		switch suspenseStatus {
-			case Suspended(_) if (currentChild != realChild):
-			case Suspended(_):
+			case Suspended(_) | Errored if (currentChild != realChild):
+			case Suspended(_) | Errored:
 				realChild.updateSlot(hiddenSlot);
 				currentChild = fallback().createView();
 				currentChild.mount(adaptor, this, __slot);
-			case Ok | Errored if (currentChild != realChild):
+			case Ok if (currentChild != realChild):
 				currentChild?.dispose();
 				currentChild = realChild;
 				realChild.updateSlot(__slot);
-			case Ok | Errored:
+			case Ok:
 				realChild.updateSlot(__slot);
 		}
 	}

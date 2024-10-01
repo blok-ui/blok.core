@@ -38,6 +38,7 @@ class Scheduler {
 		#if (js && nodejs)
 		js.Node.process.nextTick(exec);
 		#elseif js
+		// @todo: Investigate queueMicrotask.
 		if (hasRaf)
 			js.Syntax.code('window.requestAnimationFrame({0})', _ -> exec());
 		else

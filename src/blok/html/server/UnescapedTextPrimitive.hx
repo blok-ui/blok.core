@@ -7,13 +7,17 @@ import blok.html.server.NodePrimitive;
 // We might add some sort of `dangerouslySetInnerHtml` feature later, which this
 // can be used for.
 class UnescapedTextPrimitive extends NodePrimitive {
-	final html:String;
+	final content:String;
 
-	public function new(html) {
-		this.html = html;
+	public function new(content) {
+		this.content = content;
 	}
 
 	public function toString(?options:NodePrimitiveToStringOptions):String {
-		return html;
+		return content;
+	}
+
+	public function clone():NodePrimitive {
+		return new UnescapedTextPrimitive(content);
 	}
 }

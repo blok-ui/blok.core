@@ -34,16 +34,12 @@ class PrimitiveView extends View implements PrimitiveHost {
 		__node = node;
 	}
 
-	function render() {
+	function resolveChildren() {
 		var vn:VPrimitiveView = cast __node;
 		return vn.children?.filter(n -> n != null) ?? [];
 	}
 
 	function observeAttributes() {
-		function applyAttribute(name:String, oldValue:Any, value:Any) {
-			getAdaptor().updatePrimitiveAttribute(getPrimitive(), name, oldValue, value, __renderMode == Hydrating);
-		}
-
 		var props = __node.getProps();
 		var fields = Reflect.fields(props);
 
@@ -61,7 +57,9 @@ class PrimitiveView extends View implements PrimitiveHost {
 			if (signal == null) signal = new Signal(null);
 
 			if (updater == null) {
-				updater = new PrimitivePropertyUpdater(name, signal, applyAttribute);
+				updater = new PrimitivePropertyUpdater(name, signal, (name:String, oldValue:Any, value:Any) -> {
+					getAdaptor().updatePrimitiveAttribute(getPrimitive(), name, oldValue, value, viewIsHydrating());
+				});
 				updaters.set(name, updater);
 			} else {
 				updater.update(signal);
@@ -73,7 +71,7 @@ class PrimitiveView extends View implements PrimitiveHost {
 		primitive = createPrimitive();
 		observeAttributes();
 
-		var nodes = render();
+		var nodes = resolveChildren();
 		var previous:View = null;
 
 		children = [for (i => node in nodes) {
@@ -89,7 +87,7 @@ class PrimitiveView extends View implements PrimitiveHost {
 		primitive = cursor.current();
 		observeAttributes();
 
-		var nodes = render();
+		var nodes = resolveChildren();
 		var localCursor = cursor.currentChildren();
 		var previous:View = null;
 
@@ -107,11 +105,11 @@ class PrimitiveView extends View implements PrimitiveHost {
 
 	function __update() {
 		observeAttributes();
-		children = diffChildren(this, children, render());
+		children = diffChildren(this, children, resolveChildren());
 	}
 
 	function __validate() {
-		children = diffChildren(this, children, render());
+		children = diffChildren(this, children, resolveChildren());
 	}
 
 	function __dispose() {

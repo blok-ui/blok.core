@@ -35,6 +35,20 @@ class ElementPrimitive extends NodePrimitive {
 		return Reflect.field(attributes, name);
 	}
 
+	public function clone():NodePrimitive {
+		var cloned = new ElementPrimitive(tag);
+
+		for (attr in Reflect.fields(attributes)) {
+			cloned.setAttribute(attr, Reflect.field(attributes, attr));
+		}
+
+		for (child in children) {
+			cloned.append(child.clone());
+		}
+
+		return cloned;
+	}
+
 	public function toString(?options:NodePrimitiveToStringOptions):String {
 		var attrs:Map<String, String> = getFilteredAttributes();
 		var children:Array<String> = children

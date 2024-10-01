@@ -4,57 +4,62 @@ import blok.adaptor.Cursor;
 import blok.debug.Debug;
 import blok.ui.*;
 
-function updateChild(parent:View, child:Null<View>, node:Null<VNode>, slot:Null<Slot>):Null<View> {
+function updateView(parent:View, view:Null<View>, node:Null<VNode>, slot:Null<Slot>):Null<View> {
 	if (node == null) {
-		if (child != null) child.dispose();
+		if (view != null) view.dispose();
 		return null;
 	}
 
-	return if (child != null) {
-		if (child.__node == node) {
-			if (child.__slot.changed(slot)) child.updateSlot(slot);
-			child;
-		} else if (canBeUpdatedByNode(child, node)) {
-			if (child.__slot.changed(slot)) child.updateSlot(slot);
-			child.update(node);
-			child;
-		} else {
-			child.dispose();
-			createViewForVNode(parent, node, slot);
+	if (view != null) {
+		// @todo: Should we check for `__slot.changed` inside `updateSlot`?
+		// Was there a reason I *didn't* do this?
+		if (view.__node == node) {
+			if (view.__slot.changed(slot)) view.updateSlot(slot);
+			return view;
 		}
-	} else {
-		createViewForVNode(parent, node, slot);
+
+		if (canBeUpdatedByNode(view, node)) {
+			if (view.__slot.changed(slot)) view.updateSlot(slot);
+			view.update(node);
+			return view;
+		}
+
+		view.dispose();
 	}
+
+	var newView = node.createView();
+	newView.mount(parent.getAdaptor(), parent, slot);
+	return newView;
 }
 
-function diffChildren(parent:View, oldChildren:Array<View>, newNodes:Array<VNode>):Array<View> {
+function diffChildren(parent:View, oldViews:Array<View>, newNodes:Array<VNode>):Array<View> {
 	var newHead = 0;
 	var oldHead = 0;
 	var newTail = newNodes.length - 1;
-	var oldTail = oldChildren.length - 1;
-	var previousChild:Null<View> = null;
-	var newChildren:Array<Null<View>> = [];
+	var oldTail = oldViews.length - 1;
+	var previousView:Null<View> = null;
+	var newViews:Array<Null<View>> = [];
 
 	// Scan from the top of the list, syncing until we can't anymore.
 	while ((oldHead <= oldTail) && (newHead <= newTail)) {
-		var oldChild = oldChildren[oldHead];
+		var oldView = oldViews[oldHead];
 		var newNode = newNodes[newHead];
-		if (oldChild == null || !canBeUpdatedByNode(oldChild, newNode)) {
+		if (oldView == null || !canBeUpdatedByNode(oldView, newNode)) {
 			break;
 		}
 
-		var newChild = updateChild(parent, oldChild, newNode, parent.createSlot(newHead, previousChild));
-		newChildren[newHead] = newChild;
-		previousChild = newChild;
+		var newView = updateView(parent, oldView, newNode, parent.createSlot(newHead, previousView));
+		newViews[newHead] = newView;
+		previousView = newView;
 		newHead += 1;
 		oldHead += 1;
 	}
 
 	// Scan from the bottom, without syncing.
 	while ((oldHead <= oldTail) && (newHead <= newTail)) {
-		var oldChild = oldChildren[oldTail];
+		var oldView = oldViews[oldTail];
 		var newNode = newNodes[newTail];
-		if (oldChild == null || !canBeUpdatedByNode(oldChild, newNode)) {
+		if (oldView == null || !canBeUpdatedByNode(oldView, newNode)) {
 			break;
 		}
 		oldTail -= 1;
@@ -62,83 +67,83 @@ function diffChildren(parent:View, oldChildren:Array<View>, newNodes:Array<VNode
 	}
 
 	// Scan the middle.
-	var hasOldChildren = oldHead <= oldTail;
-	var oldKeyedChildren:Null<KeyMap<View>> = null;
+	var hasOldViews = oldHead <= oldTail;
+	var oldKeyedViews:Null<KeyMap<View>> = null;
 
 	// If we still have old children, go through the array and check
 	// if any have keys. If they don't, remove them.
-	if (hasOldChildren) {
-		oldKeyedChildren = new KeyMap();
+	if (hasOldViews) {
+		oldKeyedViews = new KeyMap();
 		while (oldHead <= oldTail) {
-			var oldChild = oldChildren[oldHead];
-			if (oldChild != null) {
-				if (oldChild.__node.key != null) {
-					oldKeyedChildren.set(oldChild.__node.key, oldChild);
+			var oldView = oldViews[oldHead];
+			if (oldView != null) {
+				if (oldView.__node.key != null) {
+					oldKeyedViews.set(oldView.__node.key, oldView);
 				} else {
-					oldChild.dispose();
+					oldView.dispose();
 				}
 			}
 			oldHead += 1;
 		}
 	}
 
-	// Sync/update any new elements. If we have more children than before
+	// Sync/update any new views. If we have more children than before
 	// this is where things will happen.
 	while (newHead <= newTail) {
-		var oldChild:Null<View> = null;
+		var oldView:Null<View> = null;
 		var newNode = newNodes[newHead];
 
-		// Check if we already have an element with a matching key.
-		if (hasOldChildren) {
+		// Check if we already have an view with a matching key.
+		if (hasOldViews) {
 			var key = newNode.key;
 			if (key != null) {
-				if (oldKeyedChildren == null) {
+				if (oldKeyedViews == null) {
 					throw 'assert'; // This should never happen
 				}
 
-				oldChild = oldKeyedChildren.get(key);
-				if (oldChild != null) {
-					if (canBeUpdatedByNode(oldChild, newNode)) {
+				oldView = oldKeyedViews.get(key);
+				if (oldView != null) {
+					if (canBeUpdatedByNode(oldView, newNode)) {
 						// We do -- remove a keyed child from the list so we don't
 						// unsync it later.
-						oldKeyedChildren.remove(key);
+						oldKeyedViews.remove(key);
 					} else {
 						// We don't -- ignore it for now.
-						oldChild = null;
+						oldView = null;
 					}
 				}
 			}
 		}
 
-		var newChild = updateChild(parent, oldChild, newNode, parent.createSlot(newHead, previousChild));
-		newChildren[newHead] = newChild;
-		previousChild = newChild;
+		var newView = updateView(parent, oldView, newNode, parent.createSlot(newHead, previousView));
+		newViews[newHead] = newView;
+		previousView = newView;
 		newHead += 1;
 	}
 
 	newTail = newNodes.length - 1;
-	oldTail = oldChildren.length - 1;
+	oldTail = oldViews.length - 1;
 
 	// Update the bottom of the list.
 	while ((oldHead <= oldTail) && (newHead <= newTail)) {
-		var oldChild = oldChildren[oldHead];
+		var oldView = oldViews[oldHead];
 		var newNode = newNodes[newHead];
-		var newChild = updateChild(parent, oldChild, newNode, parent.createSlot(newHead, previousChild));
-		newChildren[newHead] = newChild;
-		previousChild = newChild;
+		var newView = updateView(parent, oldView, newNode, parent.createSlot(newHead, previousView));
+		newViews[newHead] = newView;
+		previousView = newView;
 		newHead += 1;
 		oldHead += 1;
 	}
 
 	// Clean up any remaining children. At this point, we should only
-	// have to worry about keyed elements that are lingering around.
-	if (hasOldChildren && (oldKeyedChildren != null && oldKeyedChildren.isNotEmpty())) {
-		oldKeyedChildren.each((_, element) -> element.dispose());
+	// have to worry about keyed views that are lingering around.
+	if (hasOldViews && (oldKeyedViews != null && oldKeyedViews.isNotEmpty())) {
+		oldKeyedViews.each((_, view) -> view.dispose());
 	}
 
-	assert(!Lambda.exists(newChildren, el -> el == null));
+	assert(!Lambda.exists(newViews, el -> el == null));
 
-	return cast newChildren;
+	return cast newViews;
 }
 
 function hydrateChildren(parent:View, cursor:Cursor, children:Array<VNode>) {
@@ -149,12 +154,6 @@ function hydrateChildren(parent:View, cursor:Cursor, children:Array<VNode>) {
 		previous = child;
 		child;
 	}];
-}
-
-private function createViewForVNode(parent:View, node:VNode, ?slot:Slot) {
-	var element = node.createView();
-	element.mount(parent.getAdaptor(), parent, slot);
-	return element;
 }
 
 private function canBeUpdatedByNode(component:View, node:VNode) {

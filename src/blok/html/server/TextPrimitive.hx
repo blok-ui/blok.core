@@ -23,4 +23,8 @@ class TextPrimitive extends NodePrimitive {
 		var escaped = content.htmlEscape();
 		return includeMarker ? marker + escaped : escaped;
 	}
+
+	public function clone():NodePrimitive {
+		return new TextPrimitive(content);
+	}
 }

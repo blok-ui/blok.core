@@ -63,12 +63,12 @@ abstract class ProxyView extends View {
 	@:noCompletion function __update():Void {
 		assert(__rendered != null);
 		__updateProps();
-		__child = updateChild(this, __child, __rendered.peek(), __slot);
+		__child = updateView(this, __child, __rendered.peek(), __slot);
 	}
 
 	@:noCompletion function __validate():Void {
 		assert(__rendered != null);
-		__child = updateChild(this, __child, __rendered.peek(), __slot);
+		__child = updateView(this, __child, __rendered.peek(), __slot);
 	}
 
 	@:noCompletion function __updateSlot(oldSlot, newSlot:Null<Slot>) {

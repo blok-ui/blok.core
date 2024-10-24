@@ -6,7 +6,7 @@ import blok.diffing.Differ;
 class Fragment extends View {
 	public static final componentType = new UniqueId();
 
-	public static function of(children:Children) {
+	public static function of(children:Children):Child {
 		return new VComponent(componentType, {children: children.toArray()}, Fragment.new);
 	}
 

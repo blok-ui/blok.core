@@ -8,7 +8,7 @@ function main() {
 		.add(TextPrimitiveSuite)
 		.add(ElementPrimitiveSuite)
 		.add(UnescapedTextPrimitiveSuite)
-		.add(StructureSuite)
+		.add(ObjectSuite)
 		.add(SuspenseSuite)
 			// .add(SignalSuite)
 		.run();

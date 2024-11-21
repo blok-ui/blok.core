@@ -1,17 +1,17 @@
 package blok.data;
 
-class StructureSuite extends Suite {
+class ObjectSuite extends Suite {
 	@:test(expects = 3)
 	function setsUpConstructorCorrectly() {
-		var simple = new SimpleStructure({name: 'Foo', lastName: 'Bar'});
+		var simple = new SimpleObject({name: 'Foo', lastName: 'Bar'});
 		simple.name.equals('Foo');
 		simple.lastName.equals('Bar');
 		simple.fullName.equals('Foo Bar');
 	}
 }
 
-class SimpleStructure extends Structure {
-	@:constant public final name:String;
-	@:constant public final lastName:String;
+class SimpleObject extends Object {
+	@:auto public final name:String;
+	@:auto public final lastName:String;
 	@:prop(get = name + ' ' + lastName) public final fullName:String;
 }

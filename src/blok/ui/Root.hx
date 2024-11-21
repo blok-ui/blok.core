@@ -1,29 +1,27 @@
 package blok.ui;
 
 import blok.adaptor.*;
-import blok.core.Owner;
-import blok.signal.Runtime;
 
 class Root extends View implements PrimitiveHost {
 	public static final componentType = new UniqueId();
 
 	public static function node(props:{
 		target:Dynamic,
-		child:() -> Child
+		child:Child
 	}) {
 		return new VComponent(componentType, props, Root.new);
 	}
 
 	final target:Dynamic;
-	final child:() -> Child;
+	final child:Child;
 
-	var component:Null<View> = null;
+	var view:Null<View> = null;
 
 	function new(node) {
 		__node = node;
 		(node.getProps() : {
 			target: Dynamic,
-			child: () -> Child
+			child: Child
 		}).extract(try {
 			target: target,
 			child: child
@@ -32,18 +30,14 @@ class Root extends View implements PrimitiveHost {
 		this.child = child;
 	}
 
-	function render():Child {
-		return Owner.with(this, () -> Runtime.current().untrack(child));
-	}
-
 	function __initialize() {
-		component = render().createView();
-		component.mount(getAdaptor(), this, createSlot(0, null));
+		view = child.createView();
+		view.mount(getAdaptor(), this, createSlot(0, null));
 	}
 
 	function __hydrate(cursor:Cursor) {
-		component = render().createView();
-		component.hydrate(cursor.currentChildren(), getAdaptor(), this, createSlot(0, null));
+		view = child.createView();
+		view.hydrate(cursor.currentChildren(), getAdaptor(), this, createSlot(0, null));
 		cursor.next();
 	}
 
@@ -54,7 +48,7 @@ class Root extends View implements PrimitiveHost {
 	function __dispose() {}
 
 	function __updateSlot(oldSlot:Null<Slot>, newSlot:Null<Slot>) {
-		component.updateSlot(newSlot);
+		view.updateSlot(newSlot);
 	}
 
 	public function getPrimitive():Dynamic {
@@ -66,6 +60,6 @@ class Root extends View implements PrimitiveHost {
 	}
 
 	public function visitChildren(visitor:(child:View) -> Bool) {
-		if (component != null) visitor(component);
+		if (view != null) visitor(view);
 	}
 }

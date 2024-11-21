@@ -43,15 +43,6 @@ class ContextBuildStep implements BuildStep {
 		});
 		var constructors = macro class {
 			@:noUsing
-			@:deprecated('Use blok.context.Provider.provide(...) instead')
-			public static function provide(create:() -> $ret, child:(value:$ret) -> blok.ui.Child, ?key:blok.diffing.Key):blok.ui.VNode {
-				return blok.context.Provider.node({
-					create: create,
-					child: child
-				});
-			}
-
-			@:noUsing
 			public static function from(context:blok.ui.View):$ret {
 				return @:pos(fallback.pos) return maybeFrom(context).or(() -> $fallback);
 			}
@@ -65,10 +56,6 @@ class ContextBuildStep implements BuildStep {
 			}
 		}
 
-		builder.addField(constructors
-			.getField('provide')
-			.unwrap()
-			.applyParameters(createParams));
 		builder.addField(constructors
 			.getField('from')
 			.unwrap()

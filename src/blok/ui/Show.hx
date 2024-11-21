@@ -7,8 +7,10 @@ final class Show extends Component {
 		return new VShow({condition: condition, child: child});
 	}
 
+	@:deprecated('Use `when` and manually invert the condition. Don\'t directly create a signal in Components.')
 	public inline static function unless(condition:ReadOnlySignal<Bool>, child:() -> Child) {
-		return new VShow({condition: condition.map(c -> !c), child: child});
+		return new VShow({condition: new blok.signal.Computation(() -> !condition()), child: child});
+		// return new VShow({condition: condition.map(c -> !c), child: child});
 	}
 
 	@:observable final condition:Bool;

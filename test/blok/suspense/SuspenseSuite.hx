@@ -20,7 +20,7 @@ class SuspenseSuite extends Suite {
 			var resource = new Resource(() -> new Task(activate -> {
 				Timer.delay(() -> activate(Ok('Hello world')), 100);
 			}));
-			mount(document, () -> SuspenseBoundary.node({
+			mount(document, SuspenseBoundary.node({
 				onComplete: () -> {
 					document.toString({includeTextMarkers: false}).equals('Hello world');
 					activate(Nothing);
@@ -41,8 +41,8 @@ class SuspenseSuite extends Suite {
 			var resource2 = new Resource(() -> new Task(activate -> {
 				Timer.delay(() -> activate(Ok('Hello other world')), 150);
 			}));
-			mount(document, () -> Provider
-				.provide(() -> new SuspenseBoundaryContext({
+			mount(document, Provider
+				.provide(new SuspenseBoundaryContext({
 					onSuspended: () -> Assert.pass(),
 					onComplete: () -> {
 						document.toString({includeTextMarkers: false}).equals('Hello world | Hello other world');
@@ -78,7 +78,7 @@ class SuspenseSuite extends Suite {
 					.schedule(() -> activate(Error(new Error(InternalError, 'Failed intentionally'))));
 			}));
 
-			mount(document, () -> SuspenseBoundary.node({
+			mount(document, SuspenseBoundary.node({
 				onSuspended: () -> Assert.pass(),
 				onComplete: () -> Assert.fail('Should not run on complete'),
 				fallback: () -> 'loading...',
@@ -97,7 +97,7 @@ class SuspenseSuite extends Suite {
 			var document = new ElementPrimitive('#document');
 			var resource = new Resource<String>(() -> Task.reject(new Error(InternalError, 'Failed intentionally')));
 
-			mount(document, () -> SuspenseBoundary.node({
+			mount(document, SuspenseBoundary.node({
 				onSuspended: () -> Assert.fail('Should not have suspended'),
 				onComplete: () -> Assert.fail('Should not run on complete'),
 				fallback: () -> 'loading...',
@@ -114,7 +114,7 @@ class SuspenseSuite extends Suite {
 	function suspenseBoundaryWillStillTriggerOnCompleteIfNotSuspended() {
 		return new Future(activate -> {
 			var document = new ElementPrimitive('#document');
-			mount(document, () -> SuspenseBoundary.node({
+			mount(document, SuspenseBoundary.node({
 				onSuspended: () -> Assert.fail('Should not have suspended'),
 				onComplete: () -> {
 					document.toString({includeTextMarkers: false}).equals('Hello world');
@@ -130,8 +130,8 @@ class SuspenseSuite extends Suite {
 	function suspenseBoundaryContextWillStillTriggerOnCompleteOnceIfNotSuspended() {
 		return new Future(activate -> {
 			var document = new ElementPrimitive('#document');
-			mount(document, () -> Provider
-				.provide(() -> new SuspenseBoundaryContext({
+			mount(document, Provider
+				.provide(new SuspenseBoundaryContext({
 					onSuspended: () -> Assert.fail('Should not have suspended'),
 					onComplete: () -> {
 						document.toString({includeTextMarkers: false}).equals('Hello world');
@@ -164,8 +164,8 @@ class SuspenseSuite extends Suite {
 					.schedule(() -> activate(Error(new Error(InternalError, 'Failed intentionally'))));
 			}));
 
-			mount(document, () -> Provider
-				.provide(() -> new SuspenseBoundaryContext({
+			mount(document, Provider
+				.provide(new SuspenseBoundaryContext({
 					onSuspended: () -> Assert.pass(),
 					onComplete: () -> Assert.fail('Should not run on complete')
 				}))
@@ -190,8 +190,8 @@ class SuspenseSuite extends Suite {
 			var document = new ElementPrimitive('#document');
 			var resource = new Resource<String>(() -> Task.reject(new Error(InternalError, 'Failed intentionally')));
 
-			mount(document, () -> Provider
-				.provide(() -> new SuspenseBoundaryContext({
+			mount(document, Provider
+				.provide(new SuspenseBoundaryContext({
 					onSuspended: () -> Assert.fail('Should not have suspended'),
 					onComplete: () -> Assert.fail('Should not run on complete')
 				}))

@@ -13,15 +13,12 @@ using blok.boundary.BoundaryModifiers;
 using blok.suspense.SuspenseModifiers;
 
 function suspense() {
-	Client.mount(Browser.document.getElementById('suspense-root'), () -> SuspenseExample.node({}));
+	Client.mount(Browser.document.getElementById('suspense-root'), SuspenseExample.node({}));
 }
 
 class SuspenseExample extends Component {
 	function render() {
-		// Note: This component is currently using a mix of the older
-		// syntax used to create vNodes and the newer, fluent builders.
-		// Both are valid (and will remain so), and can be freely mixed.
-		var body = Provider.provide(() -> new SuspenseBoundaryContext({
+		var body = Provider.provide(new SuspenseBoundaryContext({
 			onComplete: () -> trace('Will trigger when all suspended children are complete')
 		})).child(_ -> Fragment.of([
 			Html.div({
@@ -64,6 +61,7 @@ class SuspenseExample extends Component {
 						.inSuspense(() -> Html.p().child('You should not see this'))
 						.onComplete(() -> trace('This component never suspends, so onComplete is called right away'))
 						.onSuspended(() -> throw 'oh no')
+						.node()
 				)
 		]));
 

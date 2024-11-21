@@ -147,7 +147,7 @@ class SuspenseBoundary extends View implements Boundary {
 
 		hiddenRoot = Root.node({
 			target: adaptor.createContainerPrimitive({}),
-			child: () -> Placeholder.node()
+			child: Placeholder.node()
 		}).createView();
 
 		hiddenRoot.mount(adaptor, null, null);
@@ -226,8 +226,8 @@ class SuspenseBoundary extends View implements Boundary {
 		if (suspenseStatus == Ok) {
 			// Note that we're scheduling things *twice* here. Scheduling once
 			// just adds the callback to the same queue as the components getting
-			// validated, meaning we might mount our child component before it has
-			// rendered completely. Scheduling our callbacks again ensures that
+			// validated, meaning we might mount a child component before it has
+			// rendered completely. Scheduling these callbacks again ensures that
 			// we wait until everything is ready.
 			getAdaptor().schedule(() -> if (suspenseStatus == Ok) {
 				scheduleSetActiveChild();

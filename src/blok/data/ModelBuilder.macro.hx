@@ -31,7 +31,7 @@ class ModelBuilder implements BuildBundle {
 	public function new() {}
 
 	public function steps():Array<BuildStep> return [
-		new ConstantFieldBuildStep(),
+		new AutoFieldBuildStep(),
 		new SignalFieldBuildStep({updatable: false}),
 		new ObservableFieldBuildStep({updatable: false}),
 		new ComputedFieldBuildStep(),

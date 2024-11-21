@@ -13,10 +13,7 @@ using Kit;
 using Reflect;
 
 function todos() {
-	Client.mount(
-		Browser.document.getElementById('todo-root'),
-		() -> TodoRoot.node({})
-	);
+	Client.mount(Browser.document.getElementById('todo-root'), TodoRoot.node({}));
 }
 
 enum abstract TodoVisibility(String) from String to String {
@@ -26,7 +23,7 @@ enum abstract TodoVisibility(String) from String to String {
 }
 
 class Todo extends Model {
-	@:constant public final id:Int;
+	@:auto public final id:Int;
 	@:signal public final description:String;
 	@:signal public final isCompleted:Bool;
 	@:signal public final isEditing:Bool = false;
@@ -116,12 +113,10 @@ class TodoRoot extends Component {
 				Border.width(.5),
 				Breakpoint.viewport('700px', Sizing.width('700px'))
 			)}>
-				<Provider create={TodoContext.instance}>
-					{_ -> <>
-						<TodoHeader />
-						<TodoList />
-						<TodoFooter />  
-					</>}
+				<Provider context={TodoContext.instance()}>
+					<TodoHeader />
+					<TodoList />
+					<TodoFooter />
 				</Provider>
 			</div>
 		</div>);

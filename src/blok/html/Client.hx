@@ -4,7 +4,7 @@ import blok.ui.*;
 import blok.html.client.ClientAdaptor;
 import js.html.Element;
 
-function mount(el:Element, child:() -> Child) {
+function mount(el:Element, child:Child) {
 	var root = Root.node({
 		target: el,
 		child: child
@@ -14,7 +14,7 @@ function mount(el:Element, child:() -> Child) {
 	return component;
 }
 
-function hydrate(el:Element, child:() -> Child) {
+function hydrate(el:Element, child:Child) {
 	var adaptor = new ClientAdaptor();
 	var root = Root.node({
 		target: el,

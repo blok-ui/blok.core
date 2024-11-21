@@ -10,6 +10,7 @@ enum ErrorBoundaryStatus {
 	Caught(component:View, e:Exception);
 }
 
+// @todo: We need a way to "recover" from an error.
 class ErrorBoundary extends Component implements Boundary {
 	@:attribute final fallback:(component:View, e:Exception) -> Child;
 	@:signal final status:ErrorBoundaryStatus = Ok;

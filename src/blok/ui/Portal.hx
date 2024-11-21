@@ -5,7 +5,7 @@ import blok.debug.Debug;
 
 typedef PortalProps = {
 	public final target:Dynamic;
-	public final child:() -> Child;
+	public final child:Child;
 }
 
 class Portal extends View {
@@ -16,12 +16,12 @@ class Portal extends View {
 	@:noCompletion
 	public static inline function fromMarkup(props:{
 		public final target:Dynamic;
-		@:children public final child:() -> Child;
+		@:children public final child:Child;
 	}) {
 		return wrap(props.target, props.child);
 	};
 
-	public inline static function wrap(target:Dynamic, child:() -> Child, ?key) {
+	public inline static function wrap(target:Dynamic, child:Child, ?key) {
 		return node({
 			target: target,
 			child: child
@@ -33,7 +33,7 @@ class Portal extends View {
 	}
 
 	var target:Null<Dynamic> = null;
-	var child:Null<() -> Child> = null;
+	var child:Null<Child> = null;
 	var marker:Null<View> = null;
 	var root:Null<View> = null;
 

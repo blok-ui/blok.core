@@ -17,10 +17,8 @@ import blok.ui.*;
 import blok.html.Html;
 
 function main() {
-  Client.mount(
-    js.Browser.document.getElementById('root'),
-    () -> Counter.node({})
-  )
+  var root = js.Browser.document.getElementById('root');
+  Client.mount(root, Counter.node({}));
 }
 
 class Counter extends Component {
@@ -105,10 +103,8 @@ import blok.ui.*;
 import blok.html.*;
 
 function main() {
-  Client.mount(
-    js.Browser.document.getElementById('root'),
-    () -> Counter.node({})
-  )
+  var root = js.Browser.document.getElementById('root');
+  Client.mount(root, Counter.node({}));
 }
 
 class Counter extends Component {
@@ -175,7 +171,7 @@ Effect methods allow you to create reactive side-effects that track reactive Sig
 
 Use the given Context.
 
-## Models
+## Models and Objects
 
 > Note: this section is coming soon.
 
@@ -247,7 +243,7 @@ SuspenseBoundaries do *not* propagate suspensions upwards (unless you set their 
 class TimerApp extends Component {
   function render():Child {
     return blok.context.Provider
-      .provide(() -> new blok.suspense.SuspenseBoundaryContext({
+      .provide(new blok.suspense.SuspenseBoundaryContext({
         onComplete: () -> trace('All suspensions complete')
       }))
       .child(_ -> Fragment.of([

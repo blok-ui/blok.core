@@ -12,7 +12,7 @@ abstract Observer(ObserverObject) to DisposableItem to Disposable {
 		return new Observer(effect);
 	}
 
-	public function new(effect:() -> Void) {
+	public inline function new(effect:() -> Void) {
 		this = new ObserverObject(effect);
 	}
 }

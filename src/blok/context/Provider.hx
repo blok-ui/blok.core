@@ -4,23 +4,23 @@ import blok.context.Providable;
 import blok.ui.*;
 
 class Provider<T:Providable> extends Component {
-	public static function compose(contexts:Array<() -> Providable>) {
+	public static function compose(contexts:Array<Providable>) {
 		return new VProvider(contexts);
 	}
 
-	public inline static function provide(create:() -> Providable) {
-		return new VProvider([create]);
+	public inline static function provide(context:Providable) {
+		return new VProvider([context]);
 	}
 
-	@:attribute final create:() -> T;
-	@:children @:attribute final child:(value:T) -> Child;
+	@:attribute final context:T;
+	@:children @:attribute final child:Child;
 
-	var context:Null<T> = null;
+	var currentContext:Null<T> = null;
 
 	function setup() {
 		addDisposable(() -> {
-			context?.dispose();
-			context = null;
+			currentContext?.dispose();
+			currentContext = null;
 		});
 	}
 
@@ -33,17 +33,16 @@ class Provider<T:Providable> extends Component {
 	}
 
 	function render() {
-		var newContext = create();
-		if (newContext != context) {
-			context?.dispose();
-			context = newContext;
+		if (context != currentContext) {
+			currentContext?.dispose();
+			currentContext = context;
 		}
-		return child(context);
+		return child;
 	}
 }
 
 abstract VProvider({
-	public final contexts:Array<() -> Providable>;
+	public final contexts:Array<Providable>;
 	public var child:Null<(context:View) -> Child>;
 }) {
 	public inline function new(contexts) {
@@ -67,18 +66,18 @@ abstract VProvider({
 	public function node():Child {
 		var contexts = this.contexts.copy();
 		var child = this.child;
-		var contextFactory = contexts.shift();
+		var context = contexts.shift();
 		var component:VNode = Provider.node({
-			create: contextFactory,
-			child: _ -> Scope.wrap(child)
+			context: context,
+			child: Scope.wrap(child)
 		});
 
 		while (contexts.length > 0) {
 			var wrapped = component;
-			contextFactory = contexts.shift();
+			context = contexts.shift();
 			component = Provider.node({
-				create: contextFactory,
-				child: _ -> wrapped
+				context: context,
+				child: wrapped
 			});
 		}
 

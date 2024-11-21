@@ -5,14 +5,14 @@ import kit.macro.*;
 import kit.macro.step.*;
 
 function build() {
-	return ClassBuilder.fromContext().addBundle(new StructureBuilder()).export();
+	return ClassBuilder.fromContext().addBundle(new ObjectBuilder()).export();
 }
 
-class StructureBuilder implements BuildBundle {
+class ObjectBuilder implements BuildBundle {
 	public function new() {}
 
 	public function steps():Array<BuildStep> return [
-		new ConstantFieldBuildStep(),
+		new AutoFieldBuildStep(),
 		new PropertyBuildStep(),
 		new ConstructorBuildStep({privateConstructor: false})
 	];

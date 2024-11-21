@@ -7,10 +7,7 @@ import blok.ui.*;
 import js.Browser;
 
 function counter() {
-	Client.mount(
-		Browser.document.getElementById('counter-root'),
-		() -> Html.view(<Counter key="foo" count={1} />)
-	);
+	Client.mount(Browser.document.getElementById('counter-root'), Html.view(<Counter key="foo" count={1} />));
 }
 
 class Counter extends Component {

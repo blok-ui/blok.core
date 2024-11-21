@@ -1,5 +1,6 @@
 package blok.html;
 
+import blok.signal.Computation;
 import blok.html.HtmlEvents;
 import blok.signal.Signal;
 import blok.ui.*;
@@ -14,7 +15,8 @@ abstract VHtmlPrimitive(VPrimitiveView) to Child to VPrimitiveView to VNode {
 	public function attr(name:HtmlAttributeName, value:ReadOnlySignal<String>) {
 		if (this.props.hasField(HtmlAttributeName.ClassName) && name == HtmlAttributeName.ClassName) {
 			var prev:ReadOnlySignal<String> = this.props.field(name);
-			this.props.setField(name, prev.map(prev -> prev + ' ' + value()));
+			this.props.setField(name, new Computation(() -> prev() + ' ' + value()));
+			// this.props.setField(name, prev.map(prev -> prev + ' ' + value()));
 			return abstract;
 		}
 

@@ -22,6 +22,7 @@ abstract Signal<T>(SignalObject<T>) to ReadOnlySignal<T> {
 		return this.peek();
 	}
 
+	@:deprecated('Use a Computation instead')
 	public inline function map<R>(transform:(value:T) -> R):ReadOnlySignal<R> {
 		return new Computation(() -> transform(get()));
 	}
@@ -111,8 +112,7 @@ abstract ReadOnlySignal<T>(ReadOnlySignalObject<T>) from ReadOnlySignalObject<T>
 		this = new StaticSignalObject(value);
 	}
 
-	// @todo: Using `map` inside render methods is going to be super
-	// inefficient. We need to go around an remove it.
+	@:deprecated('Use a Computation instead')
 	public inline function map<R>(transform:(value:T) -> R):ReadOnlySignal<R> {
 		return new Computation(() -> transform(get()));
 	}

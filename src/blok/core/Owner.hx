@@ -15,7 +15,10 @@ class Owner implements DisposableHost implements Disposable {
 
 	public static function with<T>(owner:DisposableHost, scope:() -> T):T {
 		var prev = setCurrent(owner);
-		var value = scope();
+		var value = try scope() catch (e) {
+			setCurrent(prev);
+			throw e;
+		}
 		setCurrent(prev);
 		return value;
 	}
@@ -26,7 +29,10 @@ class Owner implements DisposableHost implements Disposable {
 
 	public function own<T>(scope:() -> T) {
 		var prev = setCurrent(this);
-		var value = scope();
+		var value = try scope() catch (e) {
+			setCurrent(prev);
+			throw e;
+		}
 		setCurrent(prev);
 		return value;
 	}

@@ -10,6 +10,6 @@ function main() {
 		.add(UnescapedTextPrimitiveSuite)
 		.add(ObjectSuite)
 		.add(SuspenseSuite)
-			// .add(SignalSuite)
+		.add(SignalSuite)
 		.run();
 }

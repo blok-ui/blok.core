@@ -49,7 +49,7 @@ class SuspenseSuite extends Suite {
 						activate(Nothing);
 					}
 				}))
-				.child(_ -> SuspenseBoundary.node({
+				.child(SuspenseBoundary.node({
 					onSuspended: () -> Assert.pass(),
 					onComplete: () -> Assert.pass(),
 					fallback: () -> 'loading...',
@@ -138,7 +138,7 @@ class SuspenseSuite extends Suite {
 						activate(Nothing);
 					}
 				}))
-				.child(_ -> SuspenseBoundary.node({
+				.child(SuspenseBoundary.node({
 					onSuspended: () -> Assert.fail('Should not have suspended'),
 					fallback: () -> 'loading...',
 					child: Scope.wrap(_ -> Fragment.of([
@@ -169,7 +169,7 @@ class SuspenseSuite extends Suite {
 					onSuspended: () -> Assert.pass(),
 					onComplete: () -> Assert.fail('Should not run on complete')
 				}))
-				.child(_ -> SuspenseBoundary.node({
+				.child(SuspenseBoundary.node({
 					onSuspended: () -> Assert.pass(),
 					fallback: () -> 'loading...',
 					child: Scope.wrap(_ -> resource())
@@ -195,7 +195,7 @@ class SuspenseSuite extends Suite {
 					onSuspended: () -> Assert.fail('Should not have suspended'),
 					onComplete: () -> Assert.fail('Should not run on complete')
 				}))
-				.child(_ -> SuspenseBoundary.node({
+				.child(SuspenseBoundary.node({
 					onSuspended: () -> Assert.fail('Should not have suspended'),
 					fallback: () -> 'loading...',
 					child: Scope.wrap(_ -> resource())

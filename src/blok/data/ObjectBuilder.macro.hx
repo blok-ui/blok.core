@@ -12,7 +12,7 @@ class ObjectBuilder implements BuildBundle {
 	public function new() {}
 
 	public function steps():Array<BuildStep> return [
-		new AutoFieldBuildStep(),
+		new ValueFieldBuildStep(),
 		new PropertyBuildStep(),
 		new ConstructorBuildStep({privateConstructor: false})
 	];

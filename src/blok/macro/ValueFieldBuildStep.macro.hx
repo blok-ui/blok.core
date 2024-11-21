@@ -4,17 +4,17 @@ import haxe.macro.Expr;
 import haxe.macro.Context;
 import kit.macro.*;
 
-class AutoFieldBuildStep implements BuildStep {
+class ValueFieldBuildStep implements BuildStep {
 	public final priority:Priority = Normal;
 
 	public function new() {}
 
 	public function apply(builder:ClassBuilder) {
 		for (field in builder.findFieldsByMeta(':constant')) {
-			Context.warning('Replace :constant with :auto', field.pos);
+			Context.warning('Replace :constant with :value', field.pos);
 		}
 
-		for (field in builder.findFieldsByMeta(':auto')) {
+		for (field in builder.findFieldsByMeta(':value')) {
 			parseField(builder, field);
 		}
 	}
@@ -23,7 +23,7 @@ class AutoFieldBuildStep implements BuildStep {
 		switch field.kind {
 			case FVar(t, e):
 				if (!field.access.contains(AFinal)) {
-					Context.error('@:auto fields must be final', field.pos);
+					Context.error('@:value fields must be final', field.pos);
 				}
 
 				var name = field.name;
@@ -36,7 +36,7 @@ class AutoFieldBuildStep implements BuildStep {
 						macro if (props.$name != null) this.$name = props.$name;
 					});
 			default:
-				Context.error('Invalid field for :auto', field.pos);
+				Context.error('Invalid field for :value', field.pos);
 		}
 	}
 }

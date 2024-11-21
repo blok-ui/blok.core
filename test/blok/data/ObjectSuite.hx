@@ -11,7 +11,7 @@ class ObjectSuite extends Suite {
 }
 
 class SimpleObject extends Object {
-	@:auto public final name:String;
-	@:auto public final lastName:String;
+	@:value public final name:String;
+	@:value public final lastName:String;
 	@:prop(get = name + ' ' + lastName) public final fullName:String;
 }

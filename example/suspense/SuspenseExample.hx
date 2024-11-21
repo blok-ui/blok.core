@@ -20,7 +20,7 @@ class SuspenseExample extends Component {
 	function render() {
 		var body = Provider.provide(new SuspenseBoundaryContext({
 			onComplete: () -> trace('Will trigger when all suspended children are complete')
-		})).child(_ -> Fragment.of([
+		})).child(Fragment.of([
 			Html.div({
 				className: Breeze.compose(
 					Flex.display(),

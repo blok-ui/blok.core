@@ -23,7 +23,7 @@ enum abstract TodoVisibility(String) from String to String {
 }
 
 class Todo extends Model {
-	@:auto public final id:Int;
+	@:value public final id:Int;
 	@:signal public final description:String;
 	@:signal public final isCompleted:Bool;
 	@:signal public final isEditing:Bool = false;

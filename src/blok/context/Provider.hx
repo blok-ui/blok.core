@@ -43,7 +43,7 @@ class Provider<T:Providable> extends Component {
 
 abstract VProvider({
 	public final contexts:Array<Providable>;
-	public var child:Null<(context:View) -> Child>;
+	public var child:Null<Child>;
 }) {
 	public inline function new(contexts) {
 		this = {
@@ -57,7 +57,7 @@ abstract VProvider({
 		return abstract;
 	}
 
-	public inline function child(child:(context:View) -> Child) {
+	public inline function child(child:Child) {
 		this.child = child;
 		return abstract;
 	}
@@ -69,7 +69,7 @@ abstract VProvider({
 		var context = contexts.shift();
 		var component:VNode = Provider.node({
 			context: context,
-			child: Scope.wrap(child)
+			child: child
 		});
 
 		while (contexts.length > 0) {

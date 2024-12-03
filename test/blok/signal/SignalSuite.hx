@@ -1,7 +1,5 @@
 package blok.signal;
 
-import blok.core.Owner;
-
 @:access(blok.signal)
 class SignalSuite extends Suite {
 	@:test(expects = 2)

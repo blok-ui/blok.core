@@ -13,6 +13,9 @@ class Owner implements DisposableHost implements Disposable {
 		return currentOwner;
 	}
 
+	public macro static function capture(owner, expr);
+
+	@:deprecated('Use Owner.capture instead')
 	public static function with<T>(owner:DisposableHost, scope:() -> T):T {
 		var prev = setCurrent(owner);
 		var value = try scope() catch (e) {
@@ -27,7 +30,7 @@ class Owner implements DisposableHost implements Disposable {
 
 	public function new() {}
 
-	public function own<T>(scope:() -> T) {
+	public inline function own<T>(scope:() -> T) {
 		var prev = setCurrent(this);
 		var value = try scope() catch (e) {
 			setCurrent(prev);

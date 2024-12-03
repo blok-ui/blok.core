@@ -1,7 +1,8 @@
+import blok.context.*;
 import blok.data.*;
 import blok.html.server.*;
-import blok.suspense.*;
 import blok.signal.*;
+import blok.suspense.*;
 
 function main() {
 	Runner.fromDefaults()
@@ -11,5 +12,6 @@ function main() {
 		.add(ObjectSuite)
 		.add(SuspenseSuite)
 		.add(SignalSuite)
+		.add(ProviderSuite)
 		.run();
 }

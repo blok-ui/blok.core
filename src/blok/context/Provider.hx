@@ -1,23 +1,27 @@
 package blok.context;
 
+import blok.debug.Debug;
 import blok.context.Providable;
 import blok.ui.*;
 
 class Provider<T:Providable> extends Component {
-	public static function compose(contexts:Array<Providable>) {
-		return new VProvider(contexts);
+	public inline static function provide(value:Providable) {
+		return new VProvider([{value: value, shared: false}]);
 	}
 
-	public inline static function provide(context:Providable) {
-		return new VProvider([context]);
+	public inline static function share(value:Providable) {
+		return new VProvider([{value: value, shared: true}]);
 	}
 
 	@:attribute final context:T;
+	@:attribute final shared:Bool = false;
 	@:children @:attribute final child:Child;
 
 	var currentContext:Null<T> = null;
 
 	function setup() {
+		if (shared) return;
+
 		addDisposable(() -> {
 			currentContext?.dispose();
 			currentContext = null;
@@ -33,16 +37,30 @@ class Provider<T:Providable> extends Component {
 	}
 
 	function render() {
+		if (shared) {
+			if (currentContext == null) currentContext = context;
+
+			assert(currentContext == context, 'Shared providers should always have the same value');
+
+			return child;
+		}
+
 		if (context != currentContext) {
 			currentContext?.dispose();
 			currentContext = context;
 		}
+
 		return child;
 	}
 }
 
+typedef ProvidableEntry = {
+	public final value:Providable;
+	public final shared:Bool;
+}
+
 abstract VProvider({
-	public final contexts:Array<Providable>;
+	public final contexts:Array<ProvidableEntry>;
 	public var child:Null<Child>;
 }) {
 	public inline function new(contexts) {
@@ -53,11 +71,18 @@ abstract VProvider({
 	}
 
 	public inline function provide(value) {
-		this.contexts.push(value);
+		this.contexts.push({value: value, shared: false});
+		return abstract;
+	}
+
+	public inline function share(value) {
+		this.contexts.push({value: value, shared: true});
 		return abstract;
 	}
 
 	public inline function child(child:Child) {
+		assert(this.child == null, 'Only one child is allowed');
+
 		this.child = child;
 		return abstract;
 	}
@@ -66,17 +91,19 @@ abstract VProvider({
 	public function node():Child {
 		var contexts = this.contexts.copy();
 		var child = this.child;
-		var context = contexts.shift();
+		var entry = contexts.shift();
 		var component:VNode = Provider.node({
-			context: context,
+			context: entry.value,
+			shared: entry.shared,
 			child: child
 		});
 
 		while (contexts.length > 0) {
 			var wrapped = component;
-			context = contexts.shift();
+			entry = contexts.shift();
 			component = Provider.node({
-				context: context,
+				context: entry.value,
+				shared: entry.shared,
 				child: wrapped
 			});
 		}

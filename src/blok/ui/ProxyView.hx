@@ -27,9 +27,9 @@ abstract class ProxyView extends View {
 	@:noCompletion abstract function __updateProps():Void;
 
 	@:noCompletion function __createRendered() {
-		return Owner.with(this, () -> {
+		return Owner.capture(this, {
 			__isolatedRender = new Isolate(render);
-			return Computation.untracked(() -> switch __status {
+			Computation.untracked(() -> switch __status {
 				case Disposing | Disposed:
 					Placeholder.node();
 				default:
@@ -49,7 +49,9 @@ abstract class ProxyView extends View {
 		__rendered = __createRendered();
 		__child = __rendered.peek().createView();
 		__child?.mount(getAdaptor(), this, __slot);
-		Owner.with(this, setup);
+		Owner.capture(this, {
+			setup();
+		});
 	}
 
 	@:noCompletion function __hydrate(cursor:Cursor):Void {
@@ -57,7 +59,9 @@ abstract class ProxyView extends View {
 		__rendered = __createRendered();
 		__child = __rendered.peek().createView();
 		__child?.hydrate(cursor, getAdaptor(), this, __slot);
-		Owner.with(this, setup);
+		Owner.capture(this, {
+			setup();
+		});
 	}
 
 	@:noCompletion function __update():Void {

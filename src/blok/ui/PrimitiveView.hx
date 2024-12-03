@@ -50,19 +50,21 @@ class PrimitiveView extends View implements PrimitiveHost {
 			}
 		}
 
-		Owner.with(this, () -> for (name in fields) {
-			var signal:ReadOnlySignal<Any> = Reflect.field(props, name);
-			var updater = updaters.get(name);
+		Owner.capture(this, {
+			for (name in fields) {
+				var signal:ReadOnlySignal<Any> = Reflect.field(props, name);
+				var updater = updaters.get(name);
 
-			if (signal == null) signal = new Signal(null);
+				if (signal == null) signal = new Signal(null);
 
-			if (updater == null) {
-				updater = new PrimitivePropertyUpdater(name, signal, (name:String, oldValue:Any, value:Any) -> {
-					getAdaptor().updatePrimitiveAttribute(getPrimitive(), name, oldValue, value, viewIsHydrating());
-				});
-				updaters.set(name, updater);
-			} else {
-				updater.update(signal);
+				if (updater == null) {
+					updater = new PrimitivePropertyUpdater(name, signal, (name:String, oldValue:Any, value:Any) -> {
+						getAdaptor().updatePrimitiveAttribute(getPrimitive(), name, oldValue, value, viewIsHydrating());
+					});
+					updaters.set(name, updater);
+				} else {
+					updater.update(signal);
+				}
 			}
 		});
 	}

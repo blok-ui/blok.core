@@ -71,23 +71,25 @@ class DefaultResourceObject<T, E = kit.Error> implements ResourceObject<T, E> {
 		// we don't trigger dependencies more than once.
 		switch data.peek() {
 			case Pending:
-				Owner.with(disposables, () -> Observer.track(() -> {
-					link?.cancel();
+				Owner.capture(disposables, {
+					Observer.track(() -> {
+						link?.cancel();
 
-					var handled = false;
-					var task = fetch();
+						var handled = false;
+						var task = fetch();
 
-					link = task.handle(result -> switch result {
-						case Ok(value):
-							handled = true;
-							data.set(Loaded(value));
-						case Error(error):
-							handled = true;
-							data.set(Error(error));
+						link = task.handle(result -> switch result {
+							case Ok(value):
+								handled = true;
+								data.set(Loaded(value));
+							case Error(error):
+								handled = true;
+								data.set(Error(error));
+						});
+
+						if (!handled) data.set(Loading(task));
 					});
-
-					if (!handled) data.set(Loading(task));
-				}));
+				});
 			default:
 		}
 

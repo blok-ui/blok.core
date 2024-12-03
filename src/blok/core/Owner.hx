@@ -1,5 +1,6 @@
 package blok.core;
 
+@:allow(blok.core)
 class Owner implements DisposableHost implements Disposable {
 	static var currentOwner:Null<DisposableHost> = null;
 

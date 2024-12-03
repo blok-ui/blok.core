@@ -1,6 +1,6 @@
-package blok.signal;
+package blok.core;
 
-import blok.core.*;
+import blok.debug.Debug;
 
 @:forward
 abstract Isolate<T>(IsolateImpl<T>) to Disposable to DisposableItem {
@@ -22,7 +22,7 @@ abstract Isolate<T>(IsolateImpl<T>) to Disposable to DisposableItem {
 class IsolateImpl<T> implements Disposable {
 	final scope:() -> T;
 
-	var owner:Owner;
+	var owner:Null<Owner>;
 
 	public function new(scope) {
 		this.scope = scope;
@@ -31,13 +31,28 @@ class IsolateImpl<T> implements Disposable {
 
 	public function get():T {
 		cleanup();
-		owner = new Owner();
+		assert(owner != null);
 		return owner.own(scope);
 	}
 
 	public function cleanup() {
-		owner?.dispose();
-		owner = null;
+		if (owner == null) {
+			owner = new Owner();
+			return;
+		}
+
+		var count = owner.disposables.count();
+
+		if (count == 0) {
+			return;
+		}
+
+		#if debug
+		warn('Captured ${count} disposables while running an Isolate -- try to get this down to 0 for best performance');
+		#end
+
+		owner.dispose();
+		owner = new Owner();
 	}
 
 	public function dispose() {

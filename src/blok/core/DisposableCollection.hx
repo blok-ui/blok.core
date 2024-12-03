@@ -21,6 +21,10 @@ final class DisposableCollection implements Disposable implements DisposableHost
 		disposables.remove(disposable);
 	}
 
+	public function count() {
+		return disposables.length;
+	}
+
 	public function dispose() {
 		isDisposed = true;
 		for (disposable in disposables) {

@@ -1,11 +1,10 @@
 package blok.ui;
 
 import blok.adaptor.Cursor;
-import blok.core.Owner;
+import blok.core.*;
 import blok.debug.Debug;
 import blok.diffing.Differ;
 import blok.signal.Computation;
-import blok.signal.Isolate;
 
 using blok.boundary.BoundaryTools;
 

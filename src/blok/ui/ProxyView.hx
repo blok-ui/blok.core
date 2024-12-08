@@ -82,12 +82,12 @@ abstract class ProxyView extends View {
 		var node:Null<Dynamic> = null;
 
 		visitChildren(component -> {
-			assert(node == null, 'Component has more than one real nodes');
+			assert(node == null, 'Component has more than one primitive');
 			node = component.getPrimitive();
 			true;
 		});
 
-		assert(node != null, 'Component does not have a real node');
+		assert(node != null, 'Component does not have a primitive');
 
 		return node;
 	}

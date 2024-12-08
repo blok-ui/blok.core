@@ -43,13 +43,17 @@ class ContextBuildStep implements BuildStep {
 		});
 		var constructors = macro class {
 			@:noUsing
-			public static function from(context:blok.ui.View):$ret {
-				return @:pos(fallback.pos) return maybeFrom(context).or(() -> $fallback);
+			public static function from(view:blok.ui.View):$ret {
+				return @:pos(fallback.pos) return maybeFrom(view).or(() -> {
+					var fallback = $fallback;
+					view.addDisposable(fallback);
+					fallback;
+				});
 			}
 
 			@:noUsing
-			public static function maybeFrom(context:blok.ui.View):kit.Maybe<$ret> {
-				return context.findAncestor(ancestor -> switch Std.downcast(ancestor, blok.context.Provider) {
+			public static function maybeFrom(view:blok.ui.View):kit.Maybe<$ret> {
+				return view.findAncestor(ancestor -> switch Std.downcast(ancestor, blok.context.Provider) {
 					case null: false;
 					case provider: provider.match(__contextId);
 				}).flatMap(provider -> (cast provider : blok.context.Provider<$ret>).getContext());

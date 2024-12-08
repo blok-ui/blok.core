@@ -254,6 +254,33 @@ class TimerApp extends Component {
 }
 ```
 
-## Context
+## Providing Context
 
-> Note: this section is coming soon.
+> Note: This section is a work in progress
+
+There are many cases where you might need to share information between Components. You could just pass a context object down as an attribute through every Component until you get it to the one you want, but UI frameworks have long ago come up with a much better solution.
+
+### Context
+
+The first thing we need to do is create a class that implements `blok.context.Context`.
+
+```haxe
+import blok.context.Context;
+
+@:fallback(new ValueContext('default'))
+class ValueContext implements Context {
+  public final value:String;
+
+  public function new(value) {
+    this.value = value;
+  }
+
+  public function dispose() {}
+}
+```
+
+Note the `@:fallback` metadata. This is required for all Contexts and will be used if a Context cannot be resolved. You can also throw an exception here instead if you want.
+
+### Provider
+
+> Coming soon

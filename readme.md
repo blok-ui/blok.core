@@ -171,6 +171,10 @@ Effect methods allow you to create reactive side-effects that track reactive Sig
 
 Use the given Context.
 
+### @:use
+
+Use a "Hook", a simple class that hooks into a component's lifecycle. This is a handy way to share functionality between classes, a bit like a mixin.
+
 ## Models and Objects
 
 > Note: this section is coming soon.

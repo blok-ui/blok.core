@@ -37,7 +37,7 @@ class UseFieldBuildStep implements BuildStep {
 			case FVar(t, e):
 				field.kind = FVar(t, null);
 				builder.hook(LateInit)
-					.addExpr(macro this.$name = $e);
+					.addExpr(macro this.$name = blok.signal.Runtime.current().untrack(() -> $e));
 				builder.setupHook()
 					.addExpr(macro {
 						this.$name.setup(this);

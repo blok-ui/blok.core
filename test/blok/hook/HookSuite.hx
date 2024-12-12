@@ -23,7 +23,9 @@ class HookSuite extends Suite {
 }
 
 class HookedComponent extends Component {
-	@:use public final hook:HookExample = new HookExample('foo');
+	@:use public final hook:HookExample = new HookExample(value);
+
+	@:attribute final value:String = 'foo';
 
 	function render():Child {
 		return hook.value;

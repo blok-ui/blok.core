@@ -50,23 +50,21 @@ class PrimitiveView extends View implements PrimitiveHost {
 			}
 		}
 
-		Owner.capture(this, {
-			for (name in fields) {
-				var signal:ReadOnlySignal<Any> = Reflect.field(props, name);
-				var updater = updaters.get(name);
+		for (name in fields) {
+			var signal:ReadOnlySignal<Any> = Reflect.field(props, name);
+			var updater = updaters.get(name);
 
-				if (signal == null) signal = new Signal(null);
+			if (signal == null) signal = new Signal(null);
 
-				if (updater == null) {
-					updater = new PrimitivePropertyUpdater(name, signal, (name:String, oldValue:Any, value:Any) -> {
-						getAdaptor().updatePrimitiveAttribute(getPrimitive(), name, oldValue, value, viewIsHydrating());
-					});
-					updaters.set(name, updater);
-				} else {
-					updater.update(signal);
-				}
+			if (updater == null) {
+				updater = new PrimitivePropertyUpdater(name, signal, (name:String, oldValue:Any, value:Any) -> {
+					getAdaptor().updatePrimitiveAttribute(getPrimitive(), name, oldValue, value, viewIsHydrating());
+				});
+				updaters.set(name, updater);
+			} else {
+				updater.update(signal);
 			}
-		});
+		}
 	}
 
 	function __initialize() {
@@ -147,23 +145,25 @@ class PrimitiveView extends View implements PrimitiveHost {
 class PrimitivePropertyUpdater<T> implements Disposable {
 	final name:String;
 	final changeSignal:Signal<ReadOnlySignal<T>>;
-	final observer:Observer;
+	final owner:Owner = new Owner();
 	final setAttribute:(name:String, oldValue:T, newValue:T) -> Void;
 
 	var oldValue:Null<T> = null;
 
 	public function new(name:String, propSignal:ReadOnlySignal<T>, setAttribute) {
 		this.name = name;
-		this.changeSignal = new Signal(propSignal);
 		this.setAttribute = setAttribute;
-		this.observer = new Observer(() -> {
-			var signal = changeSignal();
-			var value = signal();
+		Owner.capture(owner, {
+			this.changeSignal = new Signal(propSignal);
+			Observer.track(() -> {
+				var signal = changeSignal();
+				var value = signal();
 
-			if (value == oldValue) return;
+				if (value == oldValue) return;
 
-			setAttribute(name, oldValue, value);
-			oldValue = value;
+				setAttribute(name, oldValue, value);
+				oldValue = value;
+			});
 		});
 	}
 
@@ -172,7 +172,7 @@ class PrimitivePropertyUpdater<T> implements Disposable {
 	}
 
 	public function dispose() {
-		observer.dispose();
+		owner.dispose();
 		// @todo: Not 100% on needing this.
 		// @todo: This seems to be setting the attribute to null,
 		// not removing it (as intended). This can cause weird

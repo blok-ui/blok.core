@@ -281,6 +281,8 @@ class ValueContext implements Context {
 
 Note the `@:fallback` metadata. This is required for all Contexts and will be used if a Context cannot be resolved. You can also throw an exception here instead if you want.
 
+> Todo: describe how Contexts get disposed, especially how fallback values will be disposed along with the view that requested them.
+
 ### Provider
 
 > Coming soon

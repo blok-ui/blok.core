@@ -52,7 +52,7 @@ class ClientAdaptor implements Adaptor {
 
 		if (isHydrating) {
 			if (name.startsWith('on')) {
-				updateEventListener(el, name, value);
+				updateEventListener(el, name, oldValue, value);
 			}
 			return;
 		}
@@ -62,7 +62,7 @@ class ClientAdaptor implements Adaptor {
 			case 'value' | 'selected' | 'checked' if (!isSvg):
 				js.Syntax.code('{0}[{1}] = {2}', el, name, value);
 			case _ if (name.startsWith('on')):
-				updateEventListener(el, name, value);
+				updateEventListener(el, name, oldValue, value);
 			case _ if (!isSvg && value != null && js.Syntax.code('{0} in {1}', name, el)):
 				// @todo: Not sure if this is the best idea for setting props.
 				js.Syntax.code('{0}[{1}] = {2}', el, name, value);
@@ -180,18 +180,16 @@ class ClientAdaptor implements Adaptor {
 		}
 	}
 
-	function updateEventListener(element:Element, name:String, ?handler:EventListener) {
-		// @todo: Look into delegation?
+	// @todo: Look into delegation?
+	function updateEventListener(element:Element, name:String, oldHandler:Null<EventListener>, handler:Null<EventListener>) {
+		var name = name.substr(2).toLowerCase();
 
-		// @todo: We're not actually using `addEventListener` here as we
-		// don't currently have things set up to remove old ones.
-		// Instead, we're setting properties. This seems a bit questionable
-		// as a concept, so it's just a short-term solution.
-		var name = name.toLowerCase();
-		if (handler == null) {
-			Reflect.setField(element, name, cast null);
-		} else {
-			Reflect.setField(element, name, handler);
+		if (oldHandler != null) {
+			element.removeEventListener(name, oldHandler);
+		}
+
+		if (handler != null) {
+			element.addEventListener(name, handler);
 		}
 	}
 

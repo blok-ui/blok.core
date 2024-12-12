@@ -33,6 +33,7 @@ class ComponentBuilder implements BuildBundle implements BuildStep {
 		new ResourceFieldBuildStep(),
 		new ChildrenFieldBuildStep(),
 		new EffectBuildStep(),
+		new UseFieldBuildStep(),
 		new ContextFieldBuildStep(),
 		new ConstructorBuildStep({
 			privateConstructor: true,

@@ -45,9 +45,20 @@ class ContextBuildStep implements BuildStep {
 			@:noUsing
 			public static function from(view:blok.ui.View):$ret {
 				return @:pos(fallback.pos) return maybeFrom(view).or(() -> {
-					var fallback = $fallback;
-					view.addDisposable(fallback);
-					fallback;
+					if (__fallbackInstances == null) {
+						__fallbackInstances = [];
+					}
+
+					if (!__fallbackInstances.exists(view)) {
+						var fallback = $fallback;
+						__fallbackInstances.set(view, fallback);
+						view.addDisposable(() -> {
+							__fallbackInstances.remove(view);
+							fallback.dispose();
+						});
+					}
+
+					return __fallbackInstances.get(view);
 				});
 			}
 
@@ -72,6 +83,9 @@ class ContextBuildStep implements BuildStep {
 		builder.add(macro class {
 			@:noCompletion
 			public static final __contextId = new kit.UniqueId();
+
+			@:noCompletion
+			static var __fallbackInstances:Null<Map<blok.ui.View, Any>> = null;
 
 			public function getContextId() {
 				return __contextId;

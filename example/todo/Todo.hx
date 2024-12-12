@@ -29,16 +29,8 @@ class Todo extends Model {
 	@:signal public final isEditing:Bool = false;
 }
 
-@:fallback(TodoContext.instance())
+@:fallback(TodoContext.load())
 class TodoContext extends Model implements Context {
-	static public function instance() {
-		static var context:Null<TodoContext> = null;
-		if (context == null) {
-			context = TodoContext.load();
-		}
-		return context;
-	}
-
 	static inline final storageId = 'pine-todo-store';
 
 	public static function load():TodoContext {
@@ -113,7 +105,7 @@ class TodoRoot extends Component {
 				Border.width(.5),
 				Breakpoint.viewport('700px', Sizing.width('700px'))
 			)}>
-				<Provider context={TodoContext.instance()}>
+				<Provider context={TodoContext.load()}>
 					<TodoHeader />
 					<TodoList />
 					<TodoFooter />

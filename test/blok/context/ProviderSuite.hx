@@ -1,85 +1,104 @@
 package blok.context;
 
 import blok.ui.*;
-import blok.html.Server;
+// import blok.html.Server;
 import blok.html.server.*;
 
-using blok.boundary.BoundaryModifiers;
-using blok.suspense.SuspenseModifiers;
+// using blok.boundary.BoundaryModifiers;
+// using blok.suspense.SuspenseModifiers;
 
 class ProviderSuite extends Suite {
 	@:test(expects = 3)
 	function providesContextToChildren() {
 		var test:Null<TestContext> = new TestContext('foo');
-		return render(Provider
+		return Provider
 			.provide(test)
 			.child(Scope.wrap(context -> {
 				var test = TestContext.from(context);
 				test.value.equals('foo');
 				'ok';
 			}))
-		).flatMap(root -> new Future(activate -> {
-			root.getAdaptor().schedule(() -> {
-				test.disposed.equals(false);
-				root.dispose();
-				test.disposed.equals(true);
-				activate(Nothing);
-			});
-		}));
+			.node()
+			.renderAsync()
+			.flatMap(root -> new Future(activate -> {
+				root.getAdaptor().schedule(() -> {
+					test.disposed.equals(false);
+					root.dispose();
+					test.disposed.equals(true);
+					activate(Nothing);
+				});
+			}));
 	}
 
 	@:test(expects = 3)
 	function sharedContextIsNotDisposed() {
 		var test:Null<TestContext> = new TestContext('foo');
-		return render(Provider
+		return Provider
 			.share(test)
 			.child(Scope.wrap(context -> {
 				var test = TestContext.from(context);
 				test.value.equals('foo');
 				'ok';
 			}))
-		).flatMap(root -> new Future(activate -> {
-			root.getAdaptor().schedule(() -> {
-				test.disposed.equals(false);
-				root.dispose();
-				test.disposed.equals(false);
-				activate(Nothing);
-			});
-		}));
+			.node()
+			.renderAsync()
+			.flatMap(root -> new Future(activate -> {
+				root.getAdaptor().schedule(() -> {
+					test.disposed.equals(false);
+					root.dispose();
+					test.disposed.equals(false);
+					activate(Nothing);
+				});
+			}));
 	}
 
 	@:test(expects = 3)
 	function fallsBackToDefault() {
 		var test:Null<TestContext> = null;
-		return render(Scope.wrap(context -> {
-			test = TestContext.from(context);
-			test.value.equals('default');
-			'ok';
-		})).flatMap(root -> new Future(activate -> {
-			root.getAdaptor().schedule(() -> {
-				test.disposed.equals(false);
-				root.dispose();
-				test.disposed.equals(true);
-				activate(Nothing);
-			});
-		}));
+		return Scope
+			.wrap(context -> {
+				test = TestContext.from(context);
+				test.value.equals('default');
+				'ok';
+			})
+			.renderAsync()
+			.flatMap(root -> new Future(activate -> {
+				root.getAdaptor().schedule(() -> {
+					test.disposed.equals(false);
+					root.dispose();
+					test.disposed.equals(true);
+					activate(Nothing);
+				});
+			}));
+	}
+
+	@:test(expects = 6)
+	function fallbacksAreSharedPerView() {
+		var test1:Null<TestContext> = null;
+		var test2:Null<TestContext> = null;
+		return Scope
+			.wrap(context -> {
+				test1 = TestContext.from(context);
+				test2 = TestContext.from(context);
+				test1.value.equals('default');
+				test2.value.equals('default');
+				test1.equals(test2);
+				'ok';
+			})
+			.renderAsync()
+			.flatMap(root -> new Future(activate -> {
+				root.getAdaptor().schedule(() -> {
+					test1.disposed.equals(false);
+					root.dispose();
+					test1.disposed.equals(true);
+					test2.disposed.equals(true);
+					activate(Nothing);
+				});
+			}));
 	}
 
 	// @todo: We need a test framework that will let us test things when
 	// the view re-renders.
-}
-
-private function render(body:Child):Future<Null<View>> {
-	return new Future(activate -> {
-		var root:Null<View> = null;
-		var doc = new ElementPrimitive('#document');
-		root = mount(doc, body
-			.inSuspense(() -> '...')
-			.onComplete(() -> activate(root))
-			.node()
-			.inErrorBoundary((component, e) -> throw e)
-		);
-	});
 }
 
 @:fallback(new TestContext('default'))

@@ -1,5 +1,6 @@
 import blok.context.*;
 import blok.data.*;
+import blok.hook.*;
 import blok.html.server.*;
 import blok.signal.*;
 import blok.suspense.*;
@@ -13,5 +14,6 @@ function main() {
 		.add(SuspenseSuite)
 		.add(SignalSuite)
 		.add(ProviderSuite)
+		.add(HookSuite)
 		.run();
 }

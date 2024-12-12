@@ -50,7 +50,7 @@ class ContextBuildStep implements BuildStep {
 					}
 
 					if (!__fallbackInstances.exists(view)) {
-						var fallback = $fallback;
+						var fallback:$ret = $fallback;
 						__fallbackInstances.set(view, fallback);
 						view.addDisposable(() -> {
 							__fallbackInstances.remove(view);

@@ -77,6 +77,8 @@ private function prepareMixin(params:Type) {
 						case tooMany:
 							tooMany[1].pos.error('Too many attributes');
 					}
+				case FFun(f):
+					parsedFields.push(def);
 				default:
 					def.pos.error('Invalid definition');
 			}
@@ -85,7 +87,6 @@ private function prepareMixin(params:Type) {
 	}
 
 	var parsed:ComplexType = TAnonymous(parsedFields);
-
 	return macro :blok.mixin.MixinBase<$parsed>;
 }
 

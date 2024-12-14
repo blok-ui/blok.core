@@ -30,18 +30,40 @@ class UseFieldBuildStep implements BuildStep {
 		switch field.kind {
 			case FVar(null, _):
 				field.pos.error('Expected a type');
-			case FVar(_, null):
-				field.pos.error('Expected an expression');
-			case FVar(t, _) if (!Context.unify(t.toType(), 'blok.hook.Hook'.toComplex().toType())):
-				field.pos.error(':use fields must be block.hook.Hooks');
-			case FVar(t, e):
-				field.kind = FVar(t, null);
-				builder.hook(LateInit)
-					.addExpr(macro this.$name = blok.signal.Runtime.current().untrack(() -> $e));
+			case FVar(_, e) if (e != null):
+				e.pos.error('Expressions are not allowed here');
+			case FVar(t, _) if (!Context.unify(t.toType(), Context.getType('blok.mixin.MixinBase'))):
+				field.pos.error(':use fields must be blok Mixins');
+			case FVar(t, _):
+				field.kind = FProp('get', 'never', t);
+
+				var path:TypePath = switch t.toType().toComplexType() {
+					case TPath(p):
+						p;
+					default:
+						field.pos.error('Unexpected type');
+						null;
+				}
+				var getterName = 'get_$name';
+				var backingName = '__mixin_$name';
+				var error = 'Used $name mixin before setup or after disposal';
+
+				builder.add(macro class {
+					var $backingName:Null<$t> = null;
+
+					function $getterName() {
+						blok.debug.Debug.assert(this.$backingName != null, $v{error});
+						return this.$backingName;
+					}
+				});
+
 				builder.setupHook()
-					.addExpr(macro {
-						this.$name.setup(this);
-						this.addDisposable(this.$name);
+					.addExpr(macro @:pos(field.pos) {
+						this.$backingName = new $path(this);
+						addDisposable(() -> {
+							this.$backingName?.dispose();
+							this.$backingName = null;
+						});
 					});
 			default:
 				meta.pos.error(':use cannot be used here');

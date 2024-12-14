@@ -173,7 +173,7 @@ Use the given Context.
 
 ### @:use
 
-Use a "Hook", a simple class that hooks into a component's lifecycle. This is a handy way to share functionality between classes, a bit like a mixin.
+Use a Mixin, a class that allows some code-sharing between components (think of this a little like hooks in React). See more in the [Mixin](#mixins) section.
 
 ## Models and Objects
 
@@ -290,3 +290,33 @@ Note the `@:fallback` metadata. This is required for all Contexts and will be us
 ### Provider
 
 > Coming soon
+
+## Mixins
+
+Mixins are a way to share functionality between Components. For example, say we want to log a value every time it changes. We could create a mixin like the following:
+
+```haxe
+class Logger extends Mixin<{
+  @:attribute final value:String;
+}> {
+  @:effect public function logValue() {
+    trace(view.value);
+  }
+}
+```
+
+This mixin can then be used on *any* Component that has a public `value` attribute. For example:
+
+```haxe
+class ValueComponent extends Component {
+  @:attribute public final value:String;
+  
+  @:use final logger:Logger;
+
+  function render():Child {
+    return value;
+  }
+}
+```
+
+> @todo: more about this

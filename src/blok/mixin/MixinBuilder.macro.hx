@@ -6,6 +6,7 @@ import haxe.macro.Expr;
 import haxe.macro.Type;
 import kit.macro.*;
 
+using Lambda;
 using blok.macro.Tools;
 using haxe.macro.Tools;
 using kit.macro.Tools;
@@ -35,42 +36,42 @@ private function prepareMixin(params:Type) {
 	// be kept in sync with the BuildSteps.
 	switch raw {
 		case TAnonymous(fields):
-			for (def in fields) switch def.kind {
+			for (field in fields) switch field.kind {
 				case FVar(t, _) | FProp('default', 'never', t, _):
-					switch def.meta {
-						case null:
-							def.pos.error('Expected metadata');
+					switch field.meta {
+						case null | []:
+							field.pos.error('Expected metadata');
 						case [{name: ':attribute'}]:
 							parsedFields.push({
-								name: def.name,
+								name: field.name,
 								kind: FProp('get', 'never', t),
-								pos: def.pos
+								pos: field.pos,
 							});
 						case [{name: ':context'}]:
 							parsedFields.push({
-								name: def.name,
+								name: field.name,
 								kind: FProp('get', 'never', t),
-								pos: def.pos
+								pos: field.pos,
 							});
 						case [{name: ':observable'}]:
 							parsedFields.push({
-								name: def.name,
+								name: field.name,
 								kind: FProp('get', 'never', macro :blok.signal.Signal.ReadOnlySignal<$t>),
-								pos: def.pos
+								pos: field.pos,
 							});
 						case [{name: ':signal'}]:
 							parsedFields.push({
-								name: def.name,
+								name: field.name,
 								access: [AFinal],
 								kind: FVar(macro :blok.signal.Signal<$t>),
-								pos: def.pos
+								pos: field.pos,
 							});
 						case [{name: ':computed'}]:
 							parsedFields.push({
-								name: def.name,
+								name: field.name,
 								access: [AFinal],
 								kind: FVar(macro :blok.signal.Computation<$t>),
-								pos: def.pos
+								pos: field.pos,
 							});
 						case [other]:
 							other.pos.error('Invalid attribute');
@@ -78,9 +79,9 @@ private function prepareMixin(params:Type) {
 							tooMany[1].pos.error('Too many attributes');
 					}
 				case FFun(f):
-					parsedFields.push(def);
+					parsedFields.push(field);
 				default:
-					def.pos.error('Invalid definition');
+					field.pos.error('Invalid definition');
 			}
 		default:
 			cls.pos.error('Expected an anonymous type');
@@ -108,7 +109,7 @@ class MixinBuilder implements BuildBundle implements BuildStep {
 								'You cannot pass arguments to this constructor -- it can only '
 								+ 'be used to run code at initialization.');
 						}
-						init.push(f.expr);
+						setup.push(f.expr);
 						Some(field);
 					default:
 						throw 'assert';
@@ -142,6 +143,7 @@ class MixinBuilder implements BuildBundle implements BuildStep {
 	public function steps():Array<BuildStep> {
 		return [
 			new ComputedFieldBuildStep(),
+			new ResourceFieldBuildStep(),
 			new EffectBuildStep(),
 			this
 		];

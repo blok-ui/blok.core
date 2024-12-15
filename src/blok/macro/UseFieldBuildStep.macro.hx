@@ -49,7 +49,11 @@ class UseFieldBuildStep implements BuildStep {
 				var backingName = '__mixin_$name';
 				var error = 'Used $name mixin before setup or after disposal';
 				// @todo: This is quite fragile, think up a better way to do things?
-				var create = e == null ? macro @:pos(field.pos) new $path(this, {}) : macro ${e}(this);
+				var create = if (e == null) {
+					macro @:pos(field.pos) new $path(this, {});
+				} else {
+					macro blok.signal.Runtime.current().untrack(() -> ${e}(this));
+				}
 
 				builder.add(macro class {
 					var $backingName:Null<$t> = null;

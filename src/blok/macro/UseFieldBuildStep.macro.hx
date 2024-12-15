@@ -30,23 +30,26 @@ class UseFieldBuildStep implements BuildStep {
 		switch field.kind {
 			case FVar(null, _):
 				field.pos.error('Expected a type');
-			case FVar(_, e) if (e != null):
-				e.pos.error('Expressions are not allowed here');
 			case FVar(t, _) if (!Context.unify(t.toType(), Context.getType('blok.mixin.MixinBase'))):
 				field.pos.error(':use fields must be blok Mixins');
-			case FVar(t, _):
+			case FVar(t, e):
 				field.kind = FProp('get', 'never', t);
 
-				var path:TypePath = switch t.toType().toComplexType() {
+				var type = t.toType();
+				var ct = type.toComplexType();
+				var path:TypePath = switch ct {
 					case TPath(p):
 						p;
 					default:
 						field.pos.error('Unexpected type');
 						null;
 				}
+
 				var getterName = 'get_$name';
 				var backingName = '__mixin_$name';
 				var error = 'Used $name mixin before setup or after disposal';
+				// @todo: This is quite fragile, think up a better way to do things?
+				var create = e == null ? macro @:pos(field.pos) new $path(this, {}) : macro ${e}(this);
 
 				builder.add(macro class {
 					var $backingName:Null<$t> = null;
@@ -59,7 +62,7 @@ class UseFieldBuildStep implements BuildStep {
 
 				builder.setupHook()
 					.addExpr(macro @:pos(field.pos) {
-						this.$backingName = new $path(this);
+						this.$backingName = $create;
 						addDisposable(() -> {
 							this.$backingName?.dispose();
 							this.$backingName = null;

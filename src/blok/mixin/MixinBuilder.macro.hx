@@ -97,8 +97,9 @@ class MixinBuilder implements BuildBundle implements BuildStep {
 	public function new() {}
 
 	public function apply(builder:ClassBuilder) {
-		var init = builder.hook(Init).getExprs();
-		var late = builder.hook(LateInit).getExprs();
+		var tp = builder.getTypePath();
+		var init = builder.hook(Init);
+		var late = builder.hook(LateInit);
 		var setup = builder.setupHook().getExprs();
 		var currentConstructor:Maybe<Field> = switch builder.findField('new') {
 			case Some(field):
@@ -117,15 +118,23 @@ class MixinBuilder implements BuildBundle implements BuildStep {
 			case None:
 				None;
 		}
-		var func:Function = (macro function(view) {
+		var props = init.getProps().concat(late.getProps());
+		var propsType:ComplexType = TAnonymous(props);
+		var func:Function = (macro function(view, props:$propsType) {
 			super(view);
-			@:mergeBlock $b{init};
+			@:mergeBlock $b{init.getExprs()};
 			blok.core.Owner.capture(this, {
-				@:mergeBlock $b{late};
+				@:mergeBlock $b{late.getExprs()};
 				@:mergeBlock $b{setup};
 				null;
 			});
 		}).extractFunction();
+
+		builder.add(macro class {
+			public static function configure(props:$propsType) {
+				return (view) -> new $tp(view, props);
+			}
+		});
 
 		switch currentConstructor {
 			case Some(field):
@@ -142,6 +151,9 @@ class MixinBuilder implements BuildBundle implements BuildStep {
 
 	public function steps():Array<BuildStep> {
 		return [
+			new ValueFieldBuildStep(),
+			new SignalFieldBuildStep({updatable: false}),
+			new ObservableFieldBuildStep({updatable: false}),
 			new ComputedFieldBuildStep(),
 			new ResourceFieldBuildStep(),
 			new EffectBuildStep(),

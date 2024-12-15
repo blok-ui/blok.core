@@ -5,6 +5,8 @@
 
 -D js-es=6
 -D analyzer-optimize
+-D message.reporting=pretty
+
 -dce full
 
 -lib kit

@@ -24,7 +24,9 @@ class MixinSuite extends Suite {
 }
 
 class MixedComponent extends Component {
-	@:use public final mix:MixinExample;
+	@:use public final mix:MixinExample = MixinExample.configure({
+		test: 'test'
+	});
 
 	@:attribute public final value:String = 'foo';
 	@:signal public final foo:String = 'foo';
@@ -40,6 +42,8 @@ class MixinExample extends Mixin<{
 	@:signal final foo:String;
 	@:computed final fooBar:String;
 }> {
+	@:value final test:String;
+
 	@:computed public final value:String = view.value;
 
 	public var isSetup:Bool = false;

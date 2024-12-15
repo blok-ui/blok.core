@@ -7,6 +7,7 @@
 --debug
 --dce full
 
+-D message.reporting=pretty
 -D analyzer-optimize
 -D js-es=6
 

@@ -17,8 +17,7 @@ import blok.ui.*;
 import blok.html.Html;
 
 function main() {
-  var root = js.Browser.document.getElementById('root');
-  Client.mount(root, Counter.node({}));
+  Client.mount('#root', Counter.node({}));
 }
 
 class Counter extends Component {
@@ -103,6 +102,8 @@ import blok.ui.*;
 import blok.html.*;
 
 function main() {
+  // Note that you can pass an element to `mount` instead of a query selector
+  // if you prefer.
   var root = js.Browser.document.getElementById('root');
   Client.mount(root, Counter.node({}));
 }

@@ -1,11 +1,6 @@
 package blok.context;
 
 import blok.ui.*;
-// import blok.html.Server;
-import blok.html.server.*;
-
-// using blok.boundary.BoundaryModifiers;
-// using blok.suspense.SuspenseModifiers;
 
 class ProviderSuite extends Suite {
 	@:test(expects = 3)

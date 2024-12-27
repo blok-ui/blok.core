@@ -13,7 +13,7 @@ using Kit;
 using Reflect;
 
 function todos() {
-	Client.mount(Browser.document.getElementById('todo-root'), TodoRoot.node({}));
+	Client.mount('#todo-root', TodoRoot.node({}));
 }
 
 enum abstract TodoVisibility(String) from String to String {

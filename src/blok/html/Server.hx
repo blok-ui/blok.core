@@ -3,9 +3,9 @@ package blok.html;
 import blok.ui.*;
 import blok.html.server.*;
 
-function mount(node:NodePrimitive, child:Child) {
+function mount(primitive:ServerRootPrimitive, child:Child) {
 	var root = Root.node({
-		target: node,
+		target: primitive,
 		child: child
 	});
 	var component = root.createView();
@@ -13,13 +13,13 @@ function mount(node:NodePrimitive, child:Child) {
 	return component;
 }
 
-function hydrate(node:NodePrimitive, child:Child) {
+function hydrate(primitive:ServerRootPrimitive, child:Child) {
 	var adaptor = new ServerAdaptor();
 	var root = Root.node({
-		target: node,
+		target: primitive,
 		child: child
 	});
 	var component = root.createView();
-	component.hydrate(adaptor.createCursor(node), adaptor, null, null);
+	component.hydrate(adaptor.createCursor(primitive), adaptor, null, null);
 	return component;
 }

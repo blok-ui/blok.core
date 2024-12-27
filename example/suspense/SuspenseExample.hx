@@ -13,7 +13,7 @@ using blok.boundary.BoundaryModifiers;
 using blok.suspense.SuspenseModifiers;
 
 function suspense() {
-	Client.mount(Browser.document.getElementById('suspense-root'), SuspenseExample.node({}));
+	Client.mount('#suspense-root', SuspenseExample.node({}));
 }
 
 class SuspenseExample extends Component {

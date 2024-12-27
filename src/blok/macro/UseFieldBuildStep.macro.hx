@@ -47,8 +47,6 @@ class UseFieldBuildStep implements BuildStep {
 
 				var getterName = 'get_$name';
 				var backingName = '__mixin_$name';
-				var error = 'Used $name mixin before setup or after disposal';
-				// @todo: This is quite fragile, think up a better way to do things?
 				var create = if (e == null) {
 					macro @:pos(field.pos) new $path(this, {});
 				} else {
@@ -59,18 +57,20 @@ class UseFieldBuildStep implements BuildStep {
 					var $backingName:Null<$t> = null;
 
 					function $getterName() {
-						blok.debug.Debug.assert(this.$backingName != null, $v{error});
+						if (this.$backingName == null) {
+							this.$backingName = $create;
+							addDisposable(() -> {
+								this.$backingName?.dispose();
+								this.$backingName = null;
+							});
+						}
 						return this.$backingName;
 					}
 				});
 
 				builder.setupHook()
 					.addExpr(macro @:pos(field.pos) {
-						this.$backingName = $create;
-						addDisposable(() -> {
-							this.$backingName?.dispose();
-							this.$backingName = null;
-						});
+						this.$name.setup();
 					});
 			default:
 				meta.pos.error(':use cannot be used here');

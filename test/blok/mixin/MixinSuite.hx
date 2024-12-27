@@ -49,7 +49,7 @@ class MixinExample extends Mixin<{
 	public var isSetup:Bool = false;
 	public var viewHasFooBar:Bool = false;
 
-	public function new() {
+	public function setup() {
 		isSetup = true;
 	}
 

@@ -3,9 +3,6 @@ package blok.suspense;
 import blok.suspense.SuspenseBoundary;
 import blok.ui.*;
 
-/**
-	Wrap a Component in a SuspenseBoundary/
-**/
 function inSuspense(child:Child, fallback:() -> Child) {
 	return new SuspenseBoundaryModifier({
 		child: child,

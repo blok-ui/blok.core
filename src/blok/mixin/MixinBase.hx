@@ -14,6 +14,8 @@ abstract class MixinBase<T> implements DisposableHost implements Disposable {
 		this.view = view;
 	}
 
+	abstract public function setup():Void;
+
 	/**
 		Access the underlying View instance as a View. This is useful if you
 		need to get at underlying View api methods like `getParent` etc.

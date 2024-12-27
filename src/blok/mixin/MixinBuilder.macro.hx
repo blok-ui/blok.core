@@ -100,7 +100,6 @@ class MixinBuilder implements BuildBundle implements BuildStep {
 		var tp = builder.getTypePath();
 		var init = builder.hook(Init);
 		var late = builder.hook(LateInit);
-		var setup = builder.setupHook().getExprs();
 		var currentConstructor:Maybe<Field> = switch builder.findField('new') {
 			case Some(field):
 				switch field.kind {
@@ -110,7 +109,7 @@ class MixinBuilder implements BuildBundle implements BuildStep {
 								'You cannot pass arguments to this constructor -- it can only '
 								+ 'be used to run code at initialization.');
 						}
-						setup.push(f.expr);
+						late.addExpr(f.expr);
 						Some(field);
 					default:
 						throw 'assert';
@@ -125,7 +124,6 @@ class MixinBuilder implements BuildBundle implements BuildStep {
 			@:mergeBlock $b{init.getExprs()};
 			blok.core.Owner.capture(this, {
 				@:mergeBlock $b{late.getExprs()};
-				@:mergeBlock $b{setup};
 				null;
 			});
 		}).extractFunction();
@@ -135,6 +133,32 @@ class MixinBuilder implements BuildBundle implements BuildStep {
 				return (view) -> new $tp(view, props);
 			}
 		});
+
+		var setup = builder.setupHook().getExprs();
+
+		switch builder.findField('setup') {
+			case None:
+				builder.add(macro class {
+					public function setup() {
+						blok.core.Owner.capture(this, {
+							@:mergeBlock $b{setup};
+							null;
+						});
+					}
+				});
+			case Some(field):
+				switch field.kind {
+					case FFun(f):
+						var prev = f.expr;
+						f.expr = macro blok.core.Owner.capture(this, {
+							@:mergeBlock $b{setup};
+							$prev;
+							null;
+						});
+					default:
+						throw 'assert';
+				}
+		}
 
 		switch currentConstructor {
 			case Some(field):

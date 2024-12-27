@@ -293,6 +293,8 @@ Note the `@:fallback` metadata. This is required for all Contexts and will be us
 
 ## Mixins
 
+> Note: After implementing this, I'm not convinced this is actually useful yet. I'm keeping it for now so I can see if it fits in any projects before removing it.
+
 Mixins are a way to share functionality between Components. For example, say we want to log a value every time it changes. We could create a mixin like the following:
 
 ```haxe

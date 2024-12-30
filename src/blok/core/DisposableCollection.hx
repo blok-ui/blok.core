@@ -14,7 +14,7 @@ final class DisposableCollection implements Disposable implements DisposableHost
 			return;
 		}
 		if (disposables.has(disposable)) return;
-		disposables.add(disposable);
+		disposables.push(disposable);
 	}
 
 	public function removeDisposable(disposable:DisposableItem) {

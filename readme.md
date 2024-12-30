@@ -172,10 +172,6 @@ Effect methods allow you to create reactive side-effects that track reactive Sig
 
 Use the given Context.
 
-### @:use
-
-Use a Mixin, a class that allows some code-sharing between components (think of this a little like hooks in React). See more in the [Mixin](#mixins) section.
-
 ## Models and Objects
 
 > Note: this section is coming soon.
@@ -291,35 +287,3 @@ Note the `@:fallback` metadata. This is required for all Contexts and will be us
 ### Provider
 
 > Coming soon
-
-## Mixins
-
-> Note: After implementing this, I'm not convinced this is actually useful yet. I'm keeping it for now so I can see if it fits in any projects before removing it.
-
-Mixins are a way to share functionality between Components. For example, say we want to log a value every time it changes. We could create a mixin like the following:
-
-```haxe
-class Logger extends Mixin<{
-  @:attribute final value:String;
-}> {
-  @:effect public function logValue() {
-    trace(view.value);
-  }
-}
-```
-
-This mixin can then be used on *any* Component that has a public `value` attribute. For example:
-
-```haxe
-class ValueComponent extends Component {
-  @:attribute public final value:String;
-  
-  @:use final logger:Logger;
-
-  function render():Child {
-    return value;
-  }
-}
-```
-
-> @todo: more about this

@@ -5,7 +5,6 @@ import blok.html.*;
 import blok.suspense.*;
 import blok.ui.*;
 import haxe.Timer;
-import js.Browser;
 
 using Breeze;
 using Kit;

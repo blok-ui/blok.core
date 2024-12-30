@@ -7,7 +7,6 @@ import blok.html.*;
 import blok.signal.*;
 import blok.ui.*;
 import haxe.Json;
-import js.Browser;
 
 using Kit;
 using Reflect;

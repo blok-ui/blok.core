@@ -3,7 +3,6 @@ package blok.html;
 import blok.signal.Computation;
 import blok.html.HtmlEvents;
 import blok.signal.Signal;
-import blok.ui.*;
 
 using Reflect;
 

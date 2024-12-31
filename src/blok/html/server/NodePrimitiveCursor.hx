@@ -1,6 +1,6 @@
 package blok.html.server;
 
-import blok.adaptor.Cursor;
+import blok.Cursor;
 import blok.debug.Debug;
 
 class NodePrimitiveCursor implements Cursor {

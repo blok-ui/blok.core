@@ -1,9 +1,7 @@
 package blok.html.server;
 
-import blok.adaptor.*;
-import blok.core.Scheduler;
+import blok.Scheduler;
 import blok.debug.Debug;
-import blok.ui.*;
 
 using StringTools;
 

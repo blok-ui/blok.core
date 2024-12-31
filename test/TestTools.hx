@@ -1,9 +1,9 @@
-import blok.ui.*;
+import blok.*;
 import blok.html.Server;
 import blok.html.server.*;
 
-using blok.boundary.BoundaryModifiers;
-using blok.suspense.SuspenseModifiers;
+using blok.BoundaryModifiers;
+using blok.SuspenseModifiers;
 
 function renderAsync(body:Child):Future<Null<View>> {
 	return new Future(activate -> {

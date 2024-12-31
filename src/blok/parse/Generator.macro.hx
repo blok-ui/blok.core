@@ -29,7 +29,7 @@ class Generator {
 		return switch node.value {
 			case NFragment(children):
 				var children = children.map(generateNode);
-				macro blok.ui.Fragment.of([$a{children}]);
+				macro blok.Fragment.of([$a{children}]);
 			case NNode(name, attributes, children):
 				var prevContext = context;
 				var tag = context.resolve(name);
@@ -123,7 +123,7 @@ class Generator {
 				args = args.concat(restArgs);
 				return macro $e($a{args});
 			case NText(text):
-				macro blok.ui.Text.node($v{text});
+				macro blok.Text.node($v{text});
 			case NExpr(expr):
 				expr;
 		}

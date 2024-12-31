@@ -1,15 +1,13 @@
 package suspense;
 
-import blok.context.*;
+import blok.*;
 import blok.html.*;
-import blok.suspense.*;
-import blok.ui.*;
 import haxe.Timer;
 
 using Breeze;
 using Kit;
-using blok.boundary.BoundaryModifiers;
-using blok.suspense.SuspenseModifiers;
+using blok.BoundaryModifiers;
+using blok.SuspenseModifiers;
 
 function suspense() {
 	Client.mount('#suspense-root', SuspenseExample.node({}));

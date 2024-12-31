@@ -1,0 +1,3 @@
+package blok;
+
+interface PrimitiveHost {}

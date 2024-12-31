@@ -1,6 +1,5 @@
 package blok.html;
 
-import blok.ui.*;
 import blok.html.server.*;
 
 function mount(primitive:ServerRootPrimitive, child:Child) {

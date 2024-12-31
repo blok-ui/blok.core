@@ -1,7 +1,7 @@
 package blok.signal;
 
 import blok.debug.Debug;
-import blok.core.Scheduler;
+import blok.Scheduler;
 
 enum abstract RuntimeStatus(Bool) to Bool {
 	final Idle = false;

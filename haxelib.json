@@ -1,5 +1,5 @@
 {
-  "name": "blok.core",
+  "name": "blok",
   "license": "MIT",
   "classPath": "src",
   "tags": [
@@ -10,7 +10,7 @@
   ],
   "releasenote": "Lots of renaming things",
   "version": "0.10.0",
-  "url": "https://github.com/blok-ui/blok.core",
+  "url": "https://github.com/blok-ui/blok",
   "dependencies": {
     "kit": "0.2.0"
   }

@@ -1,10 +1,8 @@
 package blok.html.client;
 
-import blok.adaptor.*;
-import blok.core.Scheduler;
+import blok.Scheduler;
 import blok.debug.Debug;
 import blok.html.HtmlEvents;
-import blok.ui.*;
 import js.Browser;
 import js.html.Element;
 

@@ -1,7 +1,5 @@
 package blok.signal;
 
-import blok.core.*;
-
 @:forward(dispose)
 abstract Observer(ObserverObject) to DisposableItem to Disposable {
 	public static function untrack(effect:() -> Void):Void {

@@ -1,8 +1,7 @@
 package blok.diffing;
 
-import blok.adaptor.Cursor;
+import blok.Cursor;
 import blok.debug.Debug;
-import blok.ui.*;
 
 function updateView(parent:View, view:Null<View>, node:Null<VNode>, slot:Null<Slot>):Null<View> {
 	if (node == null) {

@@ -1,7 +1,5 @@
 package blok.data;
 
-import blok.core.*;
-
 /**
 	A class with reactive properties that can also be serialized into json
 	(if you don't need this feature you can also use the `UnserializableModel`).

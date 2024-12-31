@@ -32,21 +32,21 @@ class ResourceFieldBuildStep implements BuildStep {
 				field.meta.push({name: ':noCompletion', params: [], pos: (macro null).pos});
 				field.kind = FFun({
 					args: [],
-					ret: macro :blok.suspense.Resource<$t>,
-					expr: macro return new blok.suspense.Resource<$t>(() -> $e)
+					ret: macro :blok.signal.Resource<$t>,
+					expr: macro return new blok.signal.Resource<$t>(() -> $e)
 				});
 
 				builder.addField({
 					name: name,
 					access: field.access,
-					kind: FProp('get', 'never', macro :blok.suspense.Resource<$t>),
+					kind: FProp('get', 'never', macro :blok.signal.Resource<$t>),
 					pos: (macro null).pos
 				});
 
 				builder.add(macro class {
-					var $backingName:Null<blok.suspense.Resource<$t>> = null;
+					var $backingName:Null<blok.signal.Resource<$t>> = null;
 
-					function $getterName():blok.suspense.Resource<$t> {
+					function $getterName():blok.signal.Resource<$t> {
 						blok.debug.Debug.assert(this.$backingName != null);
 						return this.$backingName;
 					}

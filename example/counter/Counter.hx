@@ -1,9 +1,9 @@
 package counter;
 
 import Breeze;
+import blok.*;
 import blok.html.*;
 import blok.html.HtmlEvents;
-import blok.ui.*;
 import js.Browser;
 
 function counter() {

@@ -30,8 +30,8 @@ class ContextFieldBuildStep implements BuildStep {
 				if (e != null) {
 					e.pos.error(':context fields cannot have an expression');
 				}
-				if (!Context.unify(t.toType(), 'blok.context.Context'.toComplex().toType())) {
-					field.pos.error(':context fields need to be a blok.context.Context');
+				if (!Context.unify(t.toType(), 'blok.Context'.toComplex().toType())) {
+					field.pos.error(':context fields need to be a blok.Context');
 				}
 
 				var name = field.name;

@@ -1,6 +1,5 @@
 package blok;
 
-import blok.Cursor;
 import blok.debug.Debug;
 import blok.diffing.Differ;
 import blok.signal.Computation;

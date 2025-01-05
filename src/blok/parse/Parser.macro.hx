@@ -29,9 +29,9 @@ class Parser {
 	public function toExpr() {
 		var expr = options.generateExpr(parse());
 		var pos = createPos(0, position);
-		return macro @:pos(pos) $expr;
-
+		return macro @:pos(pos) ${expr};
 	}
+
 	public function parse():Array<Node> {
 		position = 0;
 

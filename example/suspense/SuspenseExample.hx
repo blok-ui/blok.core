@@ -123,7 +123,7 @@ class SuspenseItem extends Component {
 						Border.radius(3),
 					))
 					.on(Click, _ -> delay.update(delay -> delay + 1))
-					.child('Reload')
+					.child('Reload'),
 			);
 	}
 }

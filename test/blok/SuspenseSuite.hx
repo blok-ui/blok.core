@@ -9,7 +9,7 @@ import blok.Scope;
 import blok.SuspenseBoundary;
 import blok.html.server.*;
 
-using blok.BoundaryModifiers;
+using blok.Modifiers;
 
 class SuspenseSuite extends Suite {
 	@:test(expects = 1)

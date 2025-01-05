@@ -2,8 +2,7 @@ import blok.*;
 import blok.html.Server;
 import blok.html.server.*;
 
-using blok.BoundaryModifiers;
-using blok.SuspenseModifiers;
+using blok.Modifiers;
 
 function renderAsync(body:Child):Future<Null<View>> {
 	return new Future(activate -> {

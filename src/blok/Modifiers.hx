@@ -2,6 +2,28 @@ package blok;
 
 import blok.SuspenseBoundary;
 
+/**
+	Wraps a component in an ErrorBoundary, which will catch all errors
+	and pass them to `fallback`.
+
+	```haxe
+	blok.Scope.wrap(_ -> {
+	  throw 'Some error';
+	}).inErrorBoundary(e -> {
+	  return blok.Text.node(e.message);
+	});
+	```
+**/
+function inErrorBoundary(child:Child, fallback) {
+	return ErrorBoundary.node({
+		child: child,
+		fallback: fallback
+	});
+}
+
+/** 
+	Wraps a component in a SuspenseBoundary.
+**/
 function inSuspense(child:Child, fallback:() -> Child) {
 	return new SuspenseBoundaryModifier({
 		child: child,
@@ -9,7 +31,7 @@ function inSuspense(child:Child, fallback:() -> Child) {
 	});
 }
 
-abstract SuspenseBoundaryModifier(SuspenseBoundaryProps) {
+private abstract SuspenseBoundaryModifier(SuspenseBoundaryProps) {
 	public function new(props) {
 		this = props;
 	}

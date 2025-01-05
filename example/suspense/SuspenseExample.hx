@@ -6,8 +6,7 @@ import haxe.Timer;
 
 using Breeze;
 using Kit;
-using blok.BoundaryModifiers;
-using blok.SuspenseModifiers;
+using blok.Modifiers;
 
 function suspense() {
 	Client.mount('#suspense-root', SuspenseExample.node({}));

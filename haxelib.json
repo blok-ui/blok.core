@@ -1,5 +1,5 @@
 {
-  "name": "blok",
+  "name": "blok.core",
   "license": "MIT",
   "classPath": "src",
   "tags": [

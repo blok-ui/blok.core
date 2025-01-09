@@ -6,9 +6,13 @@ import haxe.macro.Expr;
 using Lambda;
 using kit.macro.Tools;
 using haxe.macro.Tools;
+using blok.macro.Tools;
 using blok.parse.ParseTools;
 
 // @todo: Figure out how to get this thing to enable completion.
+// Starting to figure it out, but I think I'm still doing positions
+// wrong. Completion is broken. Need to figure out how to map
+// XML positions to Haxe positions correctly.
 class Generator {
 	var context:TagContext;
 
@@ -39,9 +43,12 @@ class Generator {
 					if (props.exists(p -> p.field == attr.name.value)) {
 						attr.name.pos.error('Attribute already exists');
 					}
+
 					props.push({
 						field: attr.name.value,
-						expr: attr.value
+						// @todo: Should be a way to do this where we don't
+						// need to `prepareForDisplay` here.
+						expr: attr.value.prepareForDisplay()
 					});
 				}
 
@@ -54,6 +61,14 @@ class Generator {
 					}
 					addProp(attr);
 				}
+
+				// @todo: This only sorta works -- it does NOT give us any completion but
+				// it does highlight things sorta correctly.
+				var attrPos = if (attributes.length > 0) Context.makePosition({
+					min: attributes[0].name.pos.getInfos().min,
+					max: attributes[attributes.length - 1].value.pos.getInfos().max,
+					file: attributes[0].name.pos.getInfos().file
+				}) else name.pos;
 
 				function isAttributeChild(child:Node) return switch child.value {
 					case NNode(name, attributes, children) if (tag.attributes.hasAttribute(name)):
@@ -102,10 +117,10 @@ class Generator {
 
 				context = prevContext;
 
-				var args:Array<Expr> = [{
+				var args:Array<Expr> = [({
 					expr: EObjectDecl(props),
-					pos: name.pos
-				}];
+					pos: attrPos
+				}).prepareForDisplay()];
 				var path:Array<String> = tag.isBuiltin ? tag.name.toPath() : name.value.toPath();
 
 				var e = switch tag.kind {
@@ -116,16 +131,18 @@ class Generator {
 						macro @:pos(name.pos) $p{path};
 				}
 
+				// @todo: If we were doing things right, this is the only place
+				// we'd need to wrap the code in EDisplay.
 				if (Context.containsDisplayPosition(name.pos)) {
 					e = {expr: EDisplay(e, DKMarked), pos: e.pos};
 				}
 
 				args = args.concat(restArgs);
-				return macro $e($a{args});
+				return macro($e($a{args}) : blok.Child);
 			case NText(text):
 				macro blok.Text.node($v{text});
 			case NExpr(expr):
-				expr;
+				expr.prepareForDisplay();
 		}
 	}
 }

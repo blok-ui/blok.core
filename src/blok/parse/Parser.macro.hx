@@ -13,8 +13,6 @@ typedef ParserOptions = {
 }
 
 // @todo: this should really use char codes, not strings
-// @todo: Something I'm doing here (parseInlineString?) is killing
-// completion. May also be happening in the Generator.
 class Parser {
 	final source:Source;
 	final options:ParserOptions;
@@ -187,8 +185,8 @@ class Parser {
 		}
 
 		if (isAlpha(peek())) {
-			var located = path();
-			return macro @:pos(located.pos) $p{located.map(p -> p.value)};
+			var name = identifier();
+			return macro @:pos(name.pos) $i{name.value};
 		}
 
 		if (isDigit(peek())) {

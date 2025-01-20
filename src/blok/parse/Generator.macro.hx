@@ -138,7 +138,7 @@ class Generator {
 				}
 
 				args = args.concat(restArgs);
-				return macro($e($a{args}) : blok.Child);
+				return macro $e($a{args});
 			case NText(text):
 				macro blok.Text.node($v{text});
 			case NExpr(expr):

@@ -13,7 +13,7 @@ class Html {
 			tag,
 			attributes ?? {},
 			children,
-			attributes.key
+			attributes?.key
 		);
 	}
 

@@ -106,7 +106,6 @@ class ComponentBuilder implements BuildBundle implements BuildStep {
 		// Note: Setting position to `(macro null).pos` here is not ideal,
 		// but it avoids some weird completion bugs. Likely there is something else
 		// I'm doing here that is making things go wrong. Investigate.
-
 		builder.addField(constructors
 			.getField('node')
 			.unwrap()
@@ -117,8 +116,7 @@ class ComponentBuilder implements BuildBundle implements BuildStep {
 			builder.addField(constructors
 				.getField('__fromMarkup')
 				.unwrap()
-				.withPos((macro null).pos)
-					// .withPos(cls.pos)
+				.withPos(cls.pos)
 				.applyParameters(createParams));
 		}
 

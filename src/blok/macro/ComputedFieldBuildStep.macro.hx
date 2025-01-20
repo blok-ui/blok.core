@@ -46,7 +46,7 @@ class ComputedFieldBuildStep implements BuildStep {
 					name: name,
 					kind: FVar(macro :blok.signal.Computation<$t>, null),
 					access: access,
-					pos: (macro null).pos
+					pos: meta.pos
 				});
 
 				builder.hook(Init).addExpr(macro this.$name = this.$createName());

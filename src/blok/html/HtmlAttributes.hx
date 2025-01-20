@@ -1,6 +1,7 @@
 package blok.html;
 
 import blok.signal.Signal;
+import blok.diffing.Key;
 
 // Taken from: https://github.com/haxetink/tink_domspec/blob/master/src/tink/domspec/Aria.hx
 typedef AriaAttributes = {
@@ -23,7 +24,7 @@ typedef AriaAttributes = {
 }
 
 // From https://github.com/haxetink/tink_domspec/blob/master/src/tink/domspec/Attributes.hx
-typedef GlobalAttr = AriaAttributes & {
+typedef GlobalAttributes = AriaAttributes & {
 	@:html('class') var ?className:ReadOnlySignal<String>;
 	var ?id:ReadOnlySignal<String>;
 	var ?title:ReadOnlySignal<String>;
@@ -39,30 +40,31 @@ typedef GlobalAttr = AriaAttributes & {
 	var ?style:ReadOnlySignal<String>;
 	var ?role:ReadOnlySignal<String>;
 	var ?dataset:ReadOnlySignal<Map<String, String>>;
+	var ?key:Key;
 }
 
-typedef DetailsAttr = GlobalAttr & {
+typedef DetailsAttributes = GlobalAttributes & {
 	var ?open:ReadOnlySignal<Bool>;
 }
 
-typedef FieldSetAttr = GlobalAttr & {
+typedef FieldSetAttributes = GlobalAttributes & {
 	var ?disabled:ReadOnlySignal<Bool>;
 	var ?name:ReadOnlySignal<String>;
 }
 
-typedef ObjectAttr = GlobalAttr & {
+typedef ObjectAttributes = GlobalAttributes & {
 	var ?type:ReadOnlySignal<String>;
 	var ?data:ReadOnlySignal<String>;
 	var ?width:ReadOnlySignal<Int>;
 	var ?height:ReadOnlySignal<Int>;
 }
 
-typedef ParamAttr = GlobalAttr & {
+typedef ParamAttributes = GlobalAttributes & {
 	var ?name:ReadOnlySignal<String>;
 	var ?value:ReadOnlySignal<String>;
 }
 
-typedef TableCellAttr = GlobalAttr & {
+typedef TableCellAttributes = GlobalAttributes & {
 	var ?abbr:ReadOnlySignal<String>;
 	var ?colSpan:ReadOnlySignal<Int>;
 	var ?headers:ReadOnlySignal<String>;
@@ -96,7 +98,7 @@ enum abstract InputType(String) to String {
 	var Week = 'week';
 }
 
-typedef InputAttr = GlobalAttr & {
+typedef InputAttributes = GlobalAttributes & {
 	var ?checked:ReadOnlySignal<Bool>;
 	var ?disabled:ReadOnlySignal<Bool>;
 	var ?required:ReadOnlySignal<Bool>;
@@ -117,14 +119,14 @@ typedef InputAttr = GlobalAttr & {
 	var ?multiple:ReadOnlySignal<Bool>;
 }
 
-typedef ButtonAttr = GlobalAttr & {
+typedef ButtonAttributes = GlobalAttributes & {
 	var ?disabled:ReadOnlySignal<Bool>;
 	var ?autofocus:ReadOnlySignal<Bool>;
 	var ?type:ReadOnlySignal<String>;
 	var ?name:ReadOnlySignal<String>;
 }
 
-typedef TextAreaAttr = GlobalAttr & {
+typedef TextAreaAttributes = GlobalAttributes & {
 	var ?autofocus:ReadOnlySignal<Bool>;
 	var ?cols:ReadOnlySignal<Int>;
 	var ?dirname:ReadOnlySignal<String>;
@@ -141,7 +143,7 @@ typedef TextAreaAttr = GlobalAttr & {
 	var ?wrap:ReadOnlySignal<String>;
 }
 
-typedef IFrameAttr = GlobalAttr & {
+typedef IFrameAttributes = GlobalAttributes & {
 	var ?sandbox:ReadOnlySignal<String>;
 	var ?width:ReadOnlySignal<Int>;
 	var ?height:ReadOnlySignal<Int>;
@@ -157,7 +159,7 @@ enum abstract IframeScrolling(String) {
 	var Auto = "auto";
 }
 
-typedef ImageAttr = GlobalAttr & {
+typedef ImageAttributes = GlobalAttributes & {
 	var ?src:ReadOnlySignal<String>;
 	var ?width:ReadOnlySignal<Int>;
 	var ?height:ReadOnlySignal<Int>;
@@ -166,7 +168,7 @@ typedef ImageAttr = GlobalAttr & {
 	var ?sizes:ReadOnlySignal<String>;
 }
 
-private typedef MediaAttr = GlobalAttr & {
+private typedef MediaAttributes = GlobalAttributes & {
 	var ?src:ReadOnlySignal<String>;
 	var ?autoplay:ReadOnlySignal<Bool>;
 	var ?controls:ReadOnlySignal<Bool>;
@@ -176,16 +178,16 @@ private typedef MediaAttr = GlobalAttr & {
 	var ?volume:ReadOnlySignal<Float>;
 }
 
-typedef AudioAttr = MediaAttr & {};
+typedef AudioAttributes = MediaAttributes & {};
 
-typedef VideoAttr = MediaAttr & {
+typedef VideoAttributes = MediaAttributes & {
 	var ?height:ReadOnlySignal<Int>;
 	var ?poster:ReadOnlySignal<String>;
 	var ?width:ReadOnlySignal<Int>;
 	var ?playsInline:ReadOnlySignal<Bool>;
 }
 
-typedef SourceAttr = GlobalAttr & {
+typedef SourceAttributes = GlobalAttributes & {
 	var ?src:ReadOnlySignal<String>;
 	var ?srcset:ReadOnlySignal<String>;
 	var ?media:ReadOnlySignal<String>;
@@ -193,11 +195,11 @@ typedef SourceAttr = GlobalAttr & {
 	var ?type:ReadOnlySignal<String>;
 }
 
-typedef LabelAttr = GlobalAttr & {
+typedef LabelAttributes = GlobalAttributes & {
 	@:html('for') var ?htmlFor:ReadOnlySignal<String>;
 }
 
-typedef SelectAttr = GlobalAttr & {
+typedef SelectAttributes = GlobalAttributes & {
 	var ?autofocus:ReadOnlySignal<Bool>;
 	var ?disabled:ReadOnlySignal<Bool>;
 	var ?multiple:ReadOnlySignal<Bool>;
@@ -207,19 +209,19 @@ typedef SelectAttr = GlobalAttr & {
 	var ?size:ReadOnlySignal<Int>;
 }
 
-typedef FormAttr = GlobalAttr & {
+typedef FormAttributes = GlobalAttributes & {
 	var ?method:ReadOnlySignal<String>;
 	var ?action:ReadOnlySignal<String>;
 }
 
-typedef AnchorAttr = GlobalAttr & {
+typedef AnchorAttributes = GlobalAttributes & {
 	var ?href:ReadOnlySignal<String>;
 	var ?target:ReadOnlySignal<String>;
 	var ?type:ReadOnlySignal<String>;
 	var ?rel:ReadOnlySignal<AnchorRel>;
 }
 
-typedef OptionAttr = GlobalAttr & {
+typedef OptionAttributes = GlobalAttributes & {
 	var ?disabled:ReadOnlySignal<Bool>;
 	var ?label:ReadOnlySignal<String>;
 	@:jsOnly var ?defaultSelected:ReadOnlySignal<Bool>;
@@ -229,7 +231,7 @@ typedef OptionAttr = GlobalAttr & {
 	var ?index:ReadOnlySignal<Int>;
 }
 
-typedef MetaAttr = GlobalAttr & {
+typedef MetaAttributes = GlobalAttributes & {
 	var ?content:ReadOnlySignal<String>;
 	var ?name:ReadOnlySignal<String>;
 	var ?charset:ReadOnlySignal<String>;
@@ -242,7 +244,7 @@ enum abstract MetaHttpEquiv(String) to String from String {
 	var Refresh = "refresh";
 }
 
-typedef LinkAttr = GlobalAttr & {
+typedef LinkAttributes = GlobalAttributes & {
 	var ?rel:ReadOnlySignal<LinkRel>;
 	var ?crossorigin:ReadOnlySignal<LinkCrossOrigin>;
 	var ?href:ReadOnlySignal<String>;
@@ -291,7 +293,7 @@ enum abstract LinkCrossOrigin(String) to String from String {
 	final UseCredentials = "use-credentials";
 }
 
-typedef ScriptAttr = GlobalAttr & {
+typedef ScriptAttributes = GlobalAttributes & {
 	var ?async:ReadOnlySignal<Bool>;
 	var ?charset:ReadOnlySignal<String>;
 	var ?defer:ReadOnlySignal<Bool>;
@@ -299,18 +301,18 @@ typedef ScriptAttr = GlobalAttr & {
 	var ?type:ReadOnlySignal<String>;
 }
 
-typedef StyleAttr = GlobalAttr & {
+typedef StyleAttributes = GlobalAttributes & {
 	var ?type:ReadOnlySignal<String>;
 	var ?media:ReadOnlySignal<String>;
 	var ?nonce:ReadOnlySignal<String>;
 }
 
-typedef CanvasAttr = GlobalAttr & {
+typedef CanvasAttributes = GlobalAttributes & {
 	var ?width:ReadOnlySignal<String>;
 	var ?height:ReadOnlySignal<String>;
 }
 
-typedef TrackAttr = {
+typedef TrackAttributes = {
 	var ?src:ReadOnlySignal<String>;
 	var ?kind:ReadOnlySignal<TrackKind>;
 	var ?label:ReadOnlySignal<String>;
@@ -325,7 +327,7 @@ enum abstract TrackKind(String) to String from String {
 	var Metadata = 'metadata';
 }
 
-typedef EmbedAttr = {
+typedef EmbedAttributes = {
 	var ?height:ReadOnlySignal<Int>;
 	var ?width:ReadOnlySignal<Int>;
 	var ?src:ReadOnlySignal<String>;

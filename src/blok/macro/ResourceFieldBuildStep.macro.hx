@@ -40,7 +40,7 @@ class ResourceFieldBuildStep implements BuildStep {
 					name: name,
 					access: field.access,
 					kind: FProp('get', 'never', macro :blok.signal.Resource<$t>),
-					pos: (macro null).pos
+					pos: meta.pos
 				});
 
 				builder.add(macro class {

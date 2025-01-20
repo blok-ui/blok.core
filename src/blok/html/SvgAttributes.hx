@@ -5,27 +5,27 @@ import blok.signal.Signal;
 
 // Coppied from: https://github.com/haxetink/tink_svgspec
 // svg attr reference: https://github.com/dumistoklus/svg-xsd-schema/blob/master/svg.xsd
-typedef SvgAttributes = GlobalAttr & {
+typedef SvgAttributes = GlobalAttributes & {
 	var ?width:ReadOnlySignal<String>;
 	var ?height:ReadOnlySignal<String>;
 	var ?viewBox:ReadOnlySignal<String>;
 	var ?xmlns:ReadOnlySignal<String>; // Generally unused
 }
 
-typedef BaseAttr = SvgAttributes & {
+typedef BaseAttributes = SvgAttributes & {
 	var ?transform:ReadOnlySignal<String>;
 }
 
-typedef PathAttr = BaseAttr & {
+typedef PathAttributes = BaseAttributes & {
 	var ?d:ReadOnlySignal<String>;
 	var ?pathLength:ReadOnlySignal<String>;
 }
 
-typedef PolygonAttr = BaseAttr & {
+typedef PolygonAttributes = BaseAttributes & {
 	var ?points:ReadOnlySignal<String>;
 }
 
-typedef RectAttr = BaseAttr & {
+typedef RectAttributes = BaseAttributes & {
 	var ?x:ReadOnlySignal<String>;
 	var ?y:ReadOnlySignal<String>;
 	var ?width:ReadOnlySignal<String>;
@@ -34,13 +34,13 @@ typedef RectAttr = BaseAttr & {
 	var ?ry:ReadOnlySignal<String>;
 }
 
-typedef CircleAttr = BaseAttr & {
+typedef CircleAttributes = BaseAttributes & {
 	var ?cx:ReadOnlySignal<String>;
 	var ?cy:ReadOnlySignal<String>;
 	var ?r:ReadOnlySignal<String>;
 }
 
-typedef EllipseAttr = BaseAttr & {
+typedef EllipseAttributes = BaseAttributes & {
 	var ?cx:ReadOnlySignal<String>;
 	var ?cy:ReadOnlySignal<String>;
 	var ?rx:ReadOnlySignal<String>;

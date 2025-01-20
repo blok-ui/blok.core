@@ -175,7 +175,7 @@ class TodoFooter extends Component {
 				Typography.textColor('white', 0),
 				Spacing.pad(3)
 			)}
-			style=display
+			style={display}
 		>
 			<span><strong>message</strong></span>
 		</footer>);

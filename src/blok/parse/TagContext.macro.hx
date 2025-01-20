@@ -5,6 +5,7 @@ import haxe.macro.Expr;
 
 using Lambda;
 using blok.parse.ParseTools;
+using haxe.macro.Tools;
 
 enum TagContextKind {
 	Root;
@@ -35,7 +36,7 @@ class TagContext {
 			case null:
 				switch Context.getLocalTVars().get(name.value) {
 					case null if (name.value.isComponentName()):
-						var type = Context.typeof(macro @:pos(name.pos) $p{name.value.toPath()});
+						var type = Context.typeof(name.value.toPath().toFieldExpr(name.pos));
 						tags[name.value] = Tag.fromType(name, type);
 					case null:
 						for (source in getBuiltins()) {

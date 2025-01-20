@@ -1,5 +1,6 @@
 package blok.html;
 
+import blok.diffing.Key;
 import blok.html.HtmlAttributes;
 import blok.html.HtmlEvents;
 import blok.signal.Computation;
@@ -12,7 +13,7 @@ abstract VHtmlPrimitive(VPrimitiveView) to Child to VPrimitiveView to VNode {
 		this = new VPrimitiveView(type, tag, props, children, key);
 	}
 
-	public function attr(name:AttributeName<GlobalAttr>, value:ReadOnlySignal<String>) {
+	public function attr(name:AttributeName<GlobalAttributes>, value:ReadOnlySignal<String>) {
 		if (name == 'class' && this.props.hasField('class')) {
 			var prev:ReadOnlySignal<String> = this.props.field(name);
 			this.props.setField(name, new Computation(() -> prev() + ' ' + value()));
@@ -25,6 +26,11 @@ abstract VHtmlPrimitive(VPrimitiveView) to Child to VPrimitiveView to VNode {
 
 	public function on(event:AttributeName<HtmlEvents>, handler:ReadOnlySignal<EventListener>) {
 		this.props.setField(event, handler);
+		return abstract;
+	}
+
+	public function key(key:Key) {
+		this.props.setField('key', key);
 		return abstract;
 	}
 

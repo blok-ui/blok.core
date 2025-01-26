@@ -70,19 +70,19 @@ class ClientAdaptor implements Adaptor {
 	}
 
 	public function insertPrimitive(object:Dynamic, slot:Null<Slot>, findParent:() -> Dynamic) {
-		var el:js.html.Element = object;
+		var el:Element = object;
 		if (slot != null && slot.previous != null) {
-			var relative:js.html.Element = slot.previous.getPrimitive();
+			var relative:Element = slot.previous.getPrimitive();
 			relative.after(el);
 		} else {
-			var parent:js.html.Element = findParent();
+			var parent:Element = findParent();
 			assert(parent != null);
 			parent.prepend(el);
 		}
 	}
 
 	public function movePrimitive(object:Dynamic, from:Null<Slot>, to:Null<Slot>, findParent:() -> Dynamic) {
-		var el:js.html.Element = object;
+		var el:Element = object;
 
 		if (to == null) {
 			if (from != null) {
@@ -100,13 +100,13 @@ class ClientAdaptor implements Adaptor {
 
 		if (to.previous == null) {
 			assert(to.index == 0);
-			var parent:js.html.Element = findParent();
+			var parent:Element = findParent();
 			assert(parent != null);
 			parent.prepend(el);
 			return;
 		}
 
-		var relative:js.html.Element = to.previous.getPrimitive();
+		var relative:Element = to.previous.getPrimitive();
 		assert(relative != null);
 		relative.after(el);
 	}

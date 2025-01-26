@@ -1,5 +1,6 @@
 import blok.*;
 import blok.data.*;
+import blok.html.*;
 import blok.html.server.*;
 import blok.signal.*;
 
@@ -12,5 +13,6 @@ function main() {
 		.add(SuspenseSuite)
 		.add(SignalSuite)
 		.add(ProviderSuite)
+		.add(HtmlSuite)
 		.run();
 }

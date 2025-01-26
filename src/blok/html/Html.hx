@@ -3,12 +3,10 @@ package blok.html;
 import blok.diffing.Key;
 import blok.html.HtmlAttributes;
 
-@:allow(blok.html)
 class Html {
 	macro public static function view(expr);
 
-	@:noCompletion
-	static function element<T:{?key:Key}>(tag:String, ?attributes:T, ...children:Child):VHtmlPrimitive {
+	public static function element<T:{?key:Key}>(tag:String, ?attributes:T, ...children:Child):VHtmlPrimitive {
 		return new VHtmlPrimitive(
 			PrimitiveView.getTypeForTag(tag),
 			tag,

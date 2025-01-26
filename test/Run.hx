@@ -10,6 +10,7 @@ function main() {
 		.add(ElementPrimitiveSuite)
 		.add(UnescapedTextPrimitiveSuite)
 		.add(ObjectSuite)
+		.add(ModelSuite)
 		.add(SuspenseSuite)
 		.add(SignalSuite)
 		.add(ProviderSuite)

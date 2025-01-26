@@ -3,6 +3,7 @@ package blok.html;
 import blok.html.SvgAttributes;
 
 class Svg {
+	@:skip
 	macro public static function view(expr);
 
 	public inline static function svg(attributes:SvgAttributes & HtmlEvents, ...children:Child) {

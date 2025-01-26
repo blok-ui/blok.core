@@ -8,6 +8,13 @@ function build() {
 	return ClassBuilder.fromContext().addBundle(new ObjectBuilder()).export();
 }
 
+function buildWithJsonSerializer() {
+	return ClassBuilder.fromContext()
+		.addBundle(new ObjectBuilder())
+		.addStep(new JsonSerializerBuildStep({}))
+		.export();
+}
+
 class ObjectBuilder implements BuildBundle {
 	public function new() {}
 

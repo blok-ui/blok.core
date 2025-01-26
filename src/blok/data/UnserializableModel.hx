@@ -4,8 +4,6 @@ package blok.data;
 abstract class UnserializableModel implements Disposable implements DisposableHost {
 	final disposables:DisposableCollection = new DisposableCollection();
 
-	abstract public function toJson():Dynamic;
-
 	public function addDisposable(disposable:DisposableItem):Void {
 		disposables.addDisposable(disposable);
 	}

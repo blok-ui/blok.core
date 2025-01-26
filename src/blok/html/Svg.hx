@@ -7,14 +7,8 @@ class Svg {
 	macro public static function view(expr);
 
 	@:noCompletion
-	static function element<T:{?key:Key}>(tag:String, attributes:T, ...children:Child) {
-		return new VHtmlPrimitive(
-			PrimitiveView.getTypeForTag(tag),
-			tag,
-			attributes,
-			children,
-			attributes.key
-		);
+	static inline function element<T:{?key:Key}>(tag:String, attributes:T, ...children:Child) {
+		return Html.element(tag, attributes, ...children);
 	}
 
 	public inline static function svg(attributes:SvgAttributes & HtmlEvents, ...children:Child) {

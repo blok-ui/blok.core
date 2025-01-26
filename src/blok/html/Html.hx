@@ -3,6 +3,7 @@ package blok.html;
 import blok.diffing.Key;
 import blok.html.HtmlAttributes;
 
+@:allow(blok.html)
 class Html {
 	macro public static function view(expr);
 

@@ -154,7 +154,7 @@ private function processType(name:String, path:String, type:Type, kind:TagKind, 
 					} else {
 						props.t;
 					}
-					switch t {
+					switch t.follow() {
 						case TAnonymous(a):
 							var obj = a.get();
 							var fields:Map<String, Type> = [];

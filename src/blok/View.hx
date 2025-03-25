@@ -69,12 +69,18 @@ abstract class View implements Disposable implements DisposableHost {
 			__initialize();
 		} catch (e) {
 			__cleanupAfterValidation();
+			other.dispose();
 			throw e;
 		};
 
 		other.dispose();
-
 		__cleanupAfterValidation();
+	}
+
+	public function move(adaptor:Adaptor, parent:Null<View>, node:VNode, slot:Null<Slot>) {
+		__mounted = Mounted(parent, adaptor);
+		if (__slot.changed(slot)) updateSlot(slot);
+		update(node);
 	}
 
 	function attachToViewTree(adaptor:Adaptor, parent:Null<View>, slot:Null<Slot>) {

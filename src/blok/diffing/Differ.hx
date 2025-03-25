@@ -9,30 +9,37 @@ function updateView(parent:View, view:Null<View>, node:Null<VNode>, slot:Null<Sl
 		return null;
 	}
 
-	if (view != null) {
-		// @todo: Should we check for `__slot.changed` inside `updateSlot`?
-		// Was there a reason I *didn't* do this?
-		if (view.__node == node) {
-			if (view.__slot.changed(slot)) view.updateSlot(slot);
-			return view;
-		}
+	var adaptor = parent.getAdaptor();
 
-		if (canBeUpdatedByNode(view, node)) {
-			if (view.__slot.changed(slot)) view.updateSlot(slot);
-			view.update(node);
-			return view;
-		}
+	if (view != null && canBeUpdatedByNode(view, node)) {
+		view.move(adaptor, parent, node, slot);
+		return view;
 	}
+
+	// if (view != null) {
+	// 	// @todo: Should we check for `__slot.changed` inside `updateSlot`?
+	// 	// Was there a reason I *didn't* do this?
+	// 	if (view.__node == node) {
+	// 		if (view.__slot.changed(slot)) view.updateSlot(slot);
+	// 		return view;
+	// 	}
+
+	// 	if (canBeUpdatedByNode(view, node)) {
+	// 		if (view.__slot.changed(slot)) view.updateSlot(slot);
+	// 		view.update(node);
+	// 		return view;
+	// 	}
+	// }
 
 	var newView = node.createView();
 
 	if (view == null) {
-		newView.mount(parent.getAdaptor(), parent, slot);
+		newView.mount(adaptor, parent, slot);
 		return newView;
 	}
 
-	newView.replace(parent.getAdaptor(), parent, view, slot);
-	// newView.mount(parent.getAdaptor(), parent, slot);
+	newView.replace(adaptor, parent, view, slot);
+	// newView.mount(adaptor, parent, slot);
 	return newView;
 }
 

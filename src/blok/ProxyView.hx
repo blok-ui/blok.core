@@ -66,13 +66,17 @@ abstract class ProxyView extends View {
 		}
 
 		var proxy:ProxyView = cast other;
-		var oldChild = proxy.__child;
+		var otherChild = proxy.__child;
 
 		assert(__rendered == null);
 		__rendered = __createRendered();
 
 		proxy.__child = null;
-		__child = updateView(this, oldChild, __rendered.peek(), __slot);
+		__child = updateView(this, otherChild, __rendered.peek(), __slot);
+
+		Owner.capture(this, {
+			setup();
+		});
 
 		return true;
 	}

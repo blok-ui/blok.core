@@ -22,12 +22,17 @@ function updateView(parent:View, view:Null<View>, node:Null<VNode>, slot:Null<Sl
 			view.update(node);
 			return view;
 		}
-
-		view.dispose();
 	}
 
 	var newView = node.createView();
-	newView.mount(parent.getAdaptor(), parent, slot);
+
+	if (view == null) {
+		newView.mount(parent.getAdaptor(), parent, slot);
+		return newView;
+	}
+
+	newView.replace(parent.getAdaptor(), parent, view, slot);
+	// newView.mount(parent.getAdaptor(), parent, slot);
 	return newView;
 }
 

@@ -60,6 +60,23 @@ abstract class ProxyView extends View {
 		});
 	}
 
+	@:noCompletion override function __replace(other:View):Bool {
+		if (!(other is ProxyView)) {
+			return false;
+		}
+
+		var proxy:ProxyView = cast other;
+		var oldChild = proxy.__child;
+
+		assert(__rendered == null);
+		__rendered = __createRendered();
+
+		proxy.__child = null;
+		__child = updateView(this, oldChild, __rendered.peek(), __slot);
+
+		return true;
+	}
+
 	@:noCompletion function __update():Void {
 		assert(__rendered != null);
 		__updateProps();

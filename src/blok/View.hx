@@ -59,6 +59,24 @@ abstract class View implements Disposable implements DisposableHost {
 		__cleanupAfterValidation();
 	}
 
+	public function replace(adaptor:Adaptor, parent:Null<View>, other:View, slot:Null<Slot>) {
+		attachToViewTree(adaptor, parent, slot);
+
+		__status = Rendering;
+		__renderMode = Normal;
+
+		try if (!__replace(other)) {
+			__initialize();
+		} catch (e) {
+			__cleanupAfterValidation();
+			throw e;
+		};
+
+		other.dispose();
+
+		__cleanupAfterValidation();
+	}
+
 	function attachToViewTree(adaptor:Adaptor, parent:Null<View>, slot:Null<Slot>) {
 		assert(__mounted == Unmounted, 'Attempted to initialize a component that has already been mounted');
 
@@ -125,6 +143,10 @@ abstract class View implements Disposable implements DisposableHost {
 	abstract function __initialize():Void;
 
 	abstract function __hydrate(cursor:Cursor):Void;
+
+	function __replace(other:View):Bool {
+		return false;
+	}
 
 	abstract function __update():Void;
 

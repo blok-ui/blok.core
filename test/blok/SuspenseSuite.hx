@@ -93,7 +93,7 @@ class SuspenseSuite extends Suite {
 	function suspenseBoundaryWillNotTriggerOnCompleteIfResourceFailsImmediately() {
 		return new Future(activate -> {
 			var document = new ElementPrimitive('#document');
-			var resource = new Resource<String>(() -> Task.reject(new Error(InternalError, 'Failed intentionally')));
+			var resource = new Resource<String>(() -> Task.error(new Error(InternalError, 'Failed intentionally')));
 			mount(document, SuspenseBoundary.node({
 				onSuspended: () -> Assert.fail('Should not have suspended'),
 				onComplete: () -> Assert.fail('Should not run on complete'),
@@ -184,7 +184,7 @@ class SuspenseSuite extends Suite {
 	function suspenseBoundaryContextWillNotTriggerOnCompleteIfResourceFailsImmediately() {
 		return new Future(activate -> {
 			var document = new ElementPrimitive('#document');
-			var resource = new Resource<String>(() -> Task.reject(new Error(InternalError, 'Failed intentionally')));
+			var resource = new Resource<String>(() -> Task.error(new Error(InternalError, 'Failed intentionally')));
 			mount(document, Provider
 				.provide(new SuspenseBoundaryContext({
 					onSuspended: () -> Assert.fail('Should not have suspended'),

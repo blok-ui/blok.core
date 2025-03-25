@@ -38,7 +38,9 @@ class ClientAdaptor implements Adaptor {
 	}
 
 	public function updateTextPrimitive(object:Dynamic, value:String) {
-		(object : js.html.Text).textContent = value;
+		var text:js.html.Text = object;
+		if (text.textContent == value) return; // Note: not doing this can cause unneeded updates.
+		text.textContent = value;
 	}
 
 	public function updatePrimitiveAttribute(object:Dynamic, name:String, oldValue:Null<Dynamic>, value:Null<Dynamic>, ?isHydrating:Bool) {

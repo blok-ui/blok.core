@@ -33,7 +33,7 @@ class Generator {
 		return switch node.value {
 			case NFragment(children):
 				var children = children.map(generateNode);
-				macro blok.Fragment.of([$a{children}]);
+				macro @:pos(node.pos) blok.Fragment.of([$a{children}]);
 			case NNode(name, attributes, children):
 				var prevContext = context;
 				var tag = context.resolve(name);

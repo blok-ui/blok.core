@@ -5,6 +5,15 @@ import blok.diffing.Differ;
 class Fragment extends View {
 	public static final componentType = new UniqueId();
 
+	@:fromMarkup
+	@:noCompletion
+	@:noUsing
+	public static function fromMarkup(props:{
+		@:children final children:Children;
+	}) {
+		return of(props.children);
+	}
+
 	public static function of(children:Children):Child {
 		return new VComponent(componentType, {children: children.toArray()}, Fragment.new);
 	}

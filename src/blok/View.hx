@@ -77,7 +77,7 @@ abstract class View implements Disposable implements DisposableHost {
 		__cleanupAfterValidation();
 	}
 
-	public function move(adaptor:Adaptor, parent:Null<View>, node:VNode, slot:Null<Slot>) {
+	public function moveAndUpdate(adaptor:Adaptor, parent:Null<View>, node:VNode, slot:Null<Slot>) {
 		__mounted = Mounted(parent, adaptor);
 		if (__slot.changed(slot)) updateSlot(slot);
 		update(node);

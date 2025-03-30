@@ -9,7 +9,7 @@ class SuspenseBoundaryContext implements Context {
 	public final onSuspended = new Event();
 
 	final scheduler:Scheduler;
-	final suspendedBoundaries:Array<SuspenseBoundary> = [];
+	final suspendedBoundaries:Array<Boundary> = [];
 
 	public function new(?props:{
 		?onComplete:() -> Void,
@@ -25,7 +25,7 @@ class SuspenseBoundaryContext implements Context {
 		});
 	}
 
-	public function add(boundary:SuspenseBoundary) {
+	public function add(boundary:Boundary) {
 		if (suspendedBoundaries.contains(boundary)) return;
 		if (suspendedBoundaries.length == 0) {
 			onSuspended.dispatch();
@@ -33,12 +33,12 @@ class SuspenseBoundaryContext implements Context {
 		suspendedBoundaries.push(boundary);
 	}
 
-	public function addErrored(boundary:SuspenseBoundary) {
+	public function addErrored(boundary:Boundary) {
 		if (suspendedBoundaries.contains(boundary)) return;
 		suspendedBoundaries.push(boundary);
 	}
 
-	public function remove(boundary:SuspenseBoundary) {
+	public function remove(boundary:Boundary) {
 		if (!suspendedBoundaries.contains(boundary)) return;
 		suspendedBoundaries.remove(boundary);
 		if (suspendedBoundaries.length == 0) {

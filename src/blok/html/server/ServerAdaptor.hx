@@ -82,12 +82,9 @@ class ServerAdaptor implements Adaptor {
 
 	public function movePrimitive(object:Dynamic, from:Null<Slot>, to:Null<Slot>, findParent:() -> Dynamic) {
 		var node:NodePrimitive = object;
-		assert(to != null);
 
 		if (to == null) {
-			if (from != null) {
-				removePrimitive(object, from);
-			}
+			removePrimitive(object, from);
 			return;
 		}
 
@@ -119,6 +116,10 @@ class ServerAdaptor implements Adaptor {
 
 	public function schedule(effect:() -> Void) {
 		scheduler.schedule(effect);
+	}
+
+	public function scheduleNextTime(effect:() -> Void) {
+		scheduler.scheduleNextTime(effect);
 	}
 }
 

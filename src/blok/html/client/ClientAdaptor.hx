@@ -87,9 +87,7 @@ class ClientAdaptor implements Adaptor {
 		var el:Element = object;
 
 		if (to == null) {
-			if (from != null) {
-				removePrimitive(object, from);
-			}
+			removePrimitive(object, from);
 			return;
 		}
 
@@ -119,6 +117,10 @@ class ClientAdaptor implements Adaptor {
 
 	public function schedule(effect:() -> Void) {
 		scheduler.schedule(effect);
+	}
+
+	public function scheduleNextTime(effect:() -> Void) {
+		scheduler.scheduleNextTime(effect);
 	}
 
 	function setAttribute(element:Element, name:String, ?value:Dynamic, ?namespace:String) {

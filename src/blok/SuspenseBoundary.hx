@@ -258,7 +258,6 @@ class SuspenseBoundary extends View implements Boundary {
 
 	function scheduleOnComplete() {
 		if (!viewIsMounted()) return;
-
 		getAdaptor().schedule(triggerOnComplete);
 	}
 

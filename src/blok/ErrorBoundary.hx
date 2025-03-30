@@ -18,6 +18,18 @@ class ErrorBoundary extends Component implements Boundary {
 	public function handle(component:View, object:Any) {
 		if (object is Exception) {
 			status.set(Caught(component, object));
+			SuspenseBoundaryContext
+				.maybeFrom(this)
+				.inspect(context -> {
+					// This ensures any SuspenseBoundaryContext will pause
+					// and wait for this error handler to render before it triggers
+					// `onComplete`.
+					context.addErrored(this);
+					getAdaptor().scheduleNextTime(() -> {
+						if (!viewIsMounted()) return;
+						context.remove(this);
+					});
+				});
 			return;
 		}
 		this.tryToHandleWithBoundary(object);
@@ -25,8 +37,10 @@ class ErrorBoundary extends Component implements Boundary {
 
 	function render() {
 		return switch status() {
-			case Ok: child;
-			case Caught(c, e): fallback(c, e);
+			case Ok:
+				child;
+			case Caught(c, e):
+				fallback(c, e);
 		}
 	}
 }

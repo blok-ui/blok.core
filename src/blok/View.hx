@@ -32,7 +32,7 @@ abstract class View implements Disposable implements DisposableHost {
 	final __disposables:DisposableCollection = new DisposableCollection();
 
 	public function mount(adaptor:Adaptor, parent:Null<View>, slot:Null<Slot>) {
-		attachToViewTree(adaptor, parent, slot);
+		__prepareViewForInitialization(adaptor, parent, slot);
 
 		__status = Rendering;
 		__renderMode = Normal;
@@ -46,7 +46,7 @@ abstract class View implements Disposable implements DisposableHost {
 	}
 
 	public function hydrate(cursor:Cursor, adaptor:Adaptor, parent:Null<View>, slot:Null<Slot>) {
-		attachToViewTree(adaptor, parent, slot);
+		__prepareViewForInitialization(adaptor, parent, slot);
 
 		__status = Rendering;
 		__renderMode = Hydrating;
@@ -60,7 +60,7 @@ abstract class View implements Disposable implements DisposableHost {
 	}
 
 	public function replace(adaptor:Adaptor, parent:Null<View>, other:View, slot:Null<Slot>) {
-		attachToViewTree(adaptor, parent, slot);
+		__prepareViewForInitialization(adaptor, parent, slot);
 
 		__status = Rendering;
 		__renderMode = Normal;
@@ -78,14 +78,15 @@ abstract class View implements Disposable implements DisposableHost {
 	}
 
 	public function moveAndUpdate(adaptor:Adaptor, parent:Null<View>, node:VNode, slot:Null<Slot>) {
+		assert(__mounted != Unmounted, 'Attempted to move a view that has not been mounted');
 		__mounted = Mounted(parent, adaptor);
 		if (__slot.changed(slot)) updateSlot(slot);
 		update(node);
 	}
 
-	function attachToViewTree(adaptor:Adaptor, parent:Null<View>, slot:Null<Slot>) {
+	@:noCompletion
+	function __prepareViewForInitialization(adaptor:Adaptor, parent:Null<View>, slot:Null<Slot>) {
 		assert(__mounted == Unmounted, 'Attempted to initialize a component that has already been mounted');
-
 		__mounted = Mounted(parent, adaptor);
 		__slot = slot;
 	}
@@ -125,6 +126,7 @@ abstract class View implements Disposable implements DisposableHost {
 
 		if (__status != Invalid) {
 			validateInvalidChildren();
+			__cleanupAfterValidation();
 			return;
 		}
 

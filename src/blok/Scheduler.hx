@@ -24,14 +24,18 @@ class Scheduler {
 
 	public function new() {}
 
-	public function schedule(item:() -> Void) {
+	public function schedule(effect:() -> Void) {
 		if (onUpdate == null) {
 			onUpdate = [];
-			onUpdate.push(item);
+			onUpdate.push(effect);
 			later(doUpdate);
 		} else {
-			onUpdate.push(item);
+			onUpdate.push(effect);
 		}
+	}
+
+	public function scheduleNextTime(effect:() -> Void) {
+		schedule(() -> schedule(effect));
 	}
 
 	function later(exec:() -> Void) {

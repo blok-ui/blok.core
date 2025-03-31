@@ -67,6 +67,29 @@ class SuspenseSuite extends Suite {
 		});
 	}
 
+	@:test(expects = 1)
+	function errorBoundariesWillTryToPassSuspenseExceptionsUpwards() {
+		return new Future(activate -> {
+			var document = new ElementPrimitive('#document');
+			var resource = new Resource(() -> new Task(activate -> {
+				Timer.delay(() -> activate(Ok('Hello world')), 100);
+			}));
+			mount(document, SuspenseBoundary.node({
+				onComplete: () -> {
+					document.toString({includeTextMarkers: false}).equals('Hello world');
+					activate(Nothing);
+				},
+				fallback: () -> 'Loading...',
+				child: Scope
+					.wrap(_ -> resource())
+					.inErrorBoundary((component, e) -> {
+						Assert.fail('Error boundary was used instead');
+						'Fail';
+					})
+			}));
+		});
+	}
+
 	@:test(expects = 2)
 	function suspenseBoundaryWillNotTriggerOnCompleteIfResourceFails() {
 		return new Future(activate -> {
@@ -151,8 +174,8 @@ class SuspenseSuite extends Suite {
 		});
 	}
 
-	@:test(expects = 3)
-	function suspenseBoundaryContextWillNotTriggerOnCompleteIfResourceFails() {
+	@:test(expects = 4)
+	function suspenseBoundaryContextWillTriggerOnCompleteIfResourceFails() {
 		return new Future(activate -> {
 			var document = new ElementPrimitive('#document');
 			var resource = new Resource<String>(() -> new Task(activate -> {
@@ -163,7 +186,10 @@ class SuspenseSuite extends Suite {
 			mount(document, Provider
 				.provide(new SuspenseBoundaryContext({
 					onSuspended: () -> Assert.pass(),
-					onComplete: () -> Assert.fail('Should not run on complete')
+					onComplete: () -> {
+						Assert.pass();
+						activate(Nothing);
+					}
 				}))
 				.child(SuspenseBoundary.node({
 					onSuspended: () -> Assert.pass(),
@@ -173,22 +199,24 @@ class SuspenseSuite extends Suite {
 				.node()
 				.inErrorBoundary((component, e) -> {
 					e.message.equals('Failed intentionally');
-					Scheduler.current().schedule(() -> activate(Nothing));
 					Placeholder.node();
 				})
 			);
 		});
 	}
 
-	@:test(expects = 1)
-	function suspenseBoundaryContextWillNotTriggerOnCompleteIfResourceFailsImmediately() {
+	@:test(expects = 2)
+	function suspenseBoundaryContextWillTriggerOnCompleteIfResourceFailsImmediately() {
 		return new Future(activate -> {
 			var document = new ElementPrimitive('#document');
 			var resource = new Resource<String>(() -> Task.error(new Error(InternalError, 'Failed intentionally')));
 			mount(document, Provider
 				.provide(new SuspenseBoundaryContext({
 					onSuspended: () -> Assert.fail('Should not have suspended'),
-					onComplete: () -> Assert.fail('Should not run on complete')
+					onComplete: () -> {
+						Assert.pass();
+						activate(Nothing);
+					}
 				}))
 				.child(SuspenseBoundary.node({
 					onSuspended: () -> Assert.fail('Should not have suspended'),
@@ -198,7 +226,6 @@ class SuspenseSuite extends Suite {
 				.node()
 				.inErrorBoundary((component, e) -> {
 					e.message.equals('Failed intentionally');
-					Scheduler.current().schedule(() -> activate(Nothing));
 					Placeholder.node();
 				})
 			);

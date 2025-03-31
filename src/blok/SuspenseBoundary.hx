@@ -61,20 +61,18 @@ class SuspenseBoundary extends View implements Boundary {
 		return new VComponent(componentType, props, SuspenseBoundary.new, key);
 	}
 
+	final controller:ReplaceableViewController;
+
 	var child:Child;
 	var fallback:() -> Child;
-	var hydrating:Bool = false;
 	var suspenseStatus:SuspenseBoundaryStatus = Ok;
-	var hiddenRoot:Null<View> = null;
-	var hiddenSlot:Null<Slot> = null;
-	var realChild:Null<View> = null;
-	var currentChild:Null<View> = null;
 	var onComplete:Null<() -> Void>;
 	var onSuspended:Null<() -> Void>;
 	var overridable:Bool;
 
 	function new(node) {
 		__node = node;
+		controller = new ReplaceableViewController(this);
 		var props:SuspenseBoundaryProps = __node.getProps();
 		this.child = props.child;
 		this.fallback = props.fallback;
@@ -119,20 +117,11 @@ class SuspenseBoundary extends View implements Boundary {
 	function setActiveChild() {
 		if (!viewIsMounted()) return;
 
-		var adaptor = getAdaptor();
-
 		switch suspenseStatus {
-			case Suspended(_) | Errored if (currentChild != realChild):
 			case Suspended(_) | Errored:
-				realChild.updateSlot(hiddenSlot);
-				currentChild = fallback().createView();
-				currentChild.mount(adaptor, this, __slot);
-			case Ok if (currentChild != realChild):
-				currentChild?.dispose();
-				currentChild = realChild;
-				realChild.updateSlot(__slot);
+				controller.hide(fallback);
 			case Ok:
-				realChild.updateSlot(__slot);
+				controller.show();
 		}
 	}
 
@@ -141,28 +130,19 @@ class SuspenseBoundary extends View implements Boundary {
 		getAdaptor().schedule(setActiveChild);
 	}
 
-	function setupHiddenRoot() {
-		var adaptor = getAdaptor();
-
-		hiddenRoot = Root.node({
-			target: adaptor.createContainerPrimitive({}),
-			child: Placeholder.node()
-		}).createView();
-
-		hiddenRoot.mount(adaptor, null, null);
-		hiddenSlot = createSlot(1, hiddenRoot.findChildOfType(Placeholder).unwrap());
-	}
-
 	public function handle(component:View, object:Any) {
 		if (!(object is SuspenseException)) {
 			suspenseStatus = Errored;
-			triggerOnErrored();
+			getAdaptor().scheduleNextTime(() -> {
+				if (!viewIsMounted()) return;
+				SuspenseBoundaryContext.maybeFrom(this).inspect(context -> context.remove(this));
+			});
 			this.tryToHandleWithBoundary(object);
 			return;
 		}
 
 		// @todo: Allow this in the future? Somehow?
-		if (hydrating) error('SuspenseBoundary suspended during hydration.');
+		if (viewIsHydrating()) error('SuspenseBoundary suspended during hydration.');
 
 		if (overridable) switch SuspenseBoundary.maybeFrom(this) {
 			case Some(boundary):
@@ -235,12 +215,6 @@ class SuspenseBoundary extends View implements Boundary {
 		}
 	}
 
-	function triggerOnErrored() {
-		SuspenseBoundaryContext
-			.maybeFrom(this)
-			.inspect(context -> context.addErrored(this));
-	}
-
 	function triggerOnSuspended() {
 		if (onSuspended != null) onSuspended();
 		SuspenseBoundaryContext
@@ -262,10 +236,9 @@ class SuspenseBoundary extends View implements Boundary {
 	}
 
 	function __initialize() {
-		setupHiddenRoot();
-
-		currentChild = realChild = child.createView();
-		realChild.mount(getAdaptor(), this, __slot);
+		var view = child.createView();
+		controller.setup(view);
+		view.mount(getAdaptor(), this, __slot);
 
 		setActiveChild();
 
@@ -273,19 +246,16 @@ class SuspenseBoundary extends View implements Boundary {
 	}
 
 	function __hydrate(cursor:Cursor) {
-		hydrating = true;
-		setupHiddenRoot();
-
-		currentChild = realChild = child.createView();
-		realChild.hydrate(cursor, getAdaptor(), this, __slot);
-		hydrating = false;
+		var view = child.createView();
+		controller.setup(view);
+		view.hydrate(cursor, getAdaptor(), this, __slot);
 
 		if (suspenseStatus.equals(Ok)) scheduleOnComplete();
 	}
 
 	function __update() {
 		if (!updateProps()) return;
-		realChild.update(child);
+		controller.current().update(child);
 		setActiveChild();
 	}
 
@@ -298,21 +268,15 @@ class SuspenseBoundary extends View implements Boundary {
 			case Some(context): context.remove(this);
 			case None:
 		}
-		hiddenRoot?.dispose();
-		hiddenRoot = null;
-		hiddenSlot = null;
-		realChild.dispose();
-		if (currentChild != realChild) currentChild?.dispose();
-		currentChild = null;
+		controller.dispose();
 	}
 
 	function __updateSlot(oldSlot:Null<Slot>, newSlot:Null<Slot>) {
-		currentChild?.updateSlot(newSlot);
+		controller.current()?.updateSlot(newSlot);
 	}
 
 	public function getPrimitive():Dynamic {
-		assert(currentChild != null);
-		return currentChild.getPrimitive();
+		return controller.current()?.getPrimitive();
 	}
 
 	public function canBeUpdatedByNode(node:VNode):Bool {
@@ -320,7 +284,7 @@ class SuspenseBoundary extends View implements Boundary {
 	}
 
 	public function visitChildren(visitor:(child:View) -> Bool) {
-		if (currentChild != null) visitor(currentChild);
+		if (controller.current() != null) visitor(controller.current());
 	}
 }
 

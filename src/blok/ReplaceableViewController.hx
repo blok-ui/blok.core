@@ -44,6 +44,14 @@ class ReplaceableViewController implements Disposable {
 		};
 	}
 
+	public function real() {
+		return switch status {
+			case Pending | Disposed: null;
+			case Visible(view): view;
+			case Hidden(_, view): view;
+		};
+	}
+
 	public function hide(placeholder:() -> Child) {
 		if (!parent.viewIsMounted()) return;
 

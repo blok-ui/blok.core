@@ -255,7 +255,7 @@ class SuspenseBoundary extends View implements Boundary {
 
 	function __update() {
 		if (!updateProps()) return;
-		controller.current().update(child);
+		controller.real()?.update(child);
 		setActiveChild();
 	}
 

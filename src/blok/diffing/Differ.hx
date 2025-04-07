@@ -16,21 +16,6 @@ function updateView(parent:View, view:Null<View>, node:Null<VNode>, slot:Null<Sl
 		return view;
 	}
 
-	// if (view != null) {
-	// 	// @todo: Should we check for `__slot.changed` inside `updateSlot`?
-	// 	// Was there a reason I *didn't* do this?
-	// 	if (view.__node == node) {
-	// 		if (view.__slot.changed(slot)) view.updateSlot(slot);
-	// 		return view;
-	// 	}
-
-	// 	if (canBeUpdatedByNode(view, node)) {
-	// 		if (view.__slot.changed(slot)) view.updateSlot(slot);
-	// 		view.update(node);
-	// 		return view;
-	// 	}
-	// }
-
 	var newView = node.createView();
 
 	if (view == null) {
@@ -39,7 +24,6 @@ function updateView(parent:View, view:Null<View>, node:Null<VNode>, slot:Null<Sl
 	}
 
 	newView.replace(adaptor, parent, view, slot);
-	// newView.mount(adaptor, parent, slot);
 	return newView;
 }
 

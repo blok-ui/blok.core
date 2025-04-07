@@ -38,8 +38,7 @@ abstract VShow(VShowData) {
 		return abstract;
 	}
 
-	@:to
-	public inline function node():Child {
+	@:to public inline function node():Child {
 		return Show.node({
 			condition: this.condition,
 			child: this.child,
@@ -47,8 +46,7 @@ abstract VShow(VShowData) {
 		});
 	}
 
-	@:to
-	public inline function toChildren():Children {
+	@:to public inline function toChildren():Children {
 		return node();
 	}
 }

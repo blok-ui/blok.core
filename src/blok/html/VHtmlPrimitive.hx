@@ -8,47 +8,37 @@ import blok.signal.Signal;
 
 using Reflect;
 
-abstract VHtmlPrimitive(VPrimitiveView) to Child to VPrimitiveView to VNode {
-	public function new(type, tag, ?props, ?children, ?key) {
-		this = new VPrimitiveView(type, tag, props, children, key);
-	}
-
+class VHtmlPrimitive extends VPrimitiveView {
 	public function attr(name:AttributeName<GlobalAttributes>, value:ReadOnlySignal<String>) {
-		if (name == 'class' && this.props.hasField('class')) {
-			var prev:ReadOnlySignal<String> = this.props.field(name);
-			this.props.setField(name, new Computation(() -> prev() + ' ' + value()));
-			return abstract;
+		if (name == 'class' && props.hasField('class')) {
+			var prev:ReadOnlySignal<String> = props.field(name);
+			props.setField(name, new Computation(() -> prev() + ' ' + value()));
+			return this;
 		}
 
-		this.props.setField(name, value);
-		return abstract;
+		props.setField(name, value);
+		return this;
 	}
 
 	public function on(event:AttributeName<HtmlEvents>, handler:ReadOnlySignal<EventListener>) {
-		this.props.setField(event, handler);
-		return abstract;
+		props.setField(event, handler);
+		return this;
 	}
 
-	public function key(key:Key) {
-		this.props.setField('key', key);
-		return abstract;
+	public function withKey(key:Key) {
+		props.setField('key', key);
+		return this;
 	}
 
 	public function child(...children:Child) {
 		for (child in children) if (child.type == Fragment.componentType) {
-			abstract.child(...child.getProps().children);
+			this.child(...child.getProps().children);
 		} else {
 			this.children.push(child);
 		}
-		return abstract;
+		return this;
 	}
 
-	@:to
-	public inline function toChildren():Children {
-		return node();
-	}
-
-	@:to
 	public inline function node():Child {
 		return this;
 	}

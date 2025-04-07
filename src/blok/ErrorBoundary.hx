@@ -30,7 +30,6 @@ class ErrorBoundary extends View implements Boundary {
 
 	final controller:ReplaceableViewController;
 
-	var status:ErrorBoundaryStatus = Ok;
 	var child:Child;
 	var fallback:(component:View, e:Exception) -> Child;
 
@@ -49,7 +48,6 @@ class ErrorBoundary extends View implements Boundary {
 		}
 
 		if (object is Exception) {
-			status = Caught(component, object);
 			controller.hide(() -> fallback(component, object));
 			return;
 		}

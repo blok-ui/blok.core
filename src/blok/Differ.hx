@@ -12,7 +12,7 @@ function updateView(parent:View, view:Null<View>, node:Null<VNode>, slot:Null<Sl
 	var adaptor = parent.getAdaptor();
 
 	if (view != null && canBeUpdatedByNode(view, node)) {
-		view.moveAndUpdate(adaptor, parent, node, slot);
+		view.remount(adaptor, parent, node, slot);
 		return view;
 	}
 

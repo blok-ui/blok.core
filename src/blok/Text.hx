@@ -7,7 +7,7 @@ using blok.PrimitiveHostTools;
 
 abstract Text(VNode) to VNode from VNode {
 	@:from public static function ofString(value:String):Text {
-		return TextComponent.node(value);
+		return TextView.node(value);
 	}
 
 	@:from public inline static function ofSignal(signal:ReadOnlySignal<String>):Text {
@@ -27,15 +27,15 @@ abstract Text(VNode) to VNode from VNode {
 	}
 
 	private function new(value, ?key) {
-		this = TextComponent.node(value, key);
+		this = TextView.node(value, key);
 	}
 }
 
-class TextComponent extends View implements PrimitiveHost {
+class TextView extends View implements PrimitiveHost {
 	public static final componentType = new UniqueId();
 
 	public static function node(value:String, ?key:Key) {
-		return new VComponent(componentType, {value: value}, TextComponent.new, key);
+		return new VComponent(componentType, {value: value}, TextView.new, key);
 	}
 
 	var primitive:Null<Dynamic> = null;

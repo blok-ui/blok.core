@@ -45,6 +45,13 @@ abstract class View implements Disposable implements DisposableHost {
 		__cleanupAfterValidation();
 	}
 
+	public function remount(adaptor:Adaptor, parent:Null<View>, node:VNode, slot:Null<Slot>) {
+		assert(__mounted != Unmounted, 'Attempted to remount a view that has not been mounted');
+		__mounted = Mounted(parent, adaptor);
+		if (__slot.changed(slot)) updateSlot(slot);
+		update(node);
+	}
+
 	public function hydrate(cursor:Cursor, adaptor:Adaptor, parent:Null<View>, slot:Null<Slot>) {
 		__prepareViewForInitialization(adaptor, parent, slot);
 
@@ -77,20 +84,6 @@ abstract class View implements Disposable implements DisposableHost {
 		__cleanupAfterValidation();
 	}
 
-	public function moveAndUpdate(adaptor:Adaptor, parent:Null<View>, node:VNode, slot:Null<Slot>) {
-		assert(__mounted != Unmounted, 'Attempted to move a view that has not been mounted');
-		__mounted = Mounted(parent, adaptor);
-		if (__slot.changed(slot)) updateSlot(slot);
-		update(node);
-	}
-
-	@:noCompletion
-	function __prepareViewForInitialization(adaptor:Adaptor, parent:Null<View>, slot:Null<Slot>) {
-		assert(__mounted == Unmounted, 'Attempted to initialize a component that has already been mounted');
-		__mounted = Mounted(parent, adaptor);
-		__slot = slot;
-	}
-
 	public function update(node:VNode) {
 		assert(__status != Rendering);
 
@@ -104,6 +97,13 @@ abstract class View implements Disposable implements DisposableHost {
 		__node = node;
 		__update();
 		__cleanupAfterValidation();
+	}
+
+	@:noCompletion
+	function __prepareViewForInitialization(adaptor:Adaptor, parent:Null<View>, slot:Null<Slot>) {
+		assert(__mounted == Unmounted, 'Attempted to initialize a component that has already been mounted');
+		__mounted = Mounted(parent, adaptor);
+		__slot = slot;
 	}
 
 	public function invalidate() {

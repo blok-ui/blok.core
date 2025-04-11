@@ -1,7 +1,6 @@
 package blok.html;
 
 import blok.signal.Signal;
-import blok.diffing.Key;
 
 // Taken from: https://github.com/haxetink/tink_domspec/blob/master/src/tink/domspec/Aria.hx
 typedef AriaAttributes = {

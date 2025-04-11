@@ -1,6 +1,5 @@
 package blok.html;
 
-import blok.diffing.Key;
 import blok.html.HtmlAttributes;
 import blok.html.HtmlEvents;
 import blok.signal.Computation;

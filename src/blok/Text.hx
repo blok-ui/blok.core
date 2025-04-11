@@ -1,7 +1,6 @@
 package blok;
 
 import blok.debug.Debug;
-import blok.diffing.Key;
 import blok.signal.Signal;
 
 using blok.PrimitiveHostTools;

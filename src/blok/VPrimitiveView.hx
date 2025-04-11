@@ -1,7 +1,5 @@
 package blok;
 
-import blok.diffing.Key;
-
 class VPrimitiveView implements VNode {
 	public final type:UniqueId;
 	public final key:Null<Key>;

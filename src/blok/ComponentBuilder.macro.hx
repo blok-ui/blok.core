@@ -67,11 +67,11 @@ class ComponentBuilder implements BuildBundle implements BuildStep {
 		var props = builder.hook(Init).getProps().concat(builder.hook(LateInit).getProps());
 		var propType:ComplexType = TAnonymous(props);
 		var markupType = TAnonymous(props.concat((macro class {
-			@:optional public final key:blok.diffing.Key;
+			@:optional public final key:blok.Key;
 		}).fields));
 		var constructors = macro class {
 			@:noUsing
-			public static function node(props:$propType, ?key:Null<blok.diffing.Key>):blok.VNode {
+			public static function node(props:$propType, ?key:Null<blok.Key>):blok.VNode {
 				return new blok.VComponent(componentType, props, $i{cls.name}.new, key);
 			}
 
@@ -103,20 +103,22 @@ class ComponentBuilder implements BuildBundle implements BuildStep {
 				});
 		}
 
-		// Note: Setting position to `(macro null).pos` here is not ideal,
-		// but it avoids some weird completion bugs. Likely there is something else
-		// I'm doing here that is making things go wrong. Investigate.
 		builder.addField(constructors
 			.getField('node')
 			.unwrap()
-			.withPos((macro null).pos)
 			.applyParameters(createParams));
 
 		if (options.createFromMarkupMethod) {
+			var infos = haxe.macro.Context.getPosInfos(cls.pos);
 			builder.addField(constructors
 				.getField('__fromMarkup')
 				.unwrap()
-				.withPos(cls.pos)
+					// Not sure about this positioning thing...
+				.withPos(haxe.macro.Context.makePosition({
+					min: infos.min,
+					max: infos.min + 1,
+					file: infos.file
+				}))
 				.applyParameters(createParams));
 		}
 

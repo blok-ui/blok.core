@@ -1,7 +1,7 @@
 package blok;
 
+import blok.Differ;
 import blok.debug.Debug;
-import blok.diffing.Differ;
 import blok.signal.Computation;
 
 using blok.BoundaryTools;

@@ -1,6 +1,6 @@
 package blok;
 
-import blok.diffing.Differ;
+import blok.Differ;
 
 class Fragment extends View {
 	public static final componentType = new UniqueId();

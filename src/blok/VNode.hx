@@ -1,7 +1,5 @@
 package blok;
 
-import blok.diffing.Key;
-
 interface VNode {
 	public final type:UniqueId;
 	public final key:Null<Key>;

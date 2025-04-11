@@ -28,14 +28,14 @@ class ErrorBoundary extends View implements Boundary {
 		return new VComponent(componentType, props, ErrorBoundary.new, key);
 	}
 
-	final controller:ReplaceableViewController;
+	final replaceable:Replaceable;
 
 	var child:Child;
 	var fallback:(component:View, e:Exception) -> Child;
 
 	public function new(node) {
 		__node = node;
-		controller = new ReplaceableViewController(this);
+		replaceable = new Replaceable(this);
 		updateProps();
 	}
 
@@ -48,7 +48,7 @@ class ErrorBoundary extends View implements Boundary {
 		}
 
 		if (object is Exception) {
-			controller.hide(() -> fallback(component, object));
+			replaceable.hide(() -> fallback(component, object));
 			return;
 		}
 
@@ -74,36 +74,36 @@ class ErrorBoundary extends View implements Boundary {
 
 	function __initialize() {
 		var view = child.createView();
-		controller.setup(view);
+		replaceable.setup(view);
 		view.mount(getAdaptor(), this, __slot);
 	}
 
 	function __hydrate(cursor:Cursor) {
 		var view = child.createView();
-		controller.setup(view);
+		replaceable.setup(view);
 		view.hydrate(cursor, getAdaptor(), this, __slot);
 	}
 
 	function __update() {
 		if (!updateProps()) return;
-		controller.real()?.update(child);
-		controller.show();
+		replaceable.real()?.update(child);
+		replaceable.show();
 	}
 
 	function __validate() {
-		controller.show();
+		replaceable.show();
 	}
 
 	function __dispose() {
-		controller.dispose();
+		replaceable.dispose();
 	}
 
 	function __updateSlot(oldSlot:Null<Slot>, newSlot:Null<Slot>) {
-		controller.current().updateSlot(newSlot);
+		replaceable.current().updateSlot(newSlot);
 	}
 
 	public function getPrimitive():Dynamic {
-		return controller.current().getPrimitive();
+		return replaceable.current().getPrimitive();
 	}
 
 	public function canBeUpdatedByNode(node:VNode):Bool {
@@ -111,6 +111,6 @@ class ErrorBoundary extends View implements Boundary {
 	}
 
 	public function visitChildren(visitor:(child:View) -> Bool) {
-		if (controller.current() != null) visitor(controller.current());
+		if (replaceable.current() != null) visitor(replaceable.current());
 	}
 }

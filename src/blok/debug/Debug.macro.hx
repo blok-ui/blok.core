@@ -18,7 +18,7 @@ function warn(e) {
 function error(message:ExprOf<String>) {
 	var type = Context.getLocalType();
 	if (Context.unify(type, (macro :blok.View).toType())) {
-		return macro @:pos(message.pos) throw new blok.BlokException.BlokComponentException($message, this);
+		return macro @:pos(message.pos) throw new blok.BlokException.BlokViewException($message, this);
 	}
 	return macro @:pos(message.pos) throw new blok.BlokException($message);
 }

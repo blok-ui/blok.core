@@ -7,26 +7,26 @@ using Type;
 
 class BlokException extends Exception {}
 
-class BlokComponentException extends BlokException {
-	public function new(message, component:View) {
+class BlokViewException extends BlokException {
+	public function new(message, view:View) {
 		super([
 			message,
 			'',
 			'Component tree:',
 			'',
-			getComponentDescription(component)
+			getComponentDescription(view)
 		].join('\n'));
 	}
 }
 
 @:nullSafety(Off)
-function getComponentDebugName(component:View) {
-	return component.getClass().getClassName();
+function getComponentDebugName(view:View) {
+	return view.getClass().getClassName();
 }
 
-function getComponentDescription(component:View):String {
-	var name = getComponentDebugName(component);
-	var ancestor = try component.getParent().unwrap() catch (e) null;
+function getComponentDescription(view:View):String {
+	var name = getComponentDebugName(view);
+	var ancestor = try view.getParent().unwrap() catch (e) null;
 	var stack = [while (ancestor != null) {
 		var name = getComponentDebugName(ancestor);
 		ancestor = try ancestor.getParent().unwrap() catch (e) null;

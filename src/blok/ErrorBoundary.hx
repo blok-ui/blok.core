@@ -1,5 +1,6 @@
 package blok;
 
+import blok.engine.*;
 import haxe.Exception;
 
 using blok.BoundaryTools;

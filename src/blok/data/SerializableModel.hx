@@ -1,8 +1,10 @@
 package blok.data;
 
-@:autoBuild(blok.data.ModelBuilder.buildWithoutJsonSerializer())
-abstract class UnserializableModel implements Disposable implements DisposableHost {
+@:autoBuild(blok.data.ModelBuilder.buildWithJsonSerializer())
+abstract class SerializableModel implements Disposable implements DisposableHost {
 	final disposables:DisposableCollection = new DisposableCollection();
+
+	abstract public function toJson():Dynamic;
 
 	public function addDisposable(disposable:DisposableItem):Void {
 		disposables.addDisposable(disposable);

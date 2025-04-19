@@ -1,9 +1,9 @@
 package blok;
 
-import blok.Differ;
 import blok.debug.Debug;
 import blok.signal.Observer;
 import blok.signal.Signal;
+import blok.engine.*;
 
 using blok.PrimitiveHostTools;
 
@@ -103,11 +103,11 @@ class PrimitiveView extends View implements PrimitiveHost {
 
 	function __update() {
 		observeAttributes();
-		children = diffChildren(this, children, resolveChildren());
+		children = Differ.diffChildren(this, children, resolveChildren());
 	}
 
 	function __validate() {
-		children = diffChildren(this, children, resolveChildren());
+		children = Differ.diffChildren(this, children, resolveChildren());
 	}
 
 	function __dispose() {

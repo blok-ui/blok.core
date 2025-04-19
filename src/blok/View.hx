@@ -1,6 +1,7 @@
 package blok;
 
 import blok.debug.Debug;
+import blok.engine.Cursor;
 
 enum ViewMountedStatus {
 	Unmounted;
@@ -113,9 +114,9 @@ abstract class View implements Disposable implements DisposableHost {
 
 		switch getParent() {
 			case None:
-				scheduleValidation();
+				__scheduleValidation();
 			case Some(parent):
-				parent.scheduleChildForValidation(this);
+				parent.__scheduleChildForValidation(this);
 		}
 	}
 
@@ -125,7 +126,7 @@ abstract class View implements Disposable implements DisposableHost {
 		assert(__status != Disposed, 'Attempted to validate a Component that was disposed');
 
 		if (__status != Invalid) {
-			validateInvalidChildren();
+			__validateInvalidChildren();
 			__cleanupAfterValidation();
 			return;
 		}
@@ -252,18 +253,18 @@ abstract class View implements Disposable implements DisposableHost {
 		}
 	}
 
-	function createSlot(index:Int, previous:Null<View>):Slot {
+	public function createSlot(index:Int, previous:Null<View>):Slot {
 		return new Slot(index, previous);
 	}
 
-	function updateSlot(slot:Null<Slot>):Void {
+	public function updateSlot(slot:Null<Slot>):Void {
 		if (__slot == slot) return;
 		var oldSlot = __slot;
 		__slot = slot;
 		__updateSlot(oldSlot, __slot);
 	}
 
-	function scheduleValidation() {
+	function __scheduleValidation() {
 		var adaptor = getAdaptor();
 		adaptor.schedule(() -> validate());
 	}
@@ -274,7 +275,7 @@ abstract class View implements Disposable implements DisposableHost {
 		if (__status != Invalid) __status = Valid;
 	}
 
-	function scheduleChildForValidation(child:View) {
+	function __scheduleChildForValidation(child:View) {
 		if (__status == Invalid) return;
 		if (__invalidChildren.contains(child)) return;
 
@@ -282,13 +283,13 @@ abstract class View implements Disposable implements DisposableHost {
 
 		switch getParent() {
 			case None:
-				scheduleValidation();
+				__scheduleValidation();
 			case Some(parent):
-				parent.scheduleChildForValidation(this);
+				parent.__scheduleChildForValidation(this);
 		}
 	}
 
-	function validateInvalidChildren() {
+	function __validateInvalidChildren() {
 		if (__invalidChildren.length == 0) return;
 
 		var children = __invalidChildren.copy();

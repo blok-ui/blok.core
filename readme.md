@@ -87,7 +87,115 @@ If you run this code, you'll notice something: it traces "foo", "foobar" and fin
 
 Note that when signals change their Observers will update *asynchronously* since Blok uses a scheduling mechanism behind the scenes. This is to ensure that other asynchronous events, like HTTP requests, don't update out of order and potentially cause strange behavior.
 
-> Todo: Explain `Computation`, especially the fact that it *can* update synchronously when it's accessed.
+## Computations
+
+If you need to change the value of a signal while keeping it reactive, you can use the `Signal.map` method:
+
+```haxe
+var continue:Signal<Bool> = false;
+var stop:Computation<Bool> = signal.map(status -> !status);
+```
+
+Under the hood this uses a `blok.signal.Computation`, a class that works a bit like an `Observer` that returns a value. For example:
+
+```haxe
+var a = new Signal(1);
+var b = new Signal(2);
+var sum = new Computation(() -> a() + b());
+
+Observer.track(() -> trace(sum()));
+// will trace 3
+a.set(2);
+// will trace 4
+```
+
+Unlike Observers, Computations keep track of their producers and consumers. Should a Computation ever reach a state where it no longer has any consumers, it will stop being live and will remove itself from the reactive graph, freeing itself up to be garbage collected. This means you don't need to worry about manually disposing Computations. This is not always desirable (as you will often want a Computation to stay live even if it doesn't have any consumers), in which case you can use the `Computation.persist(...)` static method. Note that Computations created this way *must* be manually disposed *and* will not be observable themselves. Think of an persistent Computation as an Observer that can return a value.
+
+```haxe
+var a = new Signal(1);
+var b = new Signal(2);
+var sum = new Computation(() -> a() + b());
+
+// We're calling this outside an Observer, which means `sum` has no consumers. As a result
+// it will be computed once and then disconnected.
+trace(sum()); // -> 3
+a.set(2);
+// `sum` is no longer live, which means it has been removed from the reactive graph. As a result,
+// the value has not been changed.
+trace(sum()); // -> 3
+
+var sum2 = Computation.persist(() -> a() + b());
+
+trace(sum2()); // -> 4
+a.set(3);
+// Because we're using an persistent Computation it is always live and thus
+// does change when our signals do:
+trace(sum2()); // -> 5
+
+// Remember to dispose persistent computations yourself, if you're not in a context where this
+// is handled!
+sum2.dispose();
+```
+
+Another important detail is that Computations are not always async -- they can also be validated on-demand, checking their producers for their most up-to-date values whenever they are called.
+
+## Ownership
+
+Lets talk a little more about disposing things, and why you typically won't need to do this yourself.
+
+A great many classes in Blok implement `blok.Disposable`, a simple interface that exposes a `dispose` method. The most common cases you'll come across are `blok.signal.Observable` and the persistent version of `blok.signal.Computation`. These examples can be disposed manually, but they also automatically add themselves to the current Ownership context, if one exists.
+
+To explain this, let's look at the `blok.Owner` class;
+
+```haxe
+var owner = new blok.Owner();
+
+// `capture` is a macro that sets the current Owner, runs a block of code, and then resets
+// the Owner to the previous Owner instance, if any.
+Owner.capture(owner, {
+  Owner.current() == owner; // -> true
+  Owner.current().addDisposable(() -> trace('foo'));
+});
+
+owner.dispose(); // Will trace "foo"
+```
+
+Observers and persistent Computations will add themselves to `Owner.current()`, if it's set, meaning that instead of having to keep track of a bunch of disposables you can just do this:
+
+```haxe
+var owner = new Owner();
+var a = new Signal(1);
+var b = new Signal(2);
+var sum = new Computation(() -> a() + b());
+
+Owner.capture(owner, {
+  Observer.track(() -> trace(sum()));
+});
+
+a.set(2);
+// will trace 4
+
+owner.dispose();
+
+a.set(3);
+// Nothing is traced -- the Observer was disposed.
+```
+
+You typically won't need to set this up yourself, but this is the mechanism being used behind the scenes to keep things tidy. Methods like `Component.setup`, `Component.render` and Model and Component constructors are run in Ownership contexts, so you can safely use Observers and persistent Computations there. If you're unsure if a method is in an ownership context you can call `Owner.isInOwnershipContext()` to check.
+
+If you want to make a class Owner aware, do the following:
+
+```haxe
+class Example implements Disposable {
+  public function new() {
+    Owner.current()?.addDisposable(this);
+  }
+
+  public function dispose() {
+    trace('Disposed');
+  }
+}
+```
 
 ## Components
 
@@ -174,8 +282,6 @@ This is roughly the same as creating an attribute wrapping a ReadOnlySignal, but
 
 Computed fields allow you to derive reactive values from any number of Signals.
 
-While you might be tempted to create Computations inside a render method, resist this impulse. Computations must be tracked, and every time a render method is re-run any tracked computation (or Observable) will be disposed. It's much more efficient to keep all your computations outside the render method and on your Component where they will only be created once.
-
 ```haxe
 @:signal final foo:String;
 @:computed final fooBar:String = foo() + ' bar';
@@ -245,9 +351,7 @@ If you're not using markup you can ignore this, but if you're making a library i
 
 ### Setup
 
-In addition to all the above features, Components also have a `setup` method you can implement if you need to. `setup` will be run once, **after** the Component has been mounted. This is a great place to initialize some external dependency, do something complex with the real DOM (using `getPrimitive`) or to enqueue some cleanup functions (via `addDisposable`).
-
-> Todo: More on all that soon!
+In addition to all the above features, Components also have a `setup` method you can implement if you need to. `setup` will be run once, **after** the Component has been mounted. This is a great place to initialize some external dependency, do something complex with the real DOM (using `getPrimitive`) or to enqueue some cleanup functions (via `addDisposable`). Setup is also run in an ownership context, so you can safely create `Observables` and similar objects there.
 
 ## Models and Objects
 

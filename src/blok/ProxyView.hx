@@ -1,8 +1,8 @@
 package blok;
 
-import blok.Differ;
 import blok.debug.Debug;
 import blok.signal.Computation;
+import blok.engine.*;
 
 using blok.BoundaryTools;
 
@@ -25,7 +25,7 @@ abstract class ProxyView extends View {
 	@:noCompletion function __createRendered() {
 		return Owner.capture(this, {
 			var isolate = new Isolate(render);
-			Computation.untracked(() -> switch __status {
+			Computation.persist(() -> switch __status {
 				case Disposing | Disposed:
 					Placeholder.node();
 				default:
@@ -72,7 +72,7 @@ abstract class ProxyView extends View {
 		__rendered = __createRendered();
 
 		proxy.__child = null;
-		__child = updateView(this, otherChild, __rendered.peek(), __slot);
+		__child = Differ.updateView(this, otherChild, __rendered.peek(), __slot);
 
 		Owner.capture(this, {
 			setup();
@@ -84,12 +84,12 @@ abstract class ProxyView extends View {
 	@:noCompletion function __update():Void {
 		assert(__rendered != null);
 		__updateProps();
-		__child = updateView(this, __child, __rendered.peek(), __slot);
+		__child = Differ.updateView(this, __child, __rendered.peek(), __slot);
 	}
 
 	@:noCompletion function __validate():Void {
 		assert(__rendered != null);
-		__child = updateView(this, __child, __rendered.peek(), __slot);
+		__child = Differ.updateView(this, __child, __rendered.peek(), __slot);
 	}
 
 	@:noCompletion function __updateSlot(oldSlot, newSlot:Null<Slot>) {

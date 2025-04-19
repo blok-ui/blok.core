@@ -2,6 +2,7 @@ package blok;
 
 import blok.debug.Debug;
 import blok.signal.Signal;
+import blok.engine.Cursor;
 
 using blok.PrimitiveHostTools;
 

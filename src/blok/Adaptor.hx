@@ -1,5 +1,7 @@
 package blok;
 
+import blok.engine.Cursor;
+
 interface Adaptor {
 	public function schedule(effect:() -> Void):Void;
 	public function scheduleEffect(effect:() -> Void):Void;

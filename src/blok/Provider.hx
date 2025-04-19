@@ -2,6 +2,7 @@ package blok;
 
 import blok.debug.Debug;
 import blok.Providable;
+import blok.engine.*;
 
 class Provider<T:Providable> extends Component {
 	public inline static function provide(value:Providable) {

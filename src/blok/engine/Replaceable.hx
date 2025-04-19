@@ -1,4 +1,4 @@
-package blok;
+package blok.engine;
 
 import blok.debug.Debug;
 

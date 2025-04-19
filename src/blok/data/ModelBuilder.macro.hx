@@ -7,7 +7,7 @@ import kit.macro.step.*;
 
 using haxe.macro.Tools;
 
-function buildWithoutJsonSerializer() {
+function build() {
 	return ClassBuilder.fromContext().addBundle(new ModelBuilder()).export();
 }
 

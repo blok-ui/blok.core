@@ -14,6 +14,10 @@ class Owner implements DisposableHost implements Disposable {
 		return currentOwner;
 	}
 
+	public static function isInOwnershipContext() {
+		return currentOwner != null;
+	}
+
 	public macro static function capture(owner, expr);
 
 	@:deprecated('Use Owner.capture instead')
@@ -31,7 +35,7 @@ class Owner implements DisposableHost implements Disposable {
 
 	public function new() {}
 
-	public inline function own<T>(scope:() -> T) {
+	public function own<T>(scope:() -> T) {
 		var prev = setCurrent(this);
 		var value = try scope() catch (e) {
 			setCurrent(prev);

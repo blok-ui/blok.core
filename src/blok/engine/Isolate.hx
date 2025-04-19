@@ -1,4 +1,4 @@
-package blok;
+package blok.engine;
 
 import blok.debug.Debug;
 
@@ -48,7 +48,10 @@ class IsolateImpl<T> implements Disposable {
 		}
 
 		#if debug
-		warn('Captured ${count} disposables while running an Isolate -- try to get this down to 0 for best performance');
+		warn(
+			'Captured ${count} disposables while running an Isolate -- try to get this down to 0 for best performance.'
+
+		);
 		#end
 
 		owner.dispose();

@@ -22,7 +22,6 @@ abstract Signal<T>(SignalObject<T>) to ReadOnlySignal<T> {
 		return this.peek();
 	}
 
-	@:deprecated('Use a Computation instead')
 	public inline function map<R>(transform:(value:T) -> R):ReadOnlySignal<R> {
 		return new Computation(() -> transform(get()));
 	}

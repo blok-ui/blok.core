@@ -10,7 +10,7 @@ class SimpleModel extends Model {
 	@:computed public final full:String = first + last();
 }
 
-class SimpleUnserializableModel extends UnserializableModel {
+class SimpleSerializableModel extends SerializableModel {
 	@:value public final first:String;
 	@:signal public final last:String;
 	@:computed public final full:String = first + last();

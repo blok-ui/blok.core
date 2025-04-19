@@ -1,4 +1,4 @@
-package blok;
+package blok.engine;
 
 interface Cursor {
 	public function current():Null<Dynamic>;

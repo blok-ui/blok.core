@@ -6,8 +6,13 @@ import haxe.Exception;
 
 @:forward
 abstract Computation<T>(ComputationObject<T>) from ComputationObject<T> to ReadOnlySignal<T> to DisposableItem to Disposable {
-	public static function untracked<T>(value, ?equal):Computation<T> {
+	public inline static function persist<T>(value, ?equal):Computation<T> {
 		return new ComputationObject(value, equal, true);
+	}
+
+	@:deprecated('Use `persist` instead.')
+	public inline static function untracked<T>(value, ?equal):Computation<T> {
+		return persist(value, equal);
 	}
 
 	public inline function new(value, ?equal) {

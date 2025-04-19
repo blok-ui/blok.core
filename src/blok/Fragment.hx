@@ -1,6 +1,6 @@
 package blok;
 
-import blok.Differ;
+import blok.engine.*;
 
 class Fragment extends View {
 	public static final componentType = new UniqueId();
@@ -80,7 +80,7 @@ class Fragment extends View {
 	}
 
 	function __update() {
-		children = diffChildren(this, children, render());
+		children = Differ.diffChildren(this, children, render());
 	}
 
 	function __validate() {

@@ -1,6 +1,5 @@
-package blok;
+package blok.engine;
 
-import blok.Cursor;
 import blok.debug.Debug;
 
 function updateView(parent:View, view:Null<View>, node:Null<VNode>, slot:Null<Slot>):Null<View> {

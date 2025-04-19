@@ -1,6 +1,6 @@
 package blok.html.client;
 
-import blok.Cursor;
+import blok.engine.Cursor;
 import js.html.Node;
 
 class ClientCursor implements Cursor {

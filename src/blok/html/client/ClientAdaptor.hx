@@ -2,6 +2,7 @@ package blok.html.client;
 
 import blok.Scheduler;
 import blok.debug.Debug;
+import blok.engine.*;
 import blok.html.HtmlEvents;
 import js.Browser;
 import js.html.Element;

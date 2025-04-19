@@ -8,7 +8,7 @@ using blok.engine.BoundaryTools;
 
 abstract class ComposableView extends View {
 	@:noCompletion var __child:Null<View> = null;
-	@:noCompletion var __rendered:Null<Computation<Null<VNode>>> = null;
+	@:noCompletion var __computedChild:Null<Computation<Null<VNode>>> = null;
 
 	abstract function setup():Void;
 
@@ -16,8 +16,9 @@ abstract class ComposableView extends View {
 
 	@:noCompletion abstract function __updateProps():Void;
 
-	@:noCompletion function __createRendered() {
-		return Owner.capture(this, {
+	@:noCompletion function __createComputedChild() {
+		assert(__computedChild == null);
+		__computedChild = Owner.capture(this, {
 			var isolate = new Isolate(render);
 			Computation.persist(() -> switch __status {
 				case Disposing | Disposed:
@@ -35,9 +36,8 @@ abstract class ComposableView extends View {
 	}
 
 	@:noCompletion function __initialize():Void {
-		assert(__rendered == null);
-		__rendered = __createRendered();
-		__child = __rendered.peek().createView();
+		__createComputedChild();
+		__child = __computedChild.peek().createView();
 		__child?.mount(getAdaptor(), this, __slot);
 		Owner.capture(this, {
 			setup();
@@ -45,9 +45,8 @@ abstract class ComposableView extends View {
 	}
 
 	@:noCompletion function __hydrate(cursor:Cursor):Void {
-		assert(__rendered == null);
-		__rendered = __createRendered();
-		__child = __rendered.peek().createView();
+		__createComputedChild();
+		__child = __computedChild.peek().createView();
 		__child?.hydrate(cursor, getAdaptor(), this, __slot);
 		Owner.capture(this, {
 			setup();
@@ -62,11 +61,10 @@ abstract class ComposableView extends View {
 		var proxy:ComposableView = cast other;
 		var otherChild = proxy.__child;
 
-		assert(__rendered == null);
-		__rendered = __createRendered();
+		__createComputedChild();
 
 		proxy.__child = null;
-		__child = Differ.updateView(getAdaptor(), this, otherChild, __rendered.peek(), __slot);
+		__child = Differ.updateView(getAdaptor(), this, otherChild, __computedChild.peek(), __slot);
 
 		Owner.capture(this, {
 			setup();
@@ -76,14 +74,14 @@ abstract class ComposableView extends View {
 	}
 
 	@:noCompletion function __update():Void {
-		assert(__rendered != null);
+		assert(__computedChild != null);
 		__updateProps();
-		__child = Differ.updateView(getAdaptor(), this, __child, __rendered.peek(), __slot);
+		__child = Differ.updateView(getAdaptor(), this, __child, __computedChild.peek(), __slot);
 	}
 
 	@:noCompletion function __validate():Void {
-		assert(__rendered != null);
-		__child = Differ.updateView(getAdaptor(), this, __child, __rendered.peek(), __slot);
+		assert(__computedChild != null);
+		__child = Differ.updateView(getAdaptor(), this, __child, __computedChild.peek(), __slot);
 	}
 
 	@:noCompletion function __updateSlot(oldSlot, newSlot:Null<Slot>) {
@@ -109,6 +107,6 @@ abstract class ComposableView extends View {
 	}
 
 	@:noCompletion function __dispose():Void {
-		__rendered = null;
+		__computedChild = null;
 	}
 }

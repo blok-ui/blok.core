@@ -1,12 +1,11 @@
 package blok;
 
-import blok.Boundary;
 import blok.Disposable;
 import blok.debug.Debug;
 import blok.engine.*;
 
 using Lambda;
-using blok.BoundaryTools;
+using blok.engine.BoundaryTools;
 
 enum SuspenseBoundaryStatus {
 	Ok;

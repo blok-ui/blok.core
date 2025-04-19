@@ -1,7 +1,6 @@
 package blok;
 
-import blok.Scheduler;
-import blok.Context;
+import blok.engine.*;
 
 @:fallback(new SuspenseBoundaryContext())
 class SuspenseBoundaryContext implements Context {

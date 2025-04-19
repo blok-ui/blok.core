@@ -4,7 +4,7 @@ import blok.debug.Debug;
 import blok.signal.Computation;
 import blok.engine.*;
 
-using blok.BoundaryTools;
+using blok.engine.BoundaryTools;
 
 /**
 	Implements basic functionality for views that return other views.

@@ -1,13 +1,13 @@
 package blok;
 
 @:forward
-abstract Children(Array<Child>) from Array<Child> to Array<Child> {
-	@:from public inline static function ofVNode(child:VNode):Children {
+abstract Children(Array<VNode>) from Array<Child> from Array<VNode> to Array<VNode> {
+	@:from public inline static function ofVNode<T:VNode>(child:T):Children {
 		return [child];
 	}
 
-	@:from public inline static function ofVNodeArray(children:Array<VNode>):Children {
-		return children.map(item -> (item : Child));
+	@:from public inline static function ofVNodes<T:VNode>(children:Array<T>):Children {
+		return (cast children : Array<VNode>);
 	}
 
 	@:from public inline static function ofChild(child:Child):Children {
@@ -16,6 +16,10 @@ abstract Children(Array<Child>) from Array<Child> to Array<Child> {
 
 	@:from public inline static function ofString(content:String):Children {
 		return [Text.node(content)];
+	}
+
+	public inline function new(children) {
+		this = children;
 	}
 
 	@:to public inline function toArray():Array<Child> {

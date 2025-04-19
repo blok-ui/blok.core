@@ -23,9 +23,19 @@ class Generator {
 	public function generate(nodes:Array<Node>) {
 		var exprs = [for (node in nodes) generateNode(node)];
 		return switch exprs {
-			case []: macro null;
-			case [expr]: expr;
-			case exprs: macro [$a{exprs}];
+			case []:
+				macro null;
+			case [expr]:
+				expr;
+			case exprs:
+				var infosStart = exprs[0].pos.getInfos();
+				var infosEnd = exprs[exprs.length - 1].pos.getInfos();
+				var pos = Context.makePosition({
+					min: infosStart.min,
+					max: infosEnd.max,
+					file: infosStart.file
+				});
+				macro @:pos(pos) [$a{exprs}];
 		}
 	}
 
@@ -138,7 +148,7 @@ class Generator {
 				}
 
 				args = args.concat(restArgs);
-				return macro $e($a{args});
+				return macro @:pos(node.pos) $e($a{args});
 			case NText(text):
 				macro blok.Text.node($v{text});
 			case NExpr(expr):

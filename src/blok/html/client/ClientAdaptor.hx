@@ -123,10 +123,6 @@ class ClientAdaptor implements Adaptor {
 		scheduler.scheduleEffect(effect);
 	}
 
-	public function scheduleNextTime(effect:() -> Void) {
-		scheduler.scheduleNextTime(effect);
-	}
-
 	function setAttribute(element:Element, name:String, ?value:Dynamic, ?namespace:String) {
 		var shouldRemove = value == null || (value is Bool && value == false);
 

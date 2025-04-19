@@ -3,7 +3,6 @@ package blok;
 interface Adaptor {
 	public function schedule(effect:() -> Void):Void;
 	public function scheduleEffect(effect:() -> Void):Void;
-	public function scheduleNextTime(effect:() -> Void):Void;
 	public function createPrimitive(name:String, attrs:{}):Dynamic;
 	public function createPlaceholderPrimitive():Dynamic;
 	public function createTextPrimitive(text:String):Dynamic;

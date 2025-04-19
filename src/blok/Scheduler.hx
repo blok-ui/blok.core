@@ -62,10 +62,6 @@ class Scheduler {
 		}
 	}
 
-	public function scheduleNextTime(effect) {
-		scheduleEffect(() -> schedule(effect));
-	}
-
 	function resolve() {
 		var pending = switch scheduled {
 			case Some(scheduled): scheduled;

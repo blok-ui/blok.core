@@ -121,10 +121,6 @@ class ServerAdaptor implements Adaptor {
 	public function scheduleEffect(effect:() -> Void) {
 		scheduler.scheduleEffect(effect);
 	}
-
-	public function scheduleNextTime(effect:() -> Void) {
-		scheduler.scheduleNextTime(effect);
-	}
 }
 
 // @todo: Figure out how to use the @:html attributes for this instead.

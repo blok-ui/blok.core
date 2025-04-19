@@ -3,7 +3,7 @@ package blok;
 import blok.debug.Debug;
 import blok.engine.*;
 
-using blok.PrimitiveHostTools;
+using blok.engine.PrimitiveHostTools;
 
 class Placeholder extends View implements PrimitiveHost {
 	public static final componentType = new UniqueId();

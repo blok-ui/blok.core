@@ -1,6 +1,6 @@
 package blok;
 
-import blok.engine.Cursor;
+import blok.engine.*;
 
 class Root extends View implements PrimitiveHost {
 	public static final componentType = new UniqueId();

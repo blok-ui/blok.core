@@ -9,7 +9,7 @@
     "wartman"
   ],
   "releasenote": "Lots of renaming things",
-  "version": "0.10.0-alpha.1",
+  "version": "0.11.0-alpha.1",
   "url": "https://github.com/blok-ui/blok",
   "dependencies": {
     "kit": "0.2.0"

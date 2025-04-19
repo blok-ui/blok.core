@@ -80,7 +80,7 @@ class Fragment extends View {
 	}
 
 	function __update() {
-		children = Differ.diffChildren(this, children, render());
+		children = Differ.diffChildren(getAdaptor(), this, children, render());
 	}
 
 	function __validate() {

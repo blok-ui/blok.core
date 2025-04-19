@@ -20,7 +20,7 @@ enum abstract TodoVisibility(String) from String to String {
 	var Active;
 }
 
-class Todo extends Model {
+class Todo extends SerializableModel {
 	@:value public final id:Int;
 	@:signal public final description:String;
 	@:signal public final isCompleted:Bool;
@@ -28,7 +28,7 @@ class Todo extends Model {
 }
 
 @:fallback(TodoContext.load())
-class TodoContext extends Model implements Context {
+class TodoContext extends SerializableModel implements Context {
 	static inline final storageId = 'pine-todo-store';
 
 	public static function load():TodoContext {

@@ -2,9 +2,9 @@ package blok;
 
 import blok.debug.Debug;
 import blok.signal.Signal;
-import blok.engine.Cursor;
+import blok.engine.*;
 
-using blok.PrimitiveHostTools;
+using blok.engine.PrimitiveHostTools;
 
 abstract Text(VNode) to VNode from VNode {
 	@:from public static function ofString(value:String):Text {

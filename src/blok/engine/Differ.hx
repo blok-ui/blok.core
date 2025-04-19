@@ -2,13 +2,11 @@ package blok.engine;
 
 import blok.debug.Debug;
 
-function updateView(parent:View, view:Null<View>, node:Null<VNode>, slot:Null<Slot>):Null<View> {
+function updateView(adaptor:Adaptor, parent:View, view:Null<View>, node:Null<VNode>, slot:Null<Slot>):Null<View> {
 	if (node == null) {
 		if (view != null) view.dispose();
 		return null;
 	}
-
-	var adaptor = parent.getAdaptor();
 
 	if (view != null && canBeUpdatedByNode(view, node)) {
 		view.remount(adaptor, parent, node, slot);
@@ -26,7 +24,7 @@ function updateView(parent:View, view:Null<View>, node:Null<VNode>, slot:Null<Sl
 	return newView;
 }
 
-function diffChildren(parent:View, oldViews:Array<View>, newNodes:Array<VNode>):Array<View> {
+function diffChildren(adaptor:Adaptor, parent:View, oldViews:Array<View>, newNodes:Array<VNode>):Array<View> {
 	var newHead = 0;
 	var oldHead = 0;
 	var newTail = newNodes.length - 1;
@@ -42,7 +40,7 @@ function diffChildren(parent:View, oldViews:Array<View>, newNodes:Array<VNode>):
 			break;
 		}
 
-		var newView = updateView(parent, oldView, newNode, parent.createSlot(newHead, previousView));
+		var newView = updateView(adaptor, parent, oldView, newNode, parent.createSlot(newHead, previousView));
 		newViews[newHead] = newView;
 		previousView = newView;
 		newHead += 1;
@@ -109,7 +107,7 @@ function diffChildren(parent:View, oldViews:Array<View>, newNodes:Array<VNode>):
 			}
 		}
 
-		var newView = updateView(parent, oldView, newNode, parent.createSlot(newHead, previousView));
+		var newView = updateView(adaptor, parent, oldView, newNode, parent.createSlot(newHead, previousView));
 		newViews[newHead] = newView;
 		previousView = newView;
 		newHead += 1;
@@ -122,7 +120,7 @@ function diffChildren(parent:View, oldViews:Array<View>, newNodes:Array<VNode>):
 	while ((oldHead <= oldTail) && (newHead <= newTail)) {
 		var oldView = oldViews[oldHead];
 		var newNode = newNodes[newHead];
-		var newView = updateView(parent, oldView, newNode, parent.createSlot(newHead, previousView));
+		var newView = updateView(adaptor, parent, oldView, newNode, parent.createSlot(newHead, previousView));
 		newViews[newHead] = newView;
 		previousView = newView;
 		newHead += 1;

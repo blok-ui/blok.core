@@ -5,7 +5,7 @@ import blok.signal.Observer;
 import blok.signal.Signal;
 import blok.engine.*;
 
-using blok.PrimitiveHostTools;
+using blok.engine.PrimitiveHostTools;
 
 class PrimitiveView extends View implements PrimitiveHost {
 	static final tagMappings:Map<String, UniqueId> = [];
@@ -103,11 +103,11 @@ class PrimitiveView extends View implements PrimitiveHost {
 
 	function __update() {
 		observeAttributes();
-		children = Differ.diffChildren(this, children, resolveChildren());
+		children = Differ.diffChildren(getAdaptor(), this, children, resolveChildren());
 	}
 
 	function __validate() {
-		children = Differ.diffChildren(this, children, resolveChildren());
+		children = Differ.diffChildren(getAdaptor(), this, children, resolveChildren());
 	}
 
 	function __dispose() {

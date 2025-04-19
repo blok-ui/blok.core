@@ -72,7 +72,7 @@ abstract class ProxyView extends View {
 		__rendered = __createRendered();
 
 		proxy.__child = null;
-		__child = Differ.updateView(this, otherChild, __rendered.peek(), __slot);
+		__child = Differ.updateView(getAdaptor(), this, otherChild, __rendered.peek(), __slot);
 
 		Owner.capture(this, {
 			setup();
@@ -84,12 +84,12 @@ abstract class ProxyView extends View {
 	@:noCompletion function __update():Void {
 		assert(__rendered != null);
 		__updateProps();
-		__child = Differ.updateView(this, __child, __rendered.peek(), __slot);
+		__child = Differ.updateView(getAdaptor(), this, __child, __rendered.peek(), __slot);
 	}
 
 	@:noCompletion function __validate():Void {
 		assert(__rendered != null);
-		__child = Differ.updateView(this, __child, __rendered.peek(), __slot);
+		__child = Differ.updateView(getAdaptor(), this, __child, __rendered.peek(), __slot);
 	}
 
 	@:noCompletion function __updateSlot(oldSlot, newSlot:Null<Slot>) {

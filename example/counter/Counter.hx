@@ -46,7 +46,7 @@ class Counter extends Component {
 					</svg>
 				</label>
 			</CounterButton>
-			// CounterButton has an @:children field, so we can just
+			// CounterButton has a @:children field, so we can just
 			// pass children to it. 
 			<CounterButton onClick={_ -> count.update(i -> i + 1)}>
 				<svg className={Breeze.compose(

@@ -103,13 +103,19 @@ class ComponentBuilder implements BuildBundle implements BuildStep {
 				});
 		}
 
+		var infos = haxe.macro.Context.getPosInfos(cls.pos);
+
 		builder.addField(constructors
 			.getField('node')
 			.unwrap()
+			.withPos(haxe.macro.Context.makePosition({
+				min: infos.min,
+				max: infos.min + 1,
+				file: infos.file
+			}))
 			.applyParameters(createParams));
 
 		if (options.createFromMarkupMethod) {
-			var infos = haxe.macro.Context.getPosInfos(cls.pos);
 			builder.addField(constructors
 				.getField('__fromMarkup')
 				.unwrap()

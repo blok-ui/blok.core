@@ -20,27 +20,23 @@ class Runtime {
 
 	public static function current():Runtime {
 		if (instance == null) {
-			instance = new Runtime(Scheduler.current());
+			instance = new Runtime(Scheduler.current().schedule);
 		}
 		return instance;
 	}
 
-	final scheduler:Scheduler;
+	public final schedule:(effect:() -> Void)->Void;
 
 	var status:RuntimeStatus = Idle;
 	var epoch:Int = 1;
 	var currentConsumerNode:Null<ReactiveNode> = null;
 
-	public function new(scheduler) {
-		this.scheduler = scheduler;
+	public function new(schedule) {
+		this.schedule = schedule;
 	}
 
 	public function incrementEpoch() {
 		epoch++;
-	}
-
-	public function schedule(effect:() -> Void) {
-		scheduler.schedule(effect);
 	}
 
 	public function setCurrentConsumer(consumer:Null<ReactiveNode>):Null<ReactiveNode> {

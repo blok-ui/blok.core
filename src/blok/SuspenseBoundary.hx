@@ -127,13 +127,13 @@ class SuspenseBoundary extends View implements Boundary {
 
 	function scheduleSetActiveChild() {
 		if (!viewIsMounted()) return;
-		getAdaptor().schedule(setActiveChild);
+		getAdaptor().scheduleEffect(setActiveChild);
 	}
 
 	public function handle(component:View, object:Any) {
 		if (!(object is SuspenseException)) {
 			suspenseStatus = Errored;
-			getAdaptor().scheduleNextTime(() -> {
+			getAdaptor().scheduleEffect(() -> {
 				if (!viewIsMounted()) return;
 				SuspenseBoundaryContext.maybeFrom(this).inspect(context -> context.remove(this));
 			});
@@ -203,12 +203,7 @@ class SuspenseBoundary extends View implements Boundary {
 		}
 
 		if (suspenseStatus == Ok) {
-			// Note that we're scheduling things *twice* here. Scheduling once
-			// just adds the callback to the same queue as the components getting
-			// validated, meaning we might mount a child component before it has
-			// rendered completely. Scheduling these callbacks again ensures that
-			// we wait until everything is ready.
-			getAdaptor().schedule(() -> if (suspenseStatus == Ok) {
+			getAdaptor().scheduleEffect(() -> if (suspenseStatus == Ok) {
 				scheduleSetActiveChild();
 				scheduleOnComplete();
 			});
@@ -232,7 +227,7 @@ class SuspenseBoundary extends View implements Boundary {
 
 	function scheduleOnComplete() {
 		if (!viewIsMounted()) return;
-		getAdaptor().schedule(triggerOnComplete);
+		getAdaptor().scheduleEffect(triggerOnComplete);
 	}
 
 	function __initialize() {

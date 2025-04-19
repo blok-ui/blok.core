@@ -119,6 +119,10 @@ class ClientAdaptor implements Adaptor {
 		scheduler.schedule(effect);
 	}
 
+	public function scheduleEffect(effect:() -> Void) {
+		scheduler.scheduleEffect(effect);
+	}
+
 	public function scheduleNextTime(effect:() -> Void) {
 		scheduler.scheduleNextTime(effect);
 	}

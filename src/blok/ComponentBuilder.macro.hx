@@ -72,7 +72,7 @@ class ComponentBuilder implements BuildBundle implements BuildStep {
 		var constructors = macro class {
 			@:noUsing
 			public static function node(props:$propType, ?key:Null<blok.Key>):blok.VNode {
-				return new blok.VComponent(componentType, props, $i{cls.name}.new, key);
+				return new blok.VComposableView(componentType, props, $i{cls.name}.new, key);
 			}
 
 			@:fromMarkup

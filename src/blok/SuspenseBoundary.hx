@@ -57,7 +57,7 @@ class SuspenseBoundary extends View implements Boundary {
 	}
 
 	public static function node(props:SuspenseBoundaryProps, ?key) {
-		return new VComponent(componentType, props, SuspenseBoundary.new, key);
+		return new VComposableView(componentType, props, SuspenseBoundary.new, key);
 	}
 
 	final replaceable:Replaceable;

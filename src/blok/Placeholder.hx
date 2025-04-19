@@ -9,7 +9,7 @@ class Placeholder extends View implements PrimitiveHost {
 	public static final componentType = new UniqueId();
 
 	public static function node(?key):VNode {
-		return new VComponent(componentType, {}, Placeholder.new, key);
+		return new VComposableView(componentType, {}, Placeholder.new, key);
 	}
 
 	var primitive:Null<Dynamic> = null;

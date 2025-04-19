@@ -15,12 +15,12 @@ class Fragment extends View {
 	}
 
 	public static function of(children:Children):Child {
-		return new VComponent(componentType, {children: children.toArray()}, Fragment.new);
+		return new VComposableView(componentType, {children: children.toArray()}, Fragment.new);
 	}
 
 	@:deprecated('Use Fragment.of instead')
 	public static function node(...children:Child):VNode {
-		return new VComponent(componentType, {children: children.toArray()}, Fragment.new);
+		return new VComposableView(componentType, {children: children.toArray()}, Fragment.new);
 	}
 
 	var children:Array<View> = [];

@@ -1,4 +1,4 @@
 package blok;
 
 @:autoBuild(blok.ComponentBuilder.build())
-abstract class Component extends ProxyView {}
+abstract class Component extends ComposableView {}

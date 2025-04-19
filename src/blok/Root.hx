@@ -9,7 +9,7 @@ class Root extends View implements PrimitiveHost {
 		target:Dynamic,
 		child:Child
 	}) {
-		return new VComponent(componentType, props, Root.new);
+		return new VComposableView(componentType, props, Root.new);
 	}
 
 	final target:Dynamic;

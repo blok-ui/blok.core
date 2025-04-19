@@ -1,6 +1,6 @@
 package blok;
 
-class VComponent<Props:{}> implements VNode {
+class VComposableView<Props:{}> implements VNode {
 	public final type:UniqueId;
 	public final key:Null<Key>;
 	public final props:Props;

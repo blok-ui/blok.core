@@ -29,7 +29,7 @@ class Portal extends View {
 	}
 
 	public static function node(props:PortalProps, ?key) {
-		return new VComponent(componentType, props, Portal.new, key);
+		return new VComposableView(componentType, props, Portal.new, key);
 	}
 
 	var target:Null<Dynamic> = null;

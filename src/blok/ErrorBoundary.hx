@@ -26,7 +26,7 @@ class ErrorBoundary extends View implements Boundary {
 	}
 
 	public static function node(props:ErrorBoundaryProps, ?key) {
-		return new VComponent(componentType, props, ErrorBoundary.new, key);
+		return new VComposableView(componentType, props, ErrorBoundary.new, key);
 	}
 
 	final replaceable:Replaceable;

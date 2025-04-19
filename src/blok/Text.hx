@@ -36,7 +36,7 @@ class TextView extends View implements PrimitiveHost {
 	public static final componentType = new UniqueId();
 
 	public static function node(value:String, ?key:Key) {
-		return new VComponent(componentType, {value: value}, TextView.new, key);
+		return new VComposableView(componentType, {value: value}, TextView.new, key);
 	}
 
 	var primitive:Null<Dynamic> = null;

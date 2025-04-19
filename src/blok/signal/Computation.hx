@@ -45,26 +45,26 @@ enum ComputationStatus<T> {
 class ComputationObject<T> implements Disposable {
 	final factory:() -> T;
 	final equals:(a:T, b:T) -> Bool;
-	final isUntracked:Bool;
+	final isPersistent:Bool;
 
 	var node:Null<ReactiveNode>;
 	var status:ComputationStatus<T> = Uninitialized;
 
-	public function new(factory, ?equals, ?isUntracked:Bool) {
+	public function new(factory, ?equals, ?isPersistent:Bool) {
 		this.factory = factory;
 		this.equals = equals ?? (a, b) -> a == b;
-		this.isUntracked = isUntracked;
+		this.isPersistent = isPersistent;
 		this.node = new ReactiveNode(Runtime.current(), _ -> compute(), {
-			alwaysLive: isUntracked,
+			alwaysLive: isPersistent,
 			forceValidation: _ -> switch status {
 				case Uninitialized: true;
 				default: false;
 			}
 		});
-		// Untracked computations will never stop being live, so they
+		// Persistent computations will never stop being live, so they
 		// need to be disposed. Typically there should be an Owner to
 		// handle this.
-		if (isUntracked == true) Owner.current()?.addDisposable(this);
+		if (isPersistent == true) Owner.current()?.addDisposable(this);
 	}
 
 	public function get():T {
@@ -72,8 +72,8 @@ class ComputationObject<T> implements Disposable {
 		// up-to-date value. This can mean the node is validated
 		// before it would usually be scheduled.
 		node?.validate();
-		// Untracked computations cannot be used as producers.
-		if (!isUntracked) node?.accessed();
+		// Persistent computations cannot be used as producers.
+		if (!isPersistent) node?.accessed();
 		return resolveValue();
 	}
 

@@ -1,11 +1,8 @@
 package blok;
 
 import blok.debug.Debug;
-import blok.engine.*;
 
-using blok.engine.PrimitiveHostTools;
-
-class Placeholder extends View implements PrimitiveHost {
+class Placeholder extends View {
 	public static final componentType = new UniqueId();
 
 	public static function node(?key):VNode {
@@ -21,7 +18,7 @@ class Placeholder extends View implements PrimitiveHost {
 	function __initialize() {
 		var adaptor = getAdaptor();
 		primitive = adaptor.createPlaceholderPrimitive();
-		adaptor.insertPrimitive(primitive, __slot, () -> this.findNearestPrimitive());
+		adaptor.insertPrimitive(this, primitive, __slot);
 	}
 
 	function __hydrate(cursor:Cursor) {
@@ -37,12 +34,16 @@ class Placeholder extends View implements PrimitiveHost {
 	}
 
 	function __updateSlot(oldSlot:Null<Slot>, newSlot:Null<Slot>) {
-		getAdaptor().movePrimitive(getPrimitive(), oldSlot, newSlot, () -> this.findNearestPrimitive());
+		getAdaptor().movePrimitive(this, getPrimitive(), oldSlot, newSlot);
 	}
 
 	public function getPrimitive():Dynamic {
 		assert(primitive != null);
 		return primitive;
+	}
+
+	public function getNearestPrimitive() {
+		return getPrimitive();
 	}
 
 	public function canBeUpdatedByNode(node:VNode):Bool {

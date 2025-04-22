@@ -2,10 +2,8 @@ package blok;
 
 import blok.Disposable;
 import blok.debug.Debug;
-import blok.engine.*;
 
 using Lambda;
-using blok.engine.BoundaryTools;
 
 enum SuspenseBoundaryStatus {
 	Ok;
@@ -42,7 +40,7 @@ typedef SuspenseBoundaryProps = {
 	public var ?onSuspended:() -> Void;
 }
 
-class SuspenseBoundary extends View implements Boundary {
+class SuspenseBoundary extends View {
 	public static final componentType:UniqueId = new UniqueId();
 
 	public static function maybeFrom(context:View) {
@@ -129,14 +127,14 @@ class SuspenseBoundary extends View implements Boundary {
 		getAdaptor().scheduleEffect(setActiveChild);
 	}
 
-	public function handle(component:View, object:Any) {
+	override function __handleThrownObject(target:View, object:Any) {
 		if (!(object is SuspenseException)) {
 			suspenseStatus = Errored;
 			getAdaptor().scheduleEffect(() -> {
 				if (!viewIsMounted()) return;
 				SuspenseBoundaryContext.maybeFrom(this).inspect(context -> context.remove(this));
 			});
-			this.tryToHandleWithBoundary(object);
+			super.__handleThrownObject(target, object);
 			return;
 		}
 
@@ -145,7 +143,7 @@ class SuspenseBoundary extends View implements Boundary {
 
 		if (overridable) switch SuspenseBoundary.maybeFrom(this) {
 			case Some(boundary):
-				boundary.handle(component, object);
+				boundary.__handleThrownObject(target, object);
 				return;
 			case None:
 		}
@@ -155,17 +153,17 @@ class SuspenseBoundary extends View implements Boundary {
 
 		suspenseStatus = switch suspenseStatus {
 			case Suspended(links):
-				link = links.find(link -> link.component == component);
+				link = links.find(link -> link.view == target);
 				if (link == null) {
-					link = new SuspenseLink(component, this);
-					component.addDisposable(link);
+					link = new SuspenseLink(target, this);
+					target.addDisposable(link);
 					links.push(link);
 				}
 				Suspended(links);
 			case Ok | Errored:
 				triggerOnSuspended();
-				link = new SuspenseLink(component, this);
-				component.addDisposable(link);
+				link = new SuspenseLink(target, this);
+				target.addDisposable(link);
 				Suspended([link]);
 		}
 
@@ -189,7 +187,7 @@ class SuspenseBoundary extends View implements Boundary {
 		suspenseStatus = switch suspenseStatus {
 			case Suspended(links):
 				links.remove(link);
-				link.component.removeDisposable(link);
+				link.view.removeDisposable(link);
 				if (links.length == 0) {
 					Ok;
 				} else {
@@ -270,7 +268,13 @@ class SuspenseBoundary extends View implements Boundary {
 	}
 
 	public function getPrimitive():Dynamic {
-		return replaceable.current()?.getPrimitive();
+		return replaceable.current().getPrimitive();
+	}
+
+	public function getNearestPrimitive():Dynamic {
+		return getParent()
+			.map(parent -> parent.getNearestPrimitive())
+			.orThrow('No primitive found');
 	}
 
 	public function canBeUpdatedByNode(node:VNode):Bool {
@@ -284,14 +288,14 @@ class SuspenseBoundary extends View implements Boundary {
 
 @:access(blok)
 class SuspenseLink implements Disposable {
-	public final component:View;
+	public final view:View;
 
 	final suspense:SuspenseBoundary;
 
 	var link:Null<Cancellable> = null;
 
-	public function new(component, suspense) {
-		this.component = component;
+	public function new(view, suspense) {
+		this.view = view;
 		this.suspense = suspense;
 	}
 

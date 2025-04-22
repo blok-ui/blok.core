@@ -2,7 +2,6 @@ package blok.html.client;
 
 import blok.Scheduler;
 import blok.debug.Debug;
-import blok.engine.*;
 import blok.html.HtmlEvents;
 import js.Browser;
 import js.html.Element;
@@ -72,19 +71,21 @@ class ClientAdaptor implements Adaptor {
 		}
 	}
 
-	public function insertPrimitive(object:Dynamic, slot:Null<Slot>, findParent:() -> Dynamic) {
+	public function insertPrimitive(view:View, object:Dynamic, slot:Null<Slot>) {
 		var el:Element = object;
 		if (slot != null && slot.previous != null) {
 			var relative:Element = slot.previous.getPrimitive();
 			relative.after(el);
 		} else {
-			var parent:Element = findParent();
+			var parent:Element = view.getParent()
+				.map(parent -> parent.getNearestPrimitive())
+				.orThrow('No parent element found');
 			assert(parent != null);
 			parent.prepend(el);
 		}
 	}
 
-	public function movePrimitive(object:Dynamic, from:Null<Slot>, to:Null<Slot>, findParent:() -> Dynamic) {
+	public function movePrimitive(view:View, object:Dynamic, from:Null<Slot>, to:Null<Slot>) {
 		var el:Element = object;
 
 		if (to == null) {
@@ -101,7 +102,9 @@ class ClientAdaptor implements Adaptor {
 
 		if (to.previous == null) {
 			assert(to.index == 0);
-			var parent:Element = findParent();
+			var parent:Element = view.getParent()
+				.map(parent -> parent.getNearestPrimitive())
+				.orThrow('No parent element found');
 			assert(parent != null);
 			parent.prepend(el);
 			return;

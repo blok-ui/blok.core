@@ -2,9 +2,6 @@ package blok;
 
 import blok.debug.Debug;
 import blok.signal.Computation;
-import blok.engine.*;
-
-using blok.engine.BoundaryTools;
 
 abstract class ComposableView extends View {
 	@:noCompletion var __child:Null<View> = null;
@@ -26,7 +23,7 @@ abstract class ComposableView extends View {
 				default:
 					var node = try isolate() catch (e:Any) {
 						isolate.cleanup();
-						this.tryToHandleWithBoundary(e);
+						__handleThrownObject(this, e);
 						null;
 					}
 					if (__status != Rendering) invalidate();
@@ -88,18 +85,16 @@ abstract class ComposableView extends View {
 		__child?.updateSlot(newSlot);
 	}
 
-	public function getPrimitive() {
-		var node:Null<Dynamic> = null;
+	public function getPrimitive():Dynamic {
+		var primitive = __child.getPrimitive();
+		assert(primitive != null, 'Component does not have a primitive');
+		return primitive;
+	}
 
-		visitChildren(component -> {
-			assert(node == null, 'Component has more than one primitive');
-			node = component.getPrimitive();
-			true;
-		});
-
-		assert(node != null, 'Component does not have a primitive');
-
-		return node;
+	public function getNearestPrimitive():Dynamic {
+		return getParent()
+			.map(parent -> parent.getNearestPrimitive())
+			.orThrow('No primitive found');
 	}
 
 	public function visitChildren(visitor:(child:View) -> Bool) {

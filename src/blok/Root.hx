@@ -1,8 +1,6 @@
 package blok;
 
-import blok.engine.*;
-
-class Root extends View implements PrimitiveHost {
+class Root extends View {
 	public static final componentType = new UniqueId();
 
 	public static function node(props:{
@@ -49,6 +47,10 @@ class Root extends View implements PrimitiveHost {
 
 	function __updateSlot(oldSlot:Null<Slot>, newSlot:Null<Slot>) {
 		view.updateSlot(newSlot);
+	}
+
+	public function getNearestPrimitive() {
+		return getPrimitive();
 	}
 
 	public function getPrimitive():Dynamic {

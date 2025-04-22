@@ -1,14 +1,12 @@
 package blok;
 
-import blok.engine.*;
-
 @:fallback(new SuspenseBoundaryContext())
 class SuspenseBoundaryContext implements Context {
 	public final onComplete = new Event();
 	public final onSuspended = new Event();
 
 	final scheduler:Scheduler;
-	final suspendedBoundaries:Array<Boundary> = [];
+	final suspendedBoundaries:Array<View> = [];
 
 	public function new(?props:{
 		?onComplete:() -> Void,
@@ -24,7 +22,7 @@ class SuspenseBoundaryContext implements Context {
 		});
 	}
 
-	public function add(boundary:Boundary) {
+	public function add(boundary:View) {
 		if (suspendedBoundaries.contains(boundary)) return;
 		if (suspendedBoundaries.length == 0) {
 			onSuspended.dispatch();
@@ -32,7 +30,7 @@ class SuspenseBoundaryContext implements Context {
 		suspendedBoundaries.push(boundary);
 	}
 
-	public function remove(boundary:Boundary) {
+	public function remove(boundary:View) {
 		if (!suspendedBoundaries.contains(boundary)) return;
 		suspendedBoundaries.remove(boundary);
 		if (suspendedBoundaries.length == 0) {

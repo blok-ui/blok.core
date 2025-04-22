@@ -1,6 +1,5 @@
 package blok;
 
-import blok.engine.*;
 import blok.debug.Debug;
 
 typedef PortalProps = {

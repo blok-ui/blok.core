@@ -1,21 +1,18 @@
 package blok;
 
-import blok.engine.*;
 import haxe.Exception;
-
-using blok.engine.BoundaryTools;
 
 enum ErrorBoundaryStatus {
 	Ok;
-	Caught(component:View, e:Exception);
+	Caught(view:View, e:Exception);
 }
 
 typedef ErrorBoundaryProps = {
-	public final fallback:(component:View, e:Exception) -> Child;
+	public final fallback:(view:View, e:Exception) -> Child;
 	@:children public final child:Child;
 }
 
-class ErrorBoundary extends View implements Boundary {
+class ErrorBoundary extends View {
 	public static final componentType:UniqueId = new UniqueId();
 
 	@:fromMarkup
@@ -40,20 +37,20 @@ class ErrorBoundary extends View implements Boundary {
 		updateProps();
 	}
 
-	public function handle(component:View, object:Any) {
+	override function __handleThrownObject(target:View, object:Any) {
 		if (object is SuspenseException) switch findAncestorOfType(SuspenseBoundary) {
 			case Some(boundary):
-				boundary.handle(component, object);
+				boundary.__handleThrownObject(target, object);
 				return;
 			case None:
 		}
 
 		if (object is Exception) {
-			replaceable.hide(() -> fallback(component, object));
+			replaceable.hide(() -> fallback(target, object));
 			return;
 		}
 
-		this.tryToHandleWithBoundary(object);
+		super.__handleThrownObject(target, object);
 	}
 
 	function updateProps():Bool {
@@ -105,6 +102,12 @@ class ErrorBoundary extends View implements Boundary {
 
 	public function getPrimitive():Dynamic {
 		return replaceable.current().getPrimitive();
+	}
+
+	public function getNearestPrimitive():Dynamic {
+		return getParent()
+			.map(parent -> parent.getNearestPrimitive())
+			.orThrow('No primitive found');
 	}
 
 	public function canBeUpdatedByNode(node:VNode):Bool {

@@ -2,7 +2,6 @@ package blok.html.server;
 
 import blok.Scheduler;
 import blok.debug.Debug;
-import blok.engine.*;
 
 using StringTools;
 
@@ -61,7 +60,7 @@ class ServerAdaptor implements Adaptor {
 		}
 	}
 
-	public function insertPrimitive(object:Dynamic, slot:Null<Slot>, findParent:() -> Dynamic) {
+	public function insertPrimitive(view:View, object:Dynamic, slot:Null<Slot>) {
 		var node:NodePrimitive = object;
 		if (slot != null && slot.previous != null) {
 			var relative:NodePrimitive = slot.previous.getPrimitive();
@@ -70,18 +69,18 @@ class ServerAdaptor implements Adaptor {
 				var index = parent.children.indexOf(relative);
 				parent.insert(index + 1, node);
 			} else {
-				var parent:NodePrimitive = findParent();
+				var parent:NodePrimitive = view.getParent().unwrap()?.getNearestPrimitive();
 				assert(parent != null);
 				parent.prepend(node);
 			}
 		} else {
-			var parent:NodePrimitive = findParent();
+			var parent:NodePrimitive = view.getParent().unwrap()?.getNearestPrimitive();
 			assert(parent != null);
 			parent.prepend(node);
 		}
 	}
 
-	public function movePrimitive(object:Dynamic, from:Null<Slot>, to:Null<Slot>, findParent:() -> Dynamic) {
+	public function movePrimitive(view:View, object:Dynamic, from:Null<Slot>, to:Null<Slot>) {
 		var node:NodePrimitive = object;
 
 		if (to == null) {
@@ -94,7 +93,7 @@ class ServerAdaptor implements Adaptor {
 		}
 
 		if (to.previous == null) {
-			var parent:NodePrimitive = findParent();
+			var parent:NodePrimitive = view.getParent().unwrap()?.getNearestPrimitive();
 			assert(parent != null);
 			parent.prepend(node);
 			return;

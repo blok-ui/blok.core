@@ -2,9 +2,6 @@ package blok;
 
 import blok.debug.Debug;
 import blok.signal.Signal;
-import blok.engine.*;
-
-using blok.engine.PrimitiveHostTools;
 
 abstract Text(VNode) to VNode from VNode {
 	@:from public static function ofString(value:String):Text {
@@ -32,7 +29,7 @@ abstract Text(VNode) to VNode from VNode {
 	}
 }
 
-class TextView extends View implements PrimitiveHost {
+class TextView extends View {
 	public static final componentType = new UniqueId();
 
 	public static function node(value:String, ?key:Key) {
@@ -49,7 +46,7 @@ class TextView extends View implements PrimitiveHost {
 		var adaptor = getAdaptor();
 		var props:{value:String} = __node.getProps();
 		primitive = adaptor.createTextPrimitive(props.value);
-		adaptor.insertPrimitive(primitive, __slot, () -> this.findNearestPrimitive());
+		adaptor.insertPrimitive(this, primitive, __slot);
 	}
 
 	function __hydrate(cursor:Cursor) {
@@ -73,7 +70,11 @@ class TextView extends View implements PrimitiveHost {
 	}
 
 	function __updateSlot(oldSlot:Null<Slot>, newSlot:Null<Slot>) {
-		getAdaptor().movePrimitive(primitive, oldSlot, newSlot, () -> this.findNearestPrimitive());
+		getAdaptor().movePrimitive(this, primitive, oldSlot, newSlot);
+	}
+
+	public function getNearestPrimitive() {
+		return getPrimitive();
 	}
 
 	public function getPrimitive():Dynamic {

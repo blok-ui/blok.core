@@ -3,11 +3,8 @@ package blok;
 import blok.debug.Debug;
 import blok.signal.Observer;
 import blok.signal.Signal;
-import blok.engine.*;
 
-using blok.engine.PrimitiveHostTools;
-
-class PrimitiveView extends View implements PrimitiveHost {
+class PrimitiveView extends View {
 	static final tagMappings:Map<String, UniqueId> = [];
 
 	public static function getTypeForTag(tag:String) {
@@ -78,7 +75,7 @@ class PrimitiveView extends View implements PrimitiveHost {
 			previous = child;
 			child;
 		}];
-		getAdaptor().insertPrimitive(primitive, __slot, () -> this.findNearestPrimitive());
+		getAdaptor().insertPrimitive(this, primitive, __slot);
 	}
 
 	function __hydrate(cursor:Cursor) {
@@ -119,7 +116,7 @@ class PrimitiveView extends View implements PrimitiveHost {
 	}
 
 	function __updateSlot(oldSlot:Null<Slot>, newSlot:Null<Slot>) {
-		getAdaptor().movePrimitive(getPrimitive(), oldSlot, newSlot, () -> this.findNearestPrimitive());
+		getAdaptor().movePrimitive(this, getPrimitive(), oldSlot, newSlot);
 	}
 
 	function createPrimitive() {
@@ -129,6 +126,10 @@ class PrimitiveView extends View implements PrimitiveHost {
 	public function getPrimitive():Dynamic {
 		assert(primitive != null);
 		return primitive;
+	}
+
+	public function getNearestPrimitive() {
+		return getPrimitive();
 	}
 
 	public function canBeUpdatedByNode(node:VNode):Bool {

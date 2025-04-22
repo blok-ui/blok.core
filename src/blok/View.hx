@@ -1,7 +1,6 @@
 package blok;
 
 import blok.debug.Debug;
-import blok.engine.Cursor;
 
 enum ViewMountedStatus {
 	Unmounted;
@@ -167,6 +166,8 @@ abstract class View implements Disposable implements DisposableHost {
 
 	abstract public function getPrimitive():Dynamic;
 
+	abstract function getNearestPrimitive():Dynamic;
+
 	abstract public function canBeUpdatedByNode(node:VNode):Bool;
 
 	abstract public function visitChildren(visitor:(child:View) -> Bool):Void;
@@ -262,6 +263,12 @@ abstract class View implements Disposable implements DisposableHost {
 		var oldSlot = __slot;
 		__slot = slot;
 		__updateSlot(oldSlot, __slot);
+	}
+
+	function __handleThrownObject(target:View, object:Any) {
+		getParent()
+			.inspect(parent -> parent.__handleThrownObject(target, object))
+			.or(() -> throw object);
 	}
 
 	function __scheduleValidation() {

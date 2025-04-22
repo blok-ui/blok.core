@@ -1,7 +1,6 @@
 package blok.html.server;
 
 import blok.debug.Debug;
-import blok.engine.Cursor;
 
 class NodePrimitiveCursor implements Cursor {
 	var node:Null<NodePrimitive>;

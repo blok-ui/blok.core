@@ -1,6 +1,6 @@
 package blok;
 
-import blok.engine.*;
+import kit.Assert.assert;
 
 class Fragment extends View {
 	public static final componentType = new UniqueId();
@@ -108,6 +108,12 @@ class Fragment extends View {
 			return marker?.getPrimitive();
 		}
 		return children[children.length - 1].getPrimitive();
+	}
+
+	public function getNearestPrimitive():Dynamic {
+		return getParent()
+			.map(parent -> parent.getNearestPrimitive())
+			.orThrow('No primitive found');
 	}
 
 	public function canBeUpdatedByNode(node:VNode):Bool {

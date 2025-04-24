@@ -46,7 +46,7 @@ class TextView extends View {
 		var adaptor = getAdaptor();
 		var props:{value:String} = __node.getProps();
 		primitive = adaptor.createTextPrimitive(props.value);
-		adaptor.insertPrimitive(this, primitive, __slot);
+		adaptor.insertPrimitive(primitive, __slot);
 	}
 
 	function __hydrate(cursor:Cursor) {
@@ -70,7 +70,7 @@ class TextView extends View {
 	}
 
 	function __updateSlot(oldSlot:Null<Slot>, newSlot:Null<Slot>) {
-		getAdaptor().movePrimitive(this, primitive, oldSlot, newSlot);
+		getAdaptor().movePrimitive(primitive, oldSlot, newSlot);
 	}
 
 	public function getNearestPrimitive() {

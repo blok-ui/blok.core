@@ -4,6 +4,7 @@ import blok.debug.Debug;
 
 enum ViewMountedStatus {
 	Unmounted;
+	// @todo: Maybe we can just get the parent from the slot, as it has that now?
 	Mounted(parent:Null<View>, adaptor:Adaptor);
 }
 
@@ -255,7 +256,7 @@ abstract class View implements Disposable implements DisposableHost {
 	}
 
 	public function createSlot(index:Int, previous:Null<View>):Slot {
-		return new Slot(index, previous);
+		return new Slot(this, index, previous);
 	}
 
 	public function updateSlot(slot:Null<Slot>):Void {

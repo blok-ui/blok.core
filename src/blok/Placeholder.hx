@@ -18,7 +18,7 @@ class Placeholder extends View {
 	function __initialize() {
 		var adaptor = getAdaptor();
 		primitive = adaptor.createPlaceholderPrimitive();
-		adaptor.insertPrimitive(this, primitive, __slot);
+		adaptor.insertPrimitive(primitive, __slot);
 	}
 
 	function __hydrate(cursor:Cursor) {
@@ -34,7 +34,7 @@ class Placeholder extends View {
 	}
 
 	function __updateSlot(oldSlot:Null<Slot>, newSlot:Null<Slot>) {
-		getAdaptor().movePrimitive(this, getPrimitive(), oldSlot, newSlot);
+		getAdaptor().movePrimitive(getPrimitive(), oldSlot, newSlot);
 	}
 
 	public function getPrimitive():Dynamic {

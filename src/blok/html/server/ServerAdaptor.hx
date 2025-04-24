@@ -60,27 +60,30 @@ class ServerAdaptor implements Adaptor {
 		}
 	}
 
-	public function insertPrimitive(view:View, object:Dynamic, slot:Null<Slot>) {
+	public function insertPrimitive(object:Dynamic, slot:Slot) {
+		assert(slot != null);
+
 		var node:NodePrimitive = object;
-		if (slot != null && slot.previous != null) {
+
+		if (slot.previous != null) {
 			var relative:NodePrimitive = slot.previous.getPrimitive();
 			var parent = relative.parent;
 			if (parent != null) {
 				var index = parent.children.indexOf(relative);
 				parent.insert(index + 1, node);
 			} else {
-				var parent:NodePrimitive = view.getParent().unwrap()?.getNearestPrimitive();
+				var parent:NodePrimitive = slot.parent.getNearestPrimitive();
 				assert(parent != null);
 				parent.prepend(node);
 			}
 		} else {
-			var parent:NodePrimitive = view.getParent().unwrap()?.getNearestPrimitive();
+			var parent:NodePrimitive = slot.parent.getNearestPrimitive();
 			assert(parent != null);
 			parent.prepend(node);
 		}
 	}
 
-	public function movePrimitive(view:View, object:Dynamic, from:Null<Slot>, to:Null<Slot>) {
+	public function movePrimitive(object:Dynamic, from:Null<Slot>, to:Null<Slot>) {
 		var node:NodePrimitive = object;
 
 		if (to == null) {
@@ -93,7 +96,7 @@ class ServerAdaptor implements Adaptor {
 		}
 
 		if (to.previous == null) {
-			var parent:NodePrimitive = view.getParent().unwrap()?.getNearestPrimitive();
+			var parent:NodePrimitive = to.parent.getNearestPrimitive();
 			assert(parent != null);
 			parent.prepend(node);
 			return;

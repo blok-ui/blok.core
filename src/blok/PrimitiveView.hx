@@ -75,7 +75,7 @@ class PrimitiveView extends View {
 			previous = child;
 			child;
 		}];
-		getAdaptor().insertPrimitive(this, primitive, __slot);
+		getAdaptor().insertPrimitive(primitive, __slot);
 	}
 
 	function __hydrate(cursor:Cursor) {
@@ -116,7 +116,7 @@ class PrimitiveView extends View {
 	}
 
 	function __updateSlot(oldSlot:Null<Slot>, newSlot:Null<Slot>) {
-		getAdaptor().movePrimitive(this, getPrimitive(), oldSlot, newSlot);
+		getAdaptor().movePrimitive(getPrimitive(), oldSlot, newSlot);
 	}
 
 	function createPrimitive() {

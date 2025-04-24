@@ -1,7 +1,5 @@
 package blok;
 
-import kit.Assert.assert;
-
 class Fragment extends View {
 	public static final componentType = new UniqueId();
 
@@ -36,7 +34,7 @@ class Fragment extends View {
 	}
 
 	override function createSlot(localIndex:Int, previous:Null<View>):Slot {
-		return new FragmentSlot(__slot?.index ?? 0, localIndex + 1, previous);
+		return new FragmentSlot(this, __slot?.index ?? 0, localIndex + 1, previous);
 	}
 
 	function __initialize() {
@@ -128,8 +126,8 @@ class Fragment extends View {
 class FragmentSlot extends Slot {
 	public final localIndex:Int;
 
-	public function new(index, localIndex, previous) {
-		super(index, previous);
+	public function new(view, index, localIndex, previous) {
+		super(view, index, previous);
 		this.localIndex = localIndex;
 	}
 

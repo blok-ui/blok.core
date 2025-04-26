@@ -9,7 +9,7 @@ class Html {
 	@:skip
 	public static function element<T:{?key:Key}>(tag:String, ?attributes:T, ...children:Child):VHtmlPrimitive {
 		return new VHtmlPrimitive(
-			PrimitiveView.getTypeForTag(tag),
+			ElementPrimitiveView.getTypeForTag(tag),
 			tag,
 			attributes ?? {},
 			children,

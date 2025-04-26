@@ -20,6 +20,6 @@ class VPrimitiveView implements VNode {
 	}
 
 	public function createView():View {
-		return new PrimitiveView(this);
+		return new ElementPrimitiveView(this);
 	}
 }

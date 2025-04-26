@@ -2,6 +2,8 @@ package blok;
 
 import blok.debug.Debug;
 
+typedef SlotFactory = (index:Int, previous:View) -> Slot;
+
 function updateView(adaptor:Adaptor, parent:View, view:Null<View>, node:Null<VNode>, slot:Null<Slot>):Null<View> {
 	if (node == null) {
 		if (view != null) view.dispose();
@@ -24,7 +26,7 @@ function updateView(adaptor:Adaptor, parent:View, view:Null<View>, node:Null<VNo
 	return newView;
 }
 
-function diffChildren(adaptor:Adaptor, parent:View, oldViews:Array<View>, newNodes:Array<VNode>):Array<View> {
+function diffChildren(adaptor:Adaptor, parent:View, oldViews:Array<View>, newNodes:Array<VNode>, createSlot:SlotFactory):Array<View> {
 	var newHead = 0;
 	var oldHead = 0;
 	var newTail = newNodes.length - 1;
@@ -40,7 +42,7 @@ function diffChildren(adaptor:Adaptor, parent:View, oldViews:Array<View>, newNod
 			break;
 		}
 
-		var newView = updateView(adaptor, parent, oldView, newNode, parent.createSlot(newHead, previousView));
+		var newView = updateView(adaptor, parent, oldView, newNode, createSlot(newHead, previousView));
 		newViews[newHead] = newView;
 		previousView = newView;
 		newHead += 1;
@@ -107,7 +109,7 @@ function diffChildren(adaptor:Adaptor, parent:View, oldViews:Array<View>, newNod
 			}
 		}
 
-		var newView = updateView(adaptor, parent, oldView, newNode, parent.createSlot(newHead, previousView));
+		var newView = updateView(adaptor, parent, oldView, newNode, createSlot(newHead, previousView));
 		newViews[newHead] = newView;
 		previousView = newView;
 		newHead += 1;
@@ -120,7 +122,7 @@ function diffChildren(adaptor:Adaptor, parent:View, oldViews:Array<View>, newNod
 	while ((oldHead <= oldTail) && (newHead <= newTail)) {
 		var oldView = oldViews[oldHead];
 		var newNode = newNodes[newHead];
-		var newView = updateView(adaptor, parent, oldView, newNode, parent.createSlot(newHead, previousView));
+		var newView = updateView(adaptor, parent, oldView, newNode, createSlot(newHead, previousView));
 		newViews[newHead] = newView;
 		previousView = newView;
 		newHead += 1;
@@ -138,11 +140,11 @@ function diffChildren(adaptor:Adaptor, parent:View, oldViews:Array<View>, newNod
 	return cast newViews;
 }
 
-function hydrateChildren(parent:View, cursor:Cursor, children:Array<VNode>) {
+function hydrateChildren(parent:View, cursor:Cursor, children:Array<VNode>, createSlot:SlotFactory) {
 	var previous:Null<View> = null;
 	return [for (i => node in children) {
 		var child = node.createView();
-		child.hydrate(cursor, parent.getAdaptor(), parent, parent.createSlot(i, previous));
+		child.hydrate(cursor, parent.getAdaptor(), parent, createSlot(i, previous));
 		previous = child;
 		child;
 	}];

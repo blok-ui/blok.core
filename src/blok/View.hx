@@ -167,8 +167,6 @@ abstract class View implements Disposable implements DisposableHost {
 
 	abstract public function getPrimitive():Dynamic;
 
-	abstract function getNearestPrimitive():Dynamic;
-
 	abstract public function canBeUpdatedByNode(node:VNode):Bool;
 
 	abstract public function visitChildren(visitor:(child:View) -> Bool):Void;
@@ -253,10 +251,6 @@ abstract class View implements Disposable implements DisposableHost {
 			case Unmounted: error('Attempted to get an adaptor from an unmounted View');
 			case Mounted(_, adaptor): adaptor;
 		}
-	}
-
-	public function createSlot(index:Int, previous:Null<View>):Slot {
-		return new Slot(this, index, previous);
 	}
 
 	public function updateSlot(slot:Null<Slot>):Void {

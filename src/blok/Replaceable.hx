@@ -33,7 +33,7 @@ class Replaceable implements Disposable {
 		}).createView();
 
 		hiddenRoot.mount(adaptor, null, null);
-		hiddenSlot = hiddenRoot.createSlot(1, hiddenRoot.findChildOfType(Placeholder).unwrap());
+		hiddenSlot = new Slot(cast hiddenRoot, 1, hiddenRoot.findChildOfType(Placeholder).unwrap());
 	}
 
 	public function current() {

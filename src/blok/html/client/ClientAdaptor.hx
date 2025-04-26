@@ -80,7 +80,7 @@ class ClientAdaptor implements Adaptor {
 			var relative:Element = slot.previous.getPrimitive();
 			relative.after(el);
 		} else {
-			var parent:Element = slot.parent.getNearestPrimitive();
+			var parent:Element = slot.host.getOwnPrimitive();
 			assert(parent != null);
 			parent.prepend(el);
 		}
@@ -103,7 +103,7 @@ class ClientAdaptor implements Adaptor {
 
 		if (to.previous == null) {
 			assert(to.index == 0);
-			var parent:Element = to.parent.getNearestPrimitive();
+			var parent:Element = to.host.getOwnPrimitive();
 			assert(parent != null);
 			parent.prepend(el);
 			return;

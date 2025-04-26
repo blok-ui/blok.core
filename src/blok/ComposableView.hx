@@ -91,12 +91,6 @@ abstract class ComposableView extends View {
 		return primitive;
 	}
 
-	public function getNearestPrimitive():Dynamic {
-		return getParent()
-			.map(parent -> parent.getNearestPrimitive())
-			.orThrow('No primitive found');
-	}
-
 	public function visitChildren(visitor:(child:View) -> Bool) {
 		if (__child != null) visitor(__child);
 	}

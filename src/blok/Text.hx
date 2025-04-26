@@ -29,14 +29,12 @@ abstract Text(VNode) to VNode from VNode {
 	}
 }
 
-class TextView extends View {
+class TextView extends PrimitiveView {
 	public static final componentType = new UniqueId();
 
 	public static function node(value:String, ?key:Key) {
 		return new VComposableView(componentType, {value: value}, TextView.new, key);
 	}
-
-	var primitive:Null<Dynamic> = null;
 
 	function new(node) {
 		__node = node;
@@ -75,11 +73,6 @@ class TextView extends View {
 
 	public function getNearestPrimitive() {
 		return getPrimitive();
-	}
-
-	public function getPrimitive():Dynamic {
-		assert(primitive != null);
-		return primitive;
 	}
 
 	public function canBeUpdatedByNode(node:VNode):Bool {

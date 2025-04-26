@@ -1,12 +1,12 @@
 package blok;
 
 class Slot {
-	public final parent:View;
+	public final host:PrimitiveView;
 	public final index:Int;
 	public final previous:Null<View>;
 
-	public function new(parent, index, previous) {
-		this.parent = parent;
+	public function new(host, index, previous) {
+		this.host = host;
 		this.index = index;
 		this.previous = previous;
 	}

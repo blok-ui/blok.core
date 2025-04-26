@@ -1,15 +1,11 @@
 package blok;
 
-import blok.debug.Debug;
-
-class Placeholder extends View {
+class Placeholder extends PrimitiveView {
 	public static final componentType = new UniqueId();
 
 	public static function node(?key):VNode {
 		return new VComposableView(componentType, {}, Placeholder.new, key);
 	}
-
-	var primitive:Null<Dynamic> = null;
 
 	public function new(node:VNode) {
 		__node = node;
@@ -35,11 +31,6 @@ class Placeholder extends View {
 
 	function __updateSlot(oldSlot:Null<Slot>, newSlot:Null<Slot>) {
 		getAdaptor().movePrimitive(getPrimitive(), oldSlot, newSlot);
-	}
-
-	public function getPrimitive():Dynamic {
-		assert(primitive != null);
-		return primitive;
 	}
 
 	public function getNearestPrimitive() {

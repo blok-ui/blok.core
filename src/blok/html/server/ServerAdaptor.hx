@@ -72,12 +72,12 @@ class ServerAdaptor implements Adaptor {
 				var index = parent.children.indexOf(relative);
 				parent.insert(index + 1, node);
 			} else {
-				var parent:NodePrimitive = slot.parent.getNearestPrimitive();
+				var parent:NodePrimitive = slot.host.getOwnPrimitive();
 				assert(parent != null);
 				parent.prepend(node);
 			}
 		} else {
-			var parent:NodePrimitive = slot.parent.getNearestPrimitive();
+			var parent:NodePrimitive = slot.host.getOwnPrimitive();
 			assert(parent != null);
 			parent.prepend(node);
 		}
@@ -96,7 +96,7 @@ class ServerAdaptor implements Adaptor {
 		}
 
 		if (to.previous == null) {
-			var parent:NodePrimitive = to.parent.getNearestPrimitive();
+			var parent:NodePrimitive = to.host.getOwnPrimitive();
 			assert(parent != null);
 			parent.prepend(node);
 			return;

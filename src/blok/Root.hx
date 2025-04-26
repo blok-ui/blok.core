@@ -1,6 +1,6 @@
 package blok;
 
-class Root extends View {
+class Root extends PrimitiveView {
 	public static final componentType = new UniqueId();
 
 	public static function node(props:{
@@ -10,7 +10,6 @@ class Root extends View {
 		return new VComposableView(componentType, props, Root.new);
 	}
 
-	final target:Dynamic;
 	final child:Child;
 
 	var view:Null<View> = null;
@@ -24,18 +23,18 @@ class Root extends View {
 			target: target,
 			child: child
 		});
-		this.target = target;
+		this.primitive = target;
 		this.child = child;
 	}
 
 	function __initialize() {
 		view = child.createView();
-		view.mount(getAdaptor(), this, createSlot(0, null));
+		view.mount(getAdaptor(), this, new Slot(this, 0, null));
 	}
 
 	function __hydrate(cursor:Cursor) {
 		view = child.createView();
-		view.hydrate(cursor.currentChildren(), getAdaptor(), this, createSlot(0, null));
+		view.hydrate(cursor.currentChildren(), getAdaptor(), this, new Slot(this, 0, null));
 		cursor.next();
 	}
 
@@ -47,14 +46,6 @@ class Root extends View {
 
 	function __updateSlot(oldSlot:Null<Slot>, newSlot:Null<Slot>) {
 		view.updateSlot(newSlot);
-	}
-
-	public function getNearestPrimitive() {
-		return getPrimitive();
-	}
-
-	public function getPrimitive():Dynamic {
-		return target;
 	}
 
 	public function canBeUpdatedByNode(node:VNode):Bool {

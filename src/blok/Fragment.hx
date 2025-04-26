@@ -1,5 +1,7 @@
 package blok;
 
+import blok.debug.Debug.assert;
+
 class Fragment extends View {
 	public static final componentType = new UniqueId();
 
@@ -33,8 +35,9 @@ class Fragment extends View {
 		return props.children.filter(c -> c != null);
 	}
 
-	override function createSlot(localIndex:Int, previous:Null<View>):Slot {
-		return new FragmentSlot(this, __slot?.index ?? 0, localIndex + 1, previous);
+	function createSlot(localIndex:Int, previous:Null<View>):Slot {
+		assert(__slot?.host != null);
+		return new FragmentSlot(__slot?.host, __slot?.index ?? 0, localIndex + 1, previous);
 	}
 
 	function __initialize() {
@@ -78,7 +81,7 @@ class Fragment extends View {
 	}
 
 	function __update() {
-		children = Differ.diffChildren(getAdaptor(), this, children, render());
+		children = Differ.diffChildren(getAdaptor(), this, children, render(), createSlot);
 	}
 
 	function __validate() {
@@ -106,12 +109,6 @@ class Fragment extends View {
 			return marker?.getPrimitive();
 		}
 		return children[children.length - 1].getPrimitive();
-	}
-
-	public function getNearestPrimitive():Dynamic {
-		return getParent()
-			.map(parent -> parent.getNearestPrimitive())
-			.orThrow('No primitive found');
 	}
 
 	public function canBeUpdatedByNode(node:VNode):Bool {

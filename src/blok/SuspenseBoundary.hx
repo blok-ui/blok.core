@@ -271,12 +271,6 @@ class SuspenseBoundary extends View {
 		return replaceable.current().getPrimitive();
 	}
 
-	public function getNearestPrimitive():Dynamic {
-		return getParent()
-			.map(parent -> parent.getNearestPrimitive())
-			.orThrow('No primitive found');
-	}
-
 	public function canBeUpdatedByNode(node:VNode):Bool {
 		return node.type == componentType;
 	}

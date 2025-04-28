@@ -88,6 +88,11 @@ class Fragment extends View {
 		__update();
 	}
 
+	function __replace(other:View) {
+		other.dispose();
+		__initialize();
+	}
+
 	function __dispose() {
 		marker?.dispose();
 		marker = null;
@@ -111,8 +116,12 @@ class Fragment extends View {
 		return children[children.length - 1].getPrimitive();
 	}
 
-	public function canBeUpdatedByNode(node:VNode):Bool {
+	public function canBeUpdatedByVNode(node:VNode):Bool {
 		return node.type == componentType;
+	}
+
+	public function canReplaceOtherView(other:View):Bool {
+		return false;
 	}
 
 	public function visitChildren(visitor:(child:View) -> Bool) {

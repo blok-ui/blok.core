@@ -21,6 +21,11 @@ class Placeholder extends PrimitiveView {
 		__initialize();
 	}
 
+	function __replace(other:View) {
+		other.dispose();
+		__initialize();
+	}
+
 	function __update() {}
 
 	function __validate() {}
@@ -37,8 +42,12 @@ class Placeholder extends PrimitiveView {
 		return getPrimitive();
 	}
 
-	public function canBeUpdatedByNode(node:VNode):Bool {
+	public function canBeUpdatedByVNode(node:VNode):Bool {
 		return node.type == componentType;
+	}
+
+	public function canReplaceOtherView(other:View):Bool {
+		return false;
 	}
 
 	public function visitChildren(visitor:(child:View) -> Bool) {}

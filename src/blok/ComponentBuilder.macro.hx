@@ -136,7 +136,7 @@ class ComponentBuilder implements BuildBundle implements BuildStep {
 				@:mergeBlock $b{updates};
 			}
 
-			public function canBeUpdatedByNode(node:blok.VNode):Bool {
+			public function canBeUpdatedByVNode(node:blok.VNode):Bool {
 				return node.type == componentType;
 			}
 		});

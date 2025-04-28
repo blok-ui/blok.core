@@ -88,6 +88,11 @@ class ErrorBoundary extends View {
 		replaceable.show();
 	}
 
+	function __replace(other:View) {
+		other.dispose();
+		__initialize();
+	}
+
 	function __validate() {
 		replaceable.show();
 	}
@@ -104,8 +109,12 @@ class ErrorBoundary extends View {
 		return replaceable.current().getPrimitive();
 	}
 
-	public function canBeUpdatedByNode(node:VNode):Bool {
+	public function canBeUpdatedByVNode(node:VNode):Bool {
 		return node.type == componentType;
+	}
+
+	public function canReplaceOtherView(other:View):Bool {
+		return false;
 	}
 
 	public function visitChildren(visitor:(child:View) -> Bool) {

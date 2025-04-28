@@ -97,6 +97,11 @@ class ElementPrimitiveView extends PrimitiveView {
 		cursor.next();
 	}
 
+	function __replace(other:View) {
+		other.dispose();
+		__initialize();
+	}
+
 	function __update() {
 		observeAttributes();
 		children = Differ.diffChildren(getAdaptor(), this, children, resolveChildren(), createSlot);
@@ -130,8 +135,12 @@ class ElementPrimitiveView extends PrimitiveView {
 		return getPrimitive();
 	}
 
-	public function canBeUpdatedByNode(node:VNode):Bool {
+	public function canBeUpdatedByVNode(node:VNode):Bool {
 		return type == node.type;
+	}
+
+	public function canReplaceOtherView(other:View):Bool {
+		return false;
 	}
 
 	public function visitChildren(visitor:(child:View) -> Bool) {

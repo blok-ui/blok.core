@@ -30,20 +30,20 @@ abstract Text(VNode) to VNode from VNode {
 }
 
 class TextView extends PrimitiveView {
-	public static final componentType = new UniqueId();
+	public static final viewType = new UniqueId();
 
-	public static function node(value:String, ?key:Key) {
-		return new VComposableView(componentType, {value: value}, TextView.new, key);
+	public static function node(content:String, ?key:Key):VNode {
+		return new VText(content, key);
 	}
 
-	function new(node) {
+	public function new(node:VText) {
 		__node = node;
 	}
 
 	function __initialize() {
 		var adaptor = getAdaptor();
-		var props:{value:String} = __node.getProps();
-		primitive = adaptor.createTextPrimitive(props.value);
+		var props:{content:String} = __node.getProps();
+		primitive = adaptor.createTextPrimitive(props.content);
 		adaptor.insertPrimitive(primitive, __slot);
 	}
 
@@ -55,8 +55,13 @@ class TextView extends PrimitiveView {
 
 	function __update() {
 		var adaptor = getAdaptor();
-		var props:{value:String} = __node.getProps();
-		adaptor.updateTextPrimitive(primitive, props.value);
+		var props:{content:String} = __node.getProps();
+		adaptor.updateTextPrimitive(primitive, props.content);
+	}
+
+	function __replace(other:View) {
+		other.dispose();
+		__initialize();
 	}
 
 	function __validate() {
@@ -75,9 +80,32 @@ class TextView extends PrimitiveView {
 		return getPrimitive();
 	}
 
-	public function canBeUpdatedByNode(node:VNode):Bool {
-		return node.type == componentType;
+	public function canBeUpdatedByVNode(node:VNode):Bool {
+		return node.type == viewType;
+	}
+
+	public function canReplaceOtherView(other:View):Bool {
+		return false;
 	}
 
 	public function visitChildren(visitor:(child:View) -> Bool) {}
+}
+
+class VText implements VNode {
+	public final type:UniqueId = TextView.viewType;
+	public final key:Null<Key>;
+	public final content:String;
+
+	public function new(content, ?key) {
+		this.content = content;
+		this.key = key;
+	}
+
+	public function getProps<T:{}>():T {
+		return cast {content: content};
+	}
+
+	public function createView():View {
+		return new TextView(this);
+	}
 }

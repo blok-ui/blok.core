@@ -4,7 +4,6 @@ import blok.debug.Debug;
 
 enum ViewMountedStatus {
 	Unmounted;
-	// @todo: Maybe we can just get the parent from the slot, as it has that now?
 	Mounted(parent:Null<View>, adaptor:Adaptor);
 }
 
@@ -68,14 +67,14 @@ abstract class View implements Disposable implements DisposableHost {
 	}
 
 	public function replace(adaptor:Adaptor, parent:Null<View>, other:View, slot:Null<Slot>) {
+		assert(canReplaceOtherView(other));
+
 		__prepareViewForInitialization(adaptor, parent, slot);
 
 		__status = Rendering;
 		__renderMode = Normal;
 
-		try if (!__replace(other)) {
-			__initialize();
-		} catch (e) {
+		try __replace(other) catch (e) {
 			__cleanupAfterValidation();
 			other.dispose();
 			throw e;
@@ -153,9 +152,7 @@ abstract class View implements Disposable implements DisposableHost {
 
 	abstract function __hydrate(cursor:Cursor):Void;
 
-	function __replace(other:View):Bool {
-		return false;
-	}
+	abstract function __replace(other:View):Void;
 
 	abstract function __update():Void;
 
@@ -167,7 +164,9 @@ abstract class View implements Disposable implements DisposableHost {
 
 	abstract public function getPrimitive():Dynamic;
 
-	abstract public function canBeUpdatedByNode(node:VNode):Bool;
+	abstract public function canBeUpdatedByVNode(node:VNode):Bool;
+
+	abstract public function canReplaceOtherView(other:View):Bool;
 
 	abstract public function visitChildren(visitor:(child:View) -> Bool):Void;
 

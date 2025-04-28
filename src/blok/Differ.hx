@@ -17,12 +17,14 @@ function updateView(adaptor:Adaptor, parent:View, view:Null<View>, node:Null<VNo
 
 	var newView = node.createView();
 
-	if (view == null) {
-		newView.mount(adaptor, parent, slot);
+	if (view != null && newView.canReplaceOtherView(view)) {
+		newView.replace(adaptor, parent, view, slot);
 		return newView;
 	}
 
-	newView.replace(adaptor, parent, view, slot);
+	view?.dispose();
+
+	newView.mount(adaptor, parent, slot);
 	return newView;
 }
 
@@ -151,5 +153,5 @@ function hydrateChildren(parent:View, cursor:Cursor, children:Array<VNode>, crea
 }
 
 private function canBeUpdatedByNode(component:View, node:VNode) {
-	return component.canBeUpdatedByNode(node) && component.__node.key == node.key;
+	return component.canBeUpdatedByVNode(node) && component.__node.key == node.key;
 }

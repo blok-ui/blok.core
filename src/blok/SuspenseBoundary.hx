@@ -245,6 +245,11 @@ class SuspenseBoundary extends View {
 		if (suspenseStatus.equals(Ok)) scheduleOnComplete();
 	}
 
+	function __replace(other:View) {
+		other.dispose();
+		__initialize();
+	}
+
 	function __update() {
 		if (!updateProps()) return;
 		replaceable.real()?.update(child);
@@ -271,8 +276,12 @@ class SuspenseBoundary extends View {
 		return replaceable.current().getPrimitive();
 	}
 
-	public function canBeUpdatedByNode(node:VNode):Bool {
+	public function canBeUpdatedByVNode(node:VNode):Bool {
 		return node.type == componentType;
+	}
+
+	public function canReplaceOtherView(other:View):Bool {
+		return false;
 	}
 
 	public function visitChildren(visitor:(child:View) -> Bool) {

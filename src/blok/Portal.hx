@@ -73,6 +73,11 @@ class Portal extends View {
 		root.hydrate(cursor, adaptor, this, null);
 	}
 
+	function __replace(other:View) {
+		other.dispose();
+		__initialize();
+	}
+
 	function __update() {
 		updateProps();
 		root.update(Root.node({
@@ -101,14 +106,12 @@ class Portal extends View {
 		return marker.getPrimitive();
 	}
 
-	public function getNearestPrimitive():Dynamic {
-		return getParent()
-			.map(parent -> parent.getNearestPrimitive())
-			.orThrow('No primitive found');
+	public function canBeUpdatedByVNode(node:VNode):Bool {
+		return node.type == componentType;
 	}
 
-	public function canBeUpdatedByNode(node:VNode):Bool {
-		return node.type == componentType;
+	public function canReplaceOtherView(other:View):Bool {
+		return false;
 	}
 
 	public function visitChildren(visitor:(child:View) -> Bool) {

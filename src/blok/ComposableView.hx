@@ -50,11 +50,7 @@ abstract class ComposableView extends View {
 		});
 	}
 
-	@:noCompletion override function __replace(other:View):Bool {
-		if (!(other is ComposableView)) {
-			return false;
-		}
-
+	@:noCompletion function __replace(other:View) {
 		var proxy:ComposableView = cast other;
 		var otherChild = proxy.__child;
 
@@ -66,8 +62,6 @@ abstract class ComposableView extends View {
 		Owner.capture(this, {
 			setup();
 		});
-
-		return true;
 	}
 
 	@:noCompletion function __update():Void {
@@ -83,6 +77,10 @@ abstract class ComposableView extends View {
 
 	@:noCompletion function __updateSlot(oldSlot, newSlot:Null<Slot>) {
 		__child?.updateSlot(newSlot);
+	}
+
+	public function canReplaceOtherView(other:View):Bool {
+		return other is ComposableView;
 	}
 
 	public function getPrimitive():Dynamic {

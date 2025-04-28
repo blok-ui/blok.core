@@ -38,6 +38,11 @@ class Root extends PrimitiveView {
 		cursor.next();
 	}
 
+	function __replace(other:View) {
+		other.dispose();
+		__initialize();
+	}
+
 	function __update() {}
 
 	function __validate() {}
@@ -48,7 +53,11 @@ class Root extends PrimitiveView {
 		view.updateSlot(newSlot);
 	}
 
-	public function canBeUpdatedByNode(node:VNode):Bool {
+	public function canBeUpdatedByVNode(node:VNode):Bool {
+		return false;
+	}
+
+	public function canReplaceOtherView(other:View):Bool {
 		return false;
 	}
 

@@ -15,5 +15,6 @@ function main() {
 		.add(SignalSuite)
 		.add(ProviderSuite)
 		.add(HtmlSuite)
+		.add(PortalSuite)
 		.run();
 }

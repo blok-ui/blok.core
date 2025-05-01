@@ -111,7 +111,6 @@ abstract ReadOnlySignal<T>(ReadOnlySignalObject<T>) from ReadOnlySignalObject<T>
 		this = new StaticSignalObject(value);
 	}
 
-	@:deprecated('Use a Computation instead')
 	public inline function map<R>(transform:(value:T) -> R):ReadOnlySignal<R> {
 		return new Computation(() -> transform(get()));
 	}

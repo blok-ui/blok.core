@@ -51,12 +51,12 @@ abstract class ComposableView extends View {
 	}
 
 	@:noCompletion function __replace(other:View) {
-		var proxy:ComposableView = cast other;
-		var otherChild = proxy.__child;
+		var composable:ComposableView = cast other;
+		var otherChild = composable.__child;
 
 		__createComputedChild();
 
-		proxy.__child = null;
+		composable.__child = null;
 		__child = Differ.updateView(getAdaptor(), this, otherChild, __computedChild.peek(), __slot);
 
 		Owner.capture(this, {

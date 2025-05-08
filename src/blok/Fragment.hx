@@ -89,7 +89,6 @@ class Fragment extends View {
 	}
 
 	function __replace(other:View) {
-		other.dispose();
 		__initialize();
 	}
 

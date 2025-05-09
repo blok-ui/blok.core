@@ -246,7 +246,6 @@ class SuspenseBoundary extends View {
 	}
 
 	function __replace(other:View) {
-		other.dispose();
 		__initialize();
 	}
 

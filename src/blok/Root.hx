@@ -39,7 +39,6 @@ class Root extends PrimitiveView {
 	}
 
 	function __replace(other:View) {
-		other.dispose();
 		__initialize();
 	}
 

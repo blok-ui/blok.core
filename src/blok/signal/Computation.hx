@@ -1,5 +1,6 @@
 package blok.signal;
 
+import blok.core.*;
 import blok.debug.Debug;
 import blok.signal.Signal;
 import haxe.Exception;

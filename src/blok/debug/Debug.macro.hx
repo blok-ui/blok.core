@@ -16,11 +16,7 @@ function warn(e) {
 }
 
 function error(message:ExprOf<String>) {
-	var type = Context.getLocalType();
-	if (Context.unify(type, Context.getType('blok.View'))) {
-		return macro @:pos(message.pos) throw new blok.BlokException.BlokViewException($message, this);
-	}
-	return macro @:pos(message.pos) throw new blok.BlokException($message);
+	return macro @:pos(message.pos) throw new kit.Error(InternalError, $message);
 }
 
 function assert(condition:Expr, ?message:Expr):Expr {

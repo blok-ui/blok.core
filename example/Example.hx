@@ -1,6 +1,6 @@
-import todo.Todo;
 import counter.Counter;
 import suspense.SuspenseExample;
+import todo.Todo;
 
 function main() {
 	todos();

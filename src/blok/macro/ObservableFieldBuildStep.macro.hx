@@ -63,7 +63,7 @@ class ObservableFieldBuildStep implements BuildStep {
 					}
 				];
 
-				builder.hook(LateInit)
+				builder.hook(Init)
 					.addProp({
 						name: name,
 						type: type,
@@ -87,7 +87,7 @@ class ObservableFieldBuildStep implements BuildStep {
 					default: e;
 				});
 
-				builder.hook(LateInit)
+				builder.hook(Init)
 					.addProp({
 						name: name,
 						type: type,

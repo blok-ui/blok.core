@@ -1,55 +1,26 @@
 package blok;
 
-import blok.Providable;
-import blok.debug.Debug;
+import blok.engine.*;
 
-class Provider<T:Providable> extends Component {
+@:forward
+@:forward.new
+abstract Provider<T:Providable>(ProviderNode<T>) to Node to Child {
+	@:fromMarkup
+	public static function node<T:Providable>(props:{
+		public final context:T;
+		@:children public final child:Child;
+		public final ?shared:Bool;
+		public final ?key:Key;
+	}):Node {
+		return new ProviderNode(props.context, props.child, props.shared, props.key);
+	}
+
 	public inline static function provide(value:Providable) {
-		return new VProvider([{value: value, shared: false}]);
+		return new ProviderFactory([{value: value, shared: false}]);
 	}
 
 	public inline static function share(value:Providable) {
-		return new VProvider([{value: value, shared: true}]);
-	}
-
-	@:attribute final context:T;
-	@:attribute final shared:Bool = false;
-	@:children @:attribute final child:Child;
-
-	var currentContext:Null<T> = null;
-
-	function setup() {
-		if (shared) return;
-
-		addDisposable(() -> {
-			currentContext?.dispose();
-			currentContext = null;
-		});
-	}
-
-	public function match(contextId:Int):Bool {
-		return context?.getContextId() == contextId;
-	}
-
-	public function getContext():Maybe<T> {
-		return context != null ? Some(context) : None;
-	}
-
-	function render() {
-		if (shared) {
-			if (currentContext == null) currentContext = context;
-
-			assert(currentContext == context, 'Shared providers should always have the same value');
-
-			return child;
-		}
-
-		if (context != currentContext) {
-			currentContext?.dispose();
-			currentContext = context;
-		}
-
-		return child;
+		return new ProviderFactory([{value: value, shared: true}]);
 	}
 }
 
@@ -58,7 +29,7 @@ typedef ProvidableEntry = {
 	public final shared:Bool;
 }
 
-abstract VProvider({
+abstract ProviderFactory({
 	public final contexts:Array<ProvidableEntry>;
 	public var child:Null<Child>;
 }) {
@@ -80,8 +51,6 @@ abstract VProvider({
 	}
 
 	public inline function child(child:Child) {
-		assert(this.child == null, 'Only one child is allowed');
-
 		this.child = child;
 		return abstract;
 	}
@@ -91,7 +60,7 @@ abstract VProvider({
 		var contexts = this.contexts.copy();
 		var child = this.child;
 		var entry = contexts.shift();
-		var component:VNode = Provider.node({
+		var component:Node = Provider.node({
 			context: entry.value,
 			shared: entry.shared,
 			child: child

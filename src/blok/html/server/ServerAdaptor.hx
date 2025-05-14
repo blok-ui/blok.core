@@ -1,6 +1,7 @@
 package blok.html.server;
 
-import blok.Scheduler;
+import blok.engine.*;
+import blok.core.*;
 import blok.debug.Debug;
 
 using StringTools;
@@ -12,33 +13,34 @@ class ServerAdaptor implements Adaptor {
 		this.scheduler = scheduler ?? Scheduler.current();
 	}
 
-	public function createPrimitive(name:String, attrs:{}):Dynamic {
-		if (name.startsWith('svg:')) name = name.substr(4);
-		return new ElementPrimitive(name, attrs);
+	public function schedule(effect:() -> Void) {
+		scheduler.schedule(effect);
 	}
 
-	public function createTextPrimitive(value:String):Dynamic {
-		return new TextPrimitive(value);
+	public function scheduleEffect(effect:() -> Void) {
+		scheduler.scheduleEffect(effect);
 	}
 
-	public function createContainerPrimitive(props:{}):Dynamic {
-		return createPrimitive('div', props);
+	public function createPrimitive(tag:String):Any {
+		if (tag.startsWith('svg:')) tag = tag.substr(4);
+		return new ElementPrimitive(tag);
 	}
 
-	public function createPlaceholderPrimitive():Dynamic {
-		return new TextPrimitive('');
+	public function createTextPrimitive(text:String):Any {
+		return new TextPrimitive(text);
 	}
 
-	public function createCursor(object:Dynamic):Cursor {
-		return new NodePrimitiveCursor(object);
+	public function createContainerPrimitive():Any {
+		return new ElementPrimitive('div');
 	}
 
-	public function updateTextPrimitive(object:Dynamic, value:String) {
-		(object : TextPrimitive).updateContent(value);
+	public function updateTextPrimitive(primitive:Any, value:String) {
+		var text:TextPrimitive = primitive;
+		text.updateContent(value);
 	}
 
-	public function updatePrimitiveAttribute(object:Dynamic, name:String, oldValue:Null<Dynamic>, value:Dynamic, ?isHydrating:Bool) {
-		var el:ElementPrimitive = object;
+	public function updatePrimitiveAttribute(primitive:Any, name:String, oldValue:Null<Any>, value:Any, ?isHydrating:Bool) {
+		var el:ElementPrimitive = primitive;
 		switch name {
 			case 'className' | 'class':
 				var oldNames = Std.string(oldValue ?? '').split(' ').filter(n -> n != null && n != '');
@@ -60,69 +62,35 @@ class ServerAdaptor implements Adaptor {
 		}
 	}
 
-	public function insertPrimitive(object:Dynamic, slot:Slot) {
-		assert(slot != null);
+	public function checkPrimitiveType(primitive:Any, type:String):Result<Any, Error> {
+		if (!(primitive is ElementPrimitive)) return Error(new Error(InternalError, 'Not an Element'));
 
-		var node:NodePrimitive = object;
+		var node:ElementPrimitive = primitive;
 
-		if (slot.previous != null) {
-			var relative:NodePrimitive = slot.previous.getPrimitive();
-			var parent = relative.parent;
-			if (parent != null) {
-				var index = parent.children.indexOf(relative);
-				parent.insert(index + 1, node);
-			} else {
-				var parent:NodePrimitive = slot.host.getOwnPrimitive();
-				assert(parent != null);
-				parent.prepend(node);
-			}
-		} else {
-			var parent:NodePrimitive = slot.host.getOwnPrimitive();
-			assert(parent != null);
-			parent.prepend(node);
-		}
+		if (node.tag != type) return Error(new Error(InternalError, 'Not a ${type}'));
+
+		return Ok(node);
 	}
 
-	public function movePrimitive(object:Dynamic, from:Null<Slot>, to:Null<Slot>) {
-		var node:NodePrimitive = object;
-
-		if (to == null) {
-			removePrimitive(object, from);
-			return;
-		}
-
-		if (from != null && !from.changed(to)) {
-			return;
-		}
-
-		if (to.previous == null) {
-			var parent:NodePrimitive = to.host.getOwnPrimitive();
-			assert(parent != null);
-			parent.prepend(node);
-			return;
-		}
-
-		var relative:NodePrimitive = to.previous.getPrimitive();
-		var parent = relative.parent;
-
-		assert(parent != null);
-
-		var index = parent.children.indexOf(relative);
-
-		parent.insert(index + 1, node);
+	public function checkText(primitive:Any):Result<Any, Error> {
+		if (primitive is TextPrimitive) return Ok(primitive);
+		return Error(new Error(InternalError, 'Not Text'));
 	}
 
-	public function removePrimitive(object:Dynamic, slot:Null<Slot>) {
-		var node:NodePrimitive = object;
-		node.remove();
+	public function children(primitive:Any):Cursor {
+		var parent:NodePrimitive = primitive;
+		var node = parent.children[0];
+
+		return new ServerCursor(parent, node);
 	}
 
-	public function schedule(effect:() -> Void) {
-		scheduler.schedule(effect);
-	}
+	public function siblings(primitive:Any):Cursor {
+		var node:NodePrimitive = primitive;
+		var parent = node.parent;
 
-	public function scheduleEffect(effect:() -> Void) {
-		scheduler.scheduleEffect(effect);
+		if (parent == null) parent = new ElementPrimitive('#document');
+
+		return new ServerCursor(parent, node);
 	}
 }
 

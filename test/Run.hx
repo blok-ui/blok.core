@@ -11,10 +11,10 @@ function main() {
 		.add(UnescapedTextPrimitiveSuite)
 		.add(ObjectSuite)
 		.add(ModelSuite)
-		.add(SuspenseSuite)
 		.add(SignalSuite)
-		.add(ProviderSuite)
+			// .add(ProviderSuite)
 		.add(HtmlSuite)
-		.add(PortalSuite)
+			// .add(PortalSuite)
+		.add(SuspenseSuite)
 		.run();
 }

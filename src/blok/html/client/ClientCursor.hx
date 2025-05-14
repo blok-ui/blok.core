@@ -1,35 +1,58 @@
 package blok.html.client;
 
-import js.html.Node;
+import js.html.*;
+import blok.engine.Cursor;
 
 class ClientCursor implements Cursor {
-	var node:Null<Node>;
+	final parent:DOMElement;
+	var currentNode:Null<Node>;
 
-	public function new(node) {
-		this.node = node;
+	public function new(parent, currentNode) {
+		this.parent = parent;
+		this.currentNode = currentNode;
 	}
 
-	public function current():Null<Dynamic> {
-		if (node != null && node.nodeType == Node.COMMENT_NODE) next();
-		return node;
+	public function current():Maybe<Any> {
+		if (currentNode != null && currentNode.nodeType == Node.COMMENT_NODE) next();
+		return currentNode.toMaybe();
 	}
 
 	public function next() {
-		if (node == null) return;
-		node = node.nextSibling;
-		if (node != null && node.nodeType == Node.COMMENT_NODE) next();
+		if (currentNode == null) return;
+		currentNode = currentNode.nextSibling;
+		if (currentNode != null && currentNode.nodeType == Node.COMMENT_NODE) next();
 	}
 
-	public function currentChildren():Cursor {
-		if (node == null) return new ClientCursor(null);
-		return new ClientCursor(node.firstChild);
+	public function insert(primitive:Any):Result<Any, Error> {
+		var element:DOMElement = primitive;
+
+		switch current() {
+			// Unsure about this:
+			case Some(relative) if (relative == element):
+				return Ok(element);
+			case Some(relative):
+				(relative : DOMElement).after(element);
+			case None:
+				parent.prepend(element);
+		}
+
+		currentNode = element;
+
+		return Ok(element);
 	}
 
-	public function move(current:Dynamic) {
-		node = current;
+	public function remove(primitive:Any):Result<Any, Error> {
+		var toRemove:DOMElement = primitive;
+		var sibling = toRemove?.nextSibling;
+
+		toRemove?.remove();
+		// Move cursor to the next node in line.
+		currentNode = sibling;
+
+		return Ok(toRemove);
 	}
 
-	public function clone():Cursor {
-		return new ClientCursor(node);
+	public function detach(primitive:Any):Result<Any, Error> {
+		return remove(primitive);
 	}
 }

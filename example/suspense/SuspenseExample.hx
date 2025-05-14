@@ -13,8 +13,8 @@ function suspense() {
 }
 
 class SuspenseExample extends Component {
-	function render() {
-		var body = Provider.provide(new SuspenseBoundaryContext({
+	function render():Child {
+		var body = Provider.provide(new SuspenseContext({
 			onComplete: () -> trace('Will trigger when all suspended children are complete')
 		})).child(Fragment.of([
 			Html.div({
@@ -76,7 +76,7 @@ class SuspenseExample extends Component {
 				Spacing.pad(3)
 			)
 		}).child(body)
-			.inErrorBoundary((component, e) -> Html.div().child([
+			.inErrorBoundary((e) -> Html.div().child([
 				Html.h1().child('Error!'),
 				Html.p().child(e.message)
 			]));

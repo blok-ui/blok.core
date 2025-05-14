@@ -1,7 +1,11 @@
 package blok.html.client;
 
-import blok.Scheduler;
-import blok.debug.Debug;
+import js.html.DocumentFragment;
+import js.html.DOMElement;
+import js.html.Node;
+import blok.core.*;
+import blok.engine.Adaptor;
+import blok.engine.Cursor;
 import blok.html.HtmlEvents;
 import js.Browser;
 import js.html.Element;
@@ -17,34 +21,38 @@ class ClientAdaptor implements Adaptor {
 		this.scheduler = scheduler ?? Scheduler.current();
 	}
 
-	public function createPrimitive(name:String, initialAttrs:{}):Dynamic {
-		return name.startsWith('svg:') ? Browser.document.createElementNS(svgNamespace, name.substr(4)) : Browser.document.createElement(name);
+	public function schedule(effect:() -> Void) {
+		scheduler.schedule(effect);
 	}
 
-	public function createTextPrimitive(value:String):Dynamic {
-		return Browser.document.createTextNode(value);
+	public function scheduleEffect(effect:() -> Void) {
+		scheduler.scheduleEffect(effect);
 	}
 
-	public function createContainerPrimitive(props:{}):Dynamic {
-		return createPrimitive('div', props);
+	public function createPrimitive(tag:String):Any {
+		if (tag.startsWith('svg:')) {
+			return Browser.document.createElementNS(svgNamespace, tag.substr(4));
+		}
+
+		return Browser.document.createElement(tag);
 	}
 
-	public function createPlaceholderPrimitive():Dynamic {
-		return createTextPrimitive('');
+	public function createTextPrimitive(text:String):Any {
+		return Browser.document.createTextNode(text);
 	}
 
-	public function createCursor(object:Dynamic):Cursor {
-		return new ClientCursor(object);
+	public function createContainerPrimitive():Any {
+		return createPrimitive('div');
 	}
 
-	public function updateTextPrimitive(object:Dynamic, value:String) {
-		var text:js.html.Text = object;
+	public function updateTextPrimitive(primitive:Any, value:String) {
+		var text:js.html.Text = primitive;
 		if (text.textContent == value) return; // Note: not doing this can cause unneeded updates.
 		text.textContent = value;
 	}
 
-	public function updatePrimitiveAttribute(object:Dynamic, name:String, oldValue:Null<Dynamic>, value:Null<Dynamic>, ?isHydrating:Bool) {
-		var el:Element = object;
+	public function updatePrimitiveAttribute(primitive:Any, name:String, oldValue:Null<Any>, value:Any, ?isHydrating:Bool) {
+		var el:Element = primitive;
 		var isSvg = el.namespaceURI == svgNamespace;
 		var namespace = isSvg ? svgNamespace : null;
 
@@ -69,61 +77,6 @@ class ClientAdaptor implements Adaptor {
 			default:
 				setAttribute(el, name, value, namespace);
 		}
-	}
-
-	public function insertPrimitive(object:Dynamic, slot:Slot) {
-		assert(slot != null);
-
-		var el:Element = object;
-
-		if (slot.previous != null) {
-			var relative:Element = slot.previous.getPrimitive();
-			relative.after(el);
-		} else {
-			var parent:Element = slot.host.getOwnPrimitive();
-			assert(parent != null);
-			parent.prepend(el);
-		}
-	}
-
-	public function movePrimitive(object:Dynamic, from:Null<Slot>, to:Null<Slot>) {
-		var el:Element = object;
-
-		if (to == null) {
-			removePrimitive(object, from);
-			return;
-		}
-
-		// // @todo: I don't think we need this: it's checked anyway
-		// // during diffing and we want to ignore it if we're manually changing
-		// // slots.
-		// if (from != null && !from.changed(to)) {
-		//   return;
-		// }
-
-		if (to.previous == null) {
-			assert(to.index == 0);
-			var parent:Element = to.host.getOwnPrimitive();
-			assert(parent != null);
-			parent.prepend(el);
-			return;
-		}
-
-		var relative:Element = to.previous.getPrimitive();
-		assert(relative != null);
-		relative.after(el);
-	}
-
-	public function removePrimitive(object:Dynamic, slot:Null<Slot>) {
-		(object : Element).remove();
-	}
-
-	public function schedule(effect:() -> Void) {
-		scheduler.schedule(effect);
-	}
-
-	public function scheduleEffect(effect:() -> Void) {
-		scheduler.scheduleEffect(effect);
 	}
 
 	function setAttribute(element:Element, name:String, ?value:Dynamic, ?namespace:String) {
@@ -212,5 +165,34 @@ class ClientAdaptor implements Adaptor {
 		}
 
 		return name;
+	}
+
+	public function checkPrimitiveType(primitive:Any, type:String):Result<Any, Error> {
+		var node:Node = primitive;
+		if (node.nodeName != type) {
+			return Error(new Error(InternalError, 'Not a ${type}'));
+		}
+		return Ok(node);
+	}
+
+	public function checkText(primitive:Any):Result<Any, Error> {
+		var node:Node = primitive;
+		if (node.nodeType != Node.TEXT_NODE) {
+			return Error(new Error(InternalError, 'Not Text'));
+		}
+		return Ok(node);
+	}
+
+	public function children(primitive:Any):Cursor {
+		var parent:DOMElement = primitive;
+		var node = parent.children.item(0);
+		return new ClientCursor(parent, node);
+	}
+
+	public function siblings(primitive:Any):Cursor {
+		var node:Node = primitive;
+		var parent:DOMElement = node.parentElement;
+		if (parent == null) parent = cast new DocumentFragment(); // Hm
+		return new ClientCursor(parent, node);
 	}
 }

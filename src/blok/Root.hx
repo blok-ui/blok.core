@@ -1,66 +1,33 @@
 package blok;
 
-class Root extends PrimitiveView {
-	public static final componentType = new UniqueId();
+import blok.engine.*;
 
-	public static function node(props:{
-		target:Dynamic,
-		child:Child
-	}) {
-		return new VComposableView(componentType, props, Root.new);
-	}
+class Root<Primitive = Any> implements ViewHost {
+	final primitive:Primitive;
+	final adaptor:Adaptor;
+	final child:Node;
+	final view:View;
 
-	final child:Child;
-
-	var view:Null<View> = null;
-
-	function new(node) {
-		__node = node;
-		(node.getProps() : {
-			target: Dynamic,
-			child: Child
-		}).extract(try {
-			target: target,
-			child: child
-		});
-		this.primitive = target;
+	public function new(primitive, adaptor, child) {
+		this.primitive = primitive;
+		this.adaptor = adaptor;
 		this.child = child;
+		this.view = child.createView(None, adaptor);
 	}
 
-	function __initialize() {
-		view = child.createView();
-		view.mount(getAdaptor(), this, new Slot(this, 0, null));
+	public function mount() {
+		// @todo: We went through all this trouble making these things return errors,
+		// we should actually handle them somewhere.
+		return view.insert(adaptor.children(primitive));
 	}
 
-	function __hydrate(cursor:Cursor) {
-		view = child.createView();
-		view.hydrate(cursor.currentChildren(), getAdaptor(), this, new Slot(this, 0, null));
-		cursor.next();
+	public function hydrate() {
+		// @todo: We went through all this trouble making these things return errors,
+		// we should actually handle them somewhere.
+		return view.insert(adaptor.children(primitive), true);
 	}
 
-	function __replace(other:View) {
-		__initialize();
-	}
-
-	function __update() {}
-
-	function __validate() {}
-
-	function __dispose() {}
-
-	function __updateSlot(oldSlot:Null<Slot>, newSlot:Null<Slot>) {
-		view.updateSlot(newSlot);
-	}
-
-	public function canBeUpdatedByVNode(node:VNode):Bool {
-		return false;
-	}
-
-	public function canReplaceOtherView(other:View):Bool {
-		return false;
-	}
-
-	public function visitChildren(visitor:(child:View) -> Bool) {
-		if (view != null) visitor(view);
+	public function getView():View {
+		return view;
 	}
 }

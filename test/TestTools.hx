@@ -1,4 +1,5 @@
 import blok.*;
+import blok.engine.*;
 import blok.html.Server;
 import blok.html.server.*;
 
@@ -12,7 +13,7 @@ function renderAsync(body:Child):Future<Null<View>> {
 			.inSuspense(() -> '...')
 			.onComplete(() -> activate(root))
 			.node()
-			.inErrorBoundary((component, e) -> throw e)
-		);
+			.inErrorBoundary((e) -> throw e)
+		).orThrow();
 	});
 }

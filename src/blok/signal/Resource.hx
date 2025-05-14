@@ -1,6 +1,8 @@
 package blok.signal;
 
+import blok.core.*;
 import blok.signal.Signal;
+import haxe.Exception;
 
 /**
 	A Resource is represents a reactive, async value designed to be used inside Blok's sync
@@ -55,8 +57,6 @@ class DefaultResourceObject<T, E = kit.Error> implements ResourceObject<T, E> {
 	var link:Null<Cancellable> = null;
 
 	public function new(fetch) {
-		var prevOwner = Owner.setCurrent(disposables);
-
 		this.data = new Signal(Pending);
 		this.loading = new Computation(() -> switch data() {
 			case Loading(_) | Pending: true;
@@ -64,9 +64,7 @@ class DefaultResourceObject<T, E = kit.Error> implements ResourceObject<T, E> {
 		});
 		this.fetch = fetch;
 
-		Owner.setCurrent(prevOwner);
-
-		prevOwner?.addDisposable(this);
+		Owner.current()?.addDisposable(this);
 	}
 
 	public function get():T {
@@ -99,11 +97,11 @@ class DefaultResourceObject<T, E = kit.Error> implements ResourceObject<T, E> {
 
 		return switch data() {
 			case Pending:
-				throw new BlokException('Data was not initialized');
+				throw new Error(InternalError, 'Data was not initialized');
 			case Loaded(value):
 				value;
 			case Loading(task):
-				throw new SuspenseException(task);
+				throw new ResourceException(task);
 			case Error(e):
 				throw e;
 		}
@@ -118,5 +116,14 @@ class DefaultResourceObject<T, E = kit.Error> implements ResourceObject<T, E> {
 		link?.cancel();
 		link = null;
 		disposables.dispose();
+	}
+}
+
+class ResourceException extends Exception {
+	public final task:Task<Any, Any>;
+
+	public function new(task) {
+		super('Unhandled suspension');
+		this.task = task;
 	}
 }

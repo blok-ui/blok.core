@@ -1,10 +1,11 @@
 package blok;
 
+import blok.engine.Node;
 import blok.signal.Computation;
 import blok.signal.Signal;
 
 @:forward
-abstract Child(VNode) from Text from VNode to VNode {
+abstract Child(Node) from Text from Node to Node {
 	@:from
 	public inline static function ofArray(children:Array<Child>):Child {
 		return Fragment.of(children);

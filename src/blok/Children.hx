@@ -1,13 +1,15 @@
 package blok;
 
+import blok.engine.Node;
+
 @:forward
-abstract Children(Array<VNode>) from Array<Child> from Array<VNode> to Array<VNode> {
-	@:from public inline static function ofVNode<T:VNode>(child:T):Children {
+abstract Children(Array<Node>) from Array<Child> from Array<Node> to Array<Node> {
+	@:from public inline static function ofNode<T:Node>(child:T):Children {
 		return [child];
 	}
 
-	@:from public inline static function ofVNodes<T:VNode>(children:Array<T>):Children {
-		return (cast children : Array<VNode>);
+	@:from public inline static function ofNodes<T:Node>(children:Array<T>):Children {
+		return (cast children : Array<Node>);
 	}
 
 	@:from public inline static function ofChild(child:Child):Children {
@@ -26,7 +28,7 @@ abstract Children(Array<VNode>) from Array<Child> from Array<VNode> to Array<VNo
 		return this;
 	}
 
-	@:to public inline function toChild():Child {
-		return Fragment.of(this);
-	}
+	// @:to public inline function toChild():Child {
+	// 	return Fragment.of(this);
+	// }
 }

@@ -41,41 +41,47 @@ class ContextBuildStep implements BuildStep {
 			// @todo: ...no idea if this will work. Probably not.
 			params: createParams.map(p -> TPType(TPath({name: p.name, pack: []})))
 		});
-		var constructors = macro class {
+		var resolvers = macro class {
 			@:noUsing
-			public static function from(view:blok.View):$ret {
+			public static function from(view:blok.engine.ViewContext):$ret {
 				return @:pos(fallback.pos) return maybeFrom(view).or(() -> {
-					if (__fallbackInstances == null) {
-						__fallbackInstances = [];
-					}
+					var fallback:$ret = $fallback;
+					return fallback;
 
-					if (!__fallbackInstances.exists(view)) {
-						var fallback:$ret = $fallback;
-						__fallbackInstances.set(view, fallback);
-						view.addDisposable(() -> {
-							__fallbackInstances.remove(view);
-							fallback.dispose();
-						});
-					}
+					// if (__fallbackInstances == null) {
+					// 	__fallbackInstances = [];
+					// }
 
-					return __fallbackInstances.get(view);
+					// if (!__fallbackInstances.exists(view)) {
+					// 	var fallback:$ret = $fallback;
+					// 	__fallbackInstances.set(view, fallback);
+					// 	view.addDisposable(() -> {
+					// 		__fallbackInstances.remove(view);
+					// 		fallback.dispose();
+					// 	});
+					// }
+
+					// return __fallbackInstances.get(view);
 				});
 			}
 
 			@:noUsing
-			public static function maybeFrom(view:blok.View):kit.Maybe<$ret> {
-				return view.findAncestor(ancestor -> switch Std.downcast(ancestor, blok.Provider) {
-					case null: false;
-					case provider: provider.match(__contextId);
-				}).flatMap(provider -> (cast provider : blok.Provider<$ret>).getContext());
+			public static function maybeFrom(view:blok.engine.ViewContext):kit.Maybe<$ret> {
+				return view
+					.unwrap()
+					.findAncestor(ancestor -> switch Std.downcast(ancestor, blok.engine.ProviderView) {
+						case null: false;
+						case provider: provider.match(__contextId);
+					})
+					.map(provider -> (cast provider : blok.engine.ProviderView<$ret>).currentContext());
 			}
 		}
 
-		builder.addField(constructors
+		builder.addField(resolvers
 			.getField('from')
 			.unwrap()
 			.applyParameters(createParams));
-		builder.addField(constructors
+		builder.addField(resolvers
 			.getField('maybeFrom')
 			.unwrap()
 			.applyParameters(createParams));
@@ -84,8 +90,8 @@ class ContextBuildStep implements BuildStep {
 			@:noCompletion
 			public static final __contextId = new kit.UniqueId();
 
-			@:noCompletion
-			static var __fallbackInstances:Null<Map<blok.View, Any>> = null;
+			// @:noCompletion
+			// static var __fallbackInstances:Null<Map<blok.engine.View, Any>> = null;
 
 			public function getContextId() {
 				return __contextId;

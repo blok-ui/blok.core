@@ -50,6 +50,7 @@ class ElementPrimitive extends NodePrimitive {
 	}
 
 	public function toString(?options:NodePrimitiveToStringOptions):String {
+		var tag = tag.toLowerCase();
 		var attrs:Map<String, String> = getFilteredAttributes();
 		var children:Array<String> = children
 			.filter(c -> c != null)

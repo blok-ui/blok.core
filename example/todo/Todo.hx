@@ -92,31 +92,36 @@ class TodoContext extends SerializableModel implements Context {
 
 class TodoRoot extends Component {
 	function render() {
-		return Html.view(<div className={Breeze.compose(
-			Flex.display(),
-			Flex.justify('center'),
-			Spacing.pad(10),
-		)}>
+		return Html.view(<ErrorBoundary>
 			<div className={Breeze.compose(
-				Sizing.width('full'),
-				Border.radius(2),
-				Border.width(.5),
-				Breakpoint.viewport('700px', Sizing.width('700px'))
+				Flex.display(),
+				Flex.justify('center'),
+				Spacing.pad(10),
 			)}>
-				<Provider context={TodoContext.load()}>
-					<TodoHeader />
-					<TodoList />
-					<TodoFooter />
-				</Provider>
+				<div className={Breeze.compose(
+					Sizing.width('full'),
+					Border.radius(2),
+					Border.width(.5),
+					Breakpoint.viewport('700px', Sizing.width('700px'))
+				)}>
+					<Provider context={TodoContext.load()}>
+						<TodoHeader />
+						<TodoList />
+						<TodoFooter />
+					</Provider>
+				</div>
 			</div>
-		</div>);
+			<fallback>
+				{e -> <p>{e.toString()}</p>}
+			</fallback>
+		</ErrorBoundary>);
 	}
 }
 
 class TodoHeader extends Component {
 	@:context final todos:TodoContext;
 
-	function render():VNode {
+	function render():Child {
 		return Html.view(<header role="header" className={Breeze.compose(
 			Spacing.pad('x', 3)
 		)}>
@@ -234,11 +239,11 @@ class TodoInput extends Component {
 
 	@:effect function trackEditing():Void {
 		if (isEditing()) {
-			getPrimitive().as(js.html.InputElement)?.focus();
+			this.getView().firstPrimitive().as(js.html.InputElement)?.focus();
 		}
 	}
 
-	function render():VNode {
+	function render():Child {
 		return Html.input({
 			className: Breeze.compose(
 				className,
@@ -285,7 +290,7 @@ class TodoList extends Component {
 	@:computed final hidden:Bool = todos.total() == 0;
 	@:computed final style:Null<String> = hidden() ? 'visibility:hidden' : null;
 
-	function render():VNode {
+	function render():Child {
 		return Html.view(<section 
 			className="main"
 			ariaHidden=hidden
@@ -321,7 +326,7 @@ class TodoItem extends Component {
 		Select.child('last', Border.style('bottom', 'none'))
 	];
 
-	function render():VNode {
+	function render():Child {
 		return Html.view(<li id={'todo-${todo.id}'} className={className} onDblClick={_ -> todo.isEditing.set(true)}>
 			{if (!todo.isEditing()) <>
 				<input 

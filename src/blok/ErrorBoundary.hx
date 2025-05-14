@@ -1,122 +1,45 @@
 package blok;
 
+import blok.engine.*;
+import blok.engine.BoundaryView;
+import blok.signal.Resource;
 import haxe.Exception;
 
-enum ErrorBoundaryStatus {
-	Ok;
-	Caught(view:View, e:Exception);
-}
-
 typedef ErrorBoundaryProps = {
-	public final fallback:(view:View, e:Exception) -> Child;
+	public final fallback:(e:Exception) -> Child;
 	@:children public final child:Child;
+	public final ?key:Key;
 }
 
-class ErrorBoundary extends View {
-	public static final componentType:UniqueId = new UniqueId();
-
+class ErrorBoundary implements BoundaryNode<Exception> {
 	@:fromMarkup
 	@:noUsing
-	@:noCompletion
-	public inline static function fromMarkup(props:ErrorBoundaryProps) {
-		return node(props);
+	public inline static function node(props:ErrorBoundaryProps) {
+		return new ErrorBoundary(props.child, props.fallback, props.key);
 	}
 
-	public static function node(props:ErrorBoundaryProps, ?key) {
-		return new VComposableView(componentType, props, ErrorBoundary.new, key);
+	public final fallback:(payload:Exception) -> Node;
+	public final child:Node;
+	public final key:Null<Key>;
+
+	public function new(child, fallback, ?key) {
+		this.child = child;
+		this.fallback = fallback;
+		this.key = key;
 	}
 
-	final replaceable:Replaceable;
-
-	var child:Child;
-	var fallback:(component:View, e:Exception) -> Child;
-
-	public function new(node) {
-		__node = node;
-		replaceable = new Replaceable(this);
-		updateProps();
+	public function matches(other:Node):Bool {
+		return other is ErrorBoundary && other.key == key;
 	}
 
-	override function __handleThrownObject(target:View, object:Any) {
-		if (object is SuspenseException) switch findAncestorOfType(SuspenseBoundary) {
-			case Some(boundary):
-				boundary.__handleThrownObject(target, object);
-				return;
-			case None:
-		}
-
-		if (object is Exception) {
-			replaceable.hide(() -> fallback(target, object));
-			return;
-		}
-
-		super.__handleThrownObject(target, object);
-	}
-
-	function updateProps():Bool {
-		var props:ErrorBoundaryProps = __node.getProps();
-		var changed:Int = 0;
-
-		if (child != props.child) {
-			child = props.child;
-			changed++;
-		}
-
-		if (fallback != props.fallback) {
-			fallback = props.fallback;
-			changed++;
-		}
-
-		return changed > 0;
-	}
-
-	function __initialize() {
-		var view = child.createView();
-		replaceable.setup(view);
-		view.mount(getAdaptor(), this, __slot);
-	}
-
-	function __hydrate(cursor:Cursor) {
-		var view = child.createView();
-		replaceable.setup(view);
-		view.hydrate(cursor, getAdaptor(), this, __slot);
-	}
-
-	function __update() {
-		if (!updateProps()) return;
-		replaceable.real()?.update(child);
-		replaceable.show();
-	}
-
-	function __replace(other:View) {
-		__initialize();
-	}
-
-	function __validate() {
-		replaceable.show();
-	}
-
-	function __dispose() {
-		replaceable.dispose();
-	}
-
-	function __updateSlot(oldSlot:Null<Slot>, newSlot:Null<Slot>) {
-		replaceable.current().updateSlot(newSlot);
-	}
-
-	public function getPrimitive():Dynamic {
-		return replaceable.current().getPrimitive();
-	}
-
-	public function canBeUpdatedByVNode(node:VNode):Bool {
-		return node.type == componentType;
-	}
-
-	public function canReplaceOtherView(other:View):Bool {
-		return false;
-	}
-
-	public function visitChildren(visitor:(child:View) -> Bool) {
-		if (replaceable.current() != null) visitor(replaceable.current());
+	public function createView(parent:Maybe<View>, adaptor:Adaptor):View {
+		return new BoundaryView(parent, this, adaptor, {
+			decode: (_, _, payload) -> {
+				if (payload is ResourceException) return None;
+				if (payload is Exception) return Some((payload : Exception));
+				return None;
+			},
+			recover: (_, _, e) -> Future.immediate(Ignore)
+		});
 	}
 }

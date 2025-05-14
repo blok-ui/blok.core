@@ -1,5 +1,7 @@
 package blok.data;
 
+import blok.core.*;
+
 @:autoBuild(blok.data.ModelBuilder.buildWithJsonSerializer())
 abstract class SerializableModel implements Disposable implements DisposableHost {
 	final disposables:DisposableCollection = new DisposableCollection();

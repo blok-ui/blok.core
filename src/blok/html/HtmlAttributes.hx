@@ -1,5 +1,6 @@
 package blok.html;
 
+import blok.engine.Key;
 import blok.signal.Signal;
 
 // Taken from: https://github.com/haxetink/tink_domspec/blob/master/src/tink/domspec/Aria.hx

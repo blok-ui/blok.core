@@ -10,10 +10,15 @@ typedef ComposedViewState<T:Node> = {
 	public function dispose():Void;
 }
 
+enum ComposedViewRenderingMode {
+	Normal;
+	Hydrating;
+}
+
 enum ComposedViewStatus {
 	Valid;
 	Invalid;
-	Rendering;
+	Rendering(mode:ComposedViewRenderingMode);
 	Disposing;
 	Disposed;
 }
@@ -52,7 +57,7 @@ class ComposedViewValidationQueue<T:Node, State:ComposedViewState<T>> {
 // @todo: This is probably a good place to be handling errors returned from `insert`,
 // `update` etc.
 
-@:allow(blok.engine)
+@:allow(blok)
 class ComposedView<T:Node, State:ComposedViewState<T>> implements View {
 	public final state:State;
 	public final queue:ComposedViewValidationQueue<T, State>;
@@ -84,7 +89,12 @@ class ComposedView<T:Node, State:ComposedViewState<T>> implements View {
 						isolate.cleanup();
 						Error(e);
 					}
-					if (status != Rendering) invalidate();
+
+					switch status {
+						case Rendering(_):
+						default: invalidate();
+					}
+
 					node;
 			});
 		});
@@ -99,7 +109,7 @@ class ComposedView<T:Node, State:ComposedViewState<T>> implements View {
 	}
 
 	public function insert(cursor:Cursor, ?hydrate:Bool):Result<View, ViewError> {
-		status = Rendering;
+		status = Rendering(hydrate == true ? Hydrating : Normal);
 		return child
 			.insert(doRender(), cursor, hydrate)
 			.always(() -> {
@@ -117,7 +127,7 @@ class ComposedView<T:Node, State:ComposedViewState<T>> implements View {
 		this.node = cast node;
 		this.parent = parent;
 
-		status = Rendering;
+		status = Rendering(Normal);
 
 		state.update(this.node);
 
@@ -147,7 +157,7 @@ class ComposedView<T:Node, State:ComposedViewState<T>> implements View {
 			return Ok(this);
 		}
 
-		status = Rendering;
+		status = Rendering(Normal);
 		return child
 			.reconcile(doRender(), adaptor.siblings(this.firstPrimitive()))
 			.map(_ -> (this : View))

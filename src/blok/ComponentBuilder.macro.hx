@@ -151,6 +151,10 @@ class ComponentBuilder implements BuildBundle implements BuildStep {
 				return __view;
 			}
 
+			public function getViewStatus():blok.engine.ComposedView.ComposedViewStatus {
+				return @:privateAccess __view.status;
+			}
+
 			public function update(node:blok.Component.ComponentNode<$propType>) {
 				var props = node.props;
 				@:mergeBlock $b{updates};

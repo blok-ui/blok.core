@@ -2,6 +2,7 @@ package blok;
 
 import blok.core.*;
 import blok.engine.*;
+import blok.engine.ComposedView;
 
 // @todo: This is probably going to work best by just extending ComposedView.
 
@@ -14,7 +15,43 @@ abstract class Component implements ViewHost implements DisposableHost implement
 
 	abstract public function setup():Void;
 
-	public function findChildComponent<T:Component>(kind:Class<T>, ?recursive:Bool):Maybe<T> {
+	abstract function getViewStatus():ComposedViewStatus;
+
+	inline final function viewIsMounted() {
+		return switch getViewStatus() {
+			case Disposing | Disposed: false;
+			default: true;
+		}
+	}
+
+	inline final function viewIsHydrating() {
+		return switch getViewStatus() {
+			case Rendering(Hydrating): true;
+			default: false;
+		}
+	}
+
+	inline final function viewIsRendering() {
+		return switch getViewStatus() {
+			case Rendering(_): true;
+			default: false;
+		}
+	}
+
+	public function getPrimitive() {
+		return getView().firstPrimitive();
+	}
+
+	public function filterComponents<T:Component>(kind:Class<T>, ?recursive:Bool):Array<T> {
+		return getView()
+			.filterChildren(child -> switch Std.downcast(child, ComposedView) {
+				case null: false;
+				case view: Std.isOfType(view.state, kind);
+			}, recursive)
+			.map(view -> (cast view : {state: T}).state);
+	}
+
+	public function findComponent<T:Component>(kind:Class<T>, ?recursive:Bool):Maybe<T> {
 		return getView()
 			.findChild(child -> switch Std.downcast(child, ComposedView) {
 				case null: false;

@@ -1,7 +1,5 @@
 package blok.engine;
 
-import blok.debug.Debug.assert;
-
 class TextView implements View {
 	final adaptor:Adaptor;
 

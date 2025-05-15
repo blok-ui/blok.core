@@ -59,7 +59,7 @@ class ComposedView<T:Node, State:ComposedViewState<T>> implements View {
 
 	final adaptor:Adaptor;
 	final owner:Owner = new Owner();
-	final render:Computation<Node>;
+	final render:Computation<Result<Node, Any>>;
 	final child:ViewReconciler;
 
 	var status:ComposedViewStatus = Valid;
@@ -78,20 +78,53 @@ class ComposedView<T:Node, State:ComposedViewState<T>> implements View {
 			var isolate = new Isolate(state.render);
 			Computation.persist(() -> switch status {
 				case Disposing | Disposed:
-					Placeholder.node();
+					Ok(Placeholder.node());
 				default:
-					var node = try isolate() catch (e:Any) {
+					var node = try Ok(isolate() ?? Placeholder.node()) catch (e:Any) {
 						isolate.cleanup();
-						this
-							.findAncestorOfType(BoundaryView)
-							.inspect(boundary -> boundary.capture(this, e))
-							.or(() -> throw e);
-						null;
+						Error(e);
 					}
 					if (status != Rendering) invalidate();
-					node ?? Placeholder.node();
+					node;
 			});
 		});
+	}
+
+	public function currentNode():Node {
+		return node;
+	}
+
+	public function currentParent():Maybe<View> {
+		return parent;
+	}
+
+	public function insert(cursor:Cursor, ?hydrate:Bool):Result<View, ViewError> {
+		status = Rendering;
+		return child
+			.insert(doRender(), cursor, hydrate)
+			.always(() -> {
+				Owner.capture(owner, {
+					state.setup();
+				});
+			})
+			.always(() -> status = Valid)
+			.map(_ -> (this : View));
+	}
+
+	public function update(parent:Maybe<View>, node:Node, cursor:Cursor):Result<View, ViewError> {
+		if (!this.node.matches(node)) return Error(ViewIncorrectNodeType(this, node));
+
+		this.node = cast node;
+		this.parent = parent;
+
+		status = Rendering;
+
+		state.update(this.node);
+
+		return child
+			.reconcile(doRender(), cursor)
+			.map(_ -> (this : View))
+			.always(() -> status = Valid);
 	}
 
 	public function invalidate() {
@@ -115,47 +148,8 @@ class ComposedView<T:Node, State:ComposedViewState<T>> implements View {
 		}
 
 		status = Rendering;
-		return child.reconcile(render.peek(), adaptor.siblings(this.firstPrimitive()))
-			.map(_ -> (this : View))
-			.always(() -> status = Valid);
-	}
-
-	public function currentNode():Node {
-		return node;
-	}
-
-	public function currentParent():Maybe<View> {
-		return parent;
-	}
-
-	public function insert(cursor:Cursor, ?hydrate:Bool):Result<View, ViewError> {
-		status = Rendering;
-
-		function doInsert():Result<View, ViewError> {
-			child.insert(render.peek(), cursor, hydrate).orReturn();
-
-			Owner.capture(owner, {
-				state.setup();
-			});
-
-			return Ok(this);
-		}
-
-		return doInsert().always(() -> status = Valid);
-	}
-
-	public function update(parent:Maybe<View>, node:Node, cursor:Cursor):Result<View, ViewError> {
-		if (!this.node.matches(node)) return Error(ViewIncorrectNodeType(this, node));
-
-		this.node = cast node;
-		this.parent = parent;
-
-		status = Rendering;
-
-		state.update(this.node);
-
 		return child
-			.reconcile(render.peek(), cursor)
+			.reconcile(doRender(), adaptor.siblings(this.firstPrimitive()))
 			.map(_ -> (this : View))
 			.always(() -> status = Valid);
 	}
@@ -178,5 +172,18 @@ class ComposedView<T:Node, State:ComposedViewState<T>> implements View {
 
 	public function visitPrimitives(visitor:(primitive:Any) -> Bool) {
 		child.get().inspect(child -> child.visitPrimitives(visitor));
+	}
+
+	function doRender() {
+		return switch render.peek() {
+			case Ok(node):
+				node;
+			case Error(error):
+				this
+					.findAncestorOfType(BoundaryView)
+					.inspect(boundary -> boundary.capture(this, error))
+					.or(() -> throw error);
+				Placeholder.node();
+		}
 	}
 }

@@ -1,5 +1,7 @@
 package blok;
 
+import blok.core.Scheduler;
+
 class ProviderSuite extends Suite {
 	@:test(expects = 3)
 	function providesContextToChildren() {
@@ -14,7 +16,7 @@ class ProviderSuite extends Suite {
 			.node()
 			.renderAsync()
 			.flatMap(root -> new Future(activate -> {
-				root.getAdaptor().schedule(() -> {
+				Scheduler.current().schedule(() -> {
 					test.disposed.equals(false);
 					root.dispose();
 					test.disposed.equals(true);
@@ -36,7 +38,7 @@ class ProviderSuite extends Suite {
 			.node()
 			.renderAsync()
 			.flatMap(root -> new Future(activate -> {
-				root.getAdaptor().schedule(() -> {
+				Scheduler.current().schedule(() -> {
 					test.disposed.equals(false);
 					root.dispose();
 					test.disposed.equals(false);
@@ -45,53 +47,54 @@ class ProviderSuite extends Suite {
 			}));
 	}
 
-	@:test(expects = 3)
-	function fallsBackToDefault() {
-		var test:Null<TestContext> = null;
-		return Scope
-			.wrap(context -> {
-				test = TestContext.from(context);
-				test.value.equals('default');
-				'ok';
-			})
-			.renderAsync()
-			.flatMap(root -> new Future(activate -> {
-				root.getAdaptor().schedule(() -> {
-					test.disposed.equals(false);
-					root.dispose();
-					test.disposed.equals(true);
-					activate(Nothing);
-				});
-			}));
-	}
-
-	@:test(expects = 6)
-	function fallbacksAreSharedPerView() {
-		var test1:Null<TestContext> = null;
-		var test2:Null<TestContext> = null;
-		return Scope
-			.wrap(context -> {
-				test1 = TestContext.from(context);
-				test2 = TestContext.from(context);
-				test1.value.equals('default');
-				test2.value.equals('default');
-				test1.equals(test2);
-				'ok';
-			})
-			.renderAsync()
-			.flatMap(root -> new Future(activate -> {
-				root.getAdaptor().schedule(() -> {
-					test1.disposed.equals(false);
-					root.dispose();
-					test1.disposed.equals(true);
-					test2.disposed.equals(true);
-					activate(Nothing);
-				});
-			}));
-	}
-
-	// @todo: We need a test framework that will let us test things when
-	// the view re-renders.
+	// // @todo: The following tests are based on having Contexts get created per-view. That's no
+	// // longer the case, and was likely the wrong move anyway. Still, keeping this here in
+	// // case I change my mind.
+	// @:test(expects = 3)
+	// function fallsBackToDefault() {
+	// 	var test:Null<TestContext> = null;
+	// 	return Scope
+	// 		.wrap(context -> {
+	// 			test = TestContext.from(context);
+	// 			test.value.equals('default');
+	// 			'ok';
+	// 		})
+	// 		.renderAsync()
+	// 		.flatMap(root -> new Future(activate -> {
+	// 			Scheduler.current().schedule(() -> {
+	// 				test.disposed.equals(false);
+	// 				root.dispose();
+	// 				test.disposed.equals(true);
+	// 				activate(Nothing);
+	// 			});
+	// 		}));
+	// }
+	// @:test(expects = 6)
+	// function fallbacksAreSharedPerView() {
+	// 	var test1:Null<TestContext> = null;
+	// 	var test2:Null<TestContext> = null;
+	// 	return Scope
+	// 		.wrap(context -> {
+	// 			test1 = TestContext.from(context);
+	// 			test2 = TestContext.from(context);
+	// 			test1.value.equals('default');
+	// 			test2.value.equals('default');
+	// 			test1.equals(test2);
+	// 			'ok';
+	// 		})
+	// 		.renderAsync()
+	// 		.flatMap(root -> new Future(activate -> {
+	// 			Scheduler.current().schedule(() -> {
+	// 				test1.disposed.equals(false);
+	// 				root.dispose();
+	// 				test1.disposed.equals(true);
+	// 				test2.disposed.equals(true);
+	// 				activate(Nothing);
+	// 			});
+	// 		}));
+	// }
+	// // @todo: We need a test framework that will let us test things when
+	// // the view re-renders.
 }
 
 @:fallback(new TestContext('default'))

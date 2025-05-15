@@ -6,6 +6,7 @@ using Lambda;
 
 enum BoundaryStatus<T> {
 	Active;
+	Touched;
 	Recovering(links:Array<BoundaryLink<T>>);
 }
 
@@ -18,6 +19,7 @@ enum BoundaryRecovery {
 enum BoundaryStatusChanged {
 	Initialized;
 	CapturedPayload;
+	TouchedPayload;
 	RecoveredFromCapture;
 	FailedToRecover;
 }
@@ -65,14 +67,22 @@ class BoundaryView<T, N:BoundaryNode<T>> implements View {
 
 	public function capture(target:View, payload:Any):Void {
 		switch state.decode(this, target, payload) {
-			case Some(value):
-				showPlaceholder(target, payload).orThrow();
+			case Some(decoded):
+				showPlaceholder(target, decoded).orThrow();
 			case None:
 				bubblePayloadUpwards(target, payload);
 		}
 	}
 
 	public function bubblePayloadUpwards(target:View, payload:Any) {
+		status = Touched;
+
+		if (state.onStatusChanged != null) {
+			adaptor.scheduleEffect(() -> {
+				state.onStatusChanged(this, TouchedPayload);
+			});
+		}
+
 		this
 			.findAncestorOfType(BoundaryView)
 			.inspect(boundary -> boundary.capture(target, payload))
@@ -89,7 +99,9 @@ class BoundaryView<T, N:BoundaryNode<T>> implements View {
 								link.dispose();
 								false;
 							} else true);
+
 							status = Recovering(recoveredLinks);
+
 							if (recoveredLinks.length == 0) {
 								adaptor.scheduleEffect(() -> {
 									adaptor.schedule(() -> switch showChild() {
@@ -99,12 +111,15 @@ class BoundaryView<T, N:BoundaryNode<T>> implements View {
 									});
 								});
 							}
-						case Active:
+
+						case Active | Touched:
 					}
 				case Ignore:
 				case Failed(e):
 					if (state.onStatusChanged != null) {
-						state.onStatusChanged(this, FailedToRecover);
+						adaptor.scheduleEffect(() -> {
+							state.onStatusChanged(this, FailedToRecover);
+						});
 					}
 					bubblePayloadUpwards(target, e);
 			});
@@ -116,7 +131,7 @@ class BoundaryView<T, N:BoundaryNode<T>> implements View {
 			case Recovering(links):
 				status = Recovering([new BoundaryLink(payload, createLink())].concat(links));
 				return Ok(this);
-			case Active:
+			case Active | Touched:
 				status = Recovering([new BoundaryLink(payload, createLink())]);
 
 				if (state.onStatusChanged != null) {
@@ -124,8 +139,11 @@ class BoundaryView<T, N:BoundaryNode<T>> implements View {
 				}
 
 				var child = switch this.child.get() {
-					case None: return Error(ViewKitError(this, new Error(NotFound, 'No child view found')));
+					case None: return Error(ViewException(this, new Error(NotFound, 'No child view found')));
 					case Some(view): view;
+				}
+				var fallback = try node.fallback(payload) catch (e) {
+					return Error(ViewException(this, e));
 				}
 
 				// Note: doing this as it ensures all child components will have
@@ -134,7 +152,7 @@ class BoundaryView<T, N:BoundaryNode<T>> implements View {
 				// race conditions at some point.
 				adaptor.scheduleEffect(() -> {
 					placeholder
-						.insert(node.fallback(payload), adaptor.siblings(marker.firstPrimitive()))
+						.insert(fallback, adaptor.siblings(marker.firstPrimitive()))
 						.orThrow();
 
 					var primitive = child.firstPrimitive();
@@ -162,7 +180,7 @@ class BoundaryView<T, N:BoundaryNode<T>> implements View {
 				placeholder.remove(cursor);
 
 				var child = switch this.child.get() {
-					case None: return Error(ViewKitError(this, new Error(NotFound, 'No child view found')));
+					case None: return Error(ViewException(this, new Error(NotFound, 'No child view found')));
 					case Some(view): view;
 				}
 
@@ -187,7 +205,8 @@ class BoundaryView<T, N:BoundaryNode<T>> implements View {
 		marker.insert(cursor, false);
 
 		cursor = adaptor.siblings(marker.firstPrimitive());
-		child.insert(node.child, cursor, hydrate).orReturn();
+		child.insert(node.child, cursor, hydrate)
+			.inspectError(error -> capture(child.get().unwrap(), error));
 
 		if (status == Active && state.onStatusChanged != null) {
 			adaptor.scheduleEffect(() -> {
@@ -206,27 +225,39 @@ class BoundaryView<T, N:BoundaryNode<T>> implements View {
 		marker.update(Some(this), new TextNode(''), cursor).orReturn();
 		cursor = adaptor.siblings(marker.firstPrimitive());
 
-		switch status {
-			case Recovering(links) if (links.length > 0):
-				placeholder.reconcile(this.node.fallback(links[0].payload), cursor).orReturn();
-			default:
-				child.reconcile(this.node.child, cursor).orReturn();
-		}
+		status.extract(if (Recovering(links)) {
+			for (link in links) link.dispose();
+			placeholder.remove(cursor);
+			status = Active;
+		});
+
+		child.reconcile(this.node.child, cursor)
+			.inspectError(error -> capture(child.get().unwrap(), error));
 
 		return Ok(this);
+
+		// // @todo: This was my first take on things, which I think is wrong:
+		// switch status {
+		// 	case Recovering(links) if (links.length > 0):
+		// 		placeholder.reconcile(this.node.fallback(links[0].payload), cursor).orReturn();
+		// 	default:
+		// 		child.reconcile(this.node.child, cursor).orReturn();
+		// }
+
+		// return Ok(this);
 	}
 
 	public function visitChildren(visitor:(child:View) -> Bool) {
 		switch status {
 			case Recovering(_): placeholder.get().inspect(child -> visitor(child));
-			case Active: child.get().inspect(child -> visitor(child));
+			case Active | Touched: child.get().inspect(child -> visitor(child));
 		}
 	}
 
 	public function visitPrimitives(visitor:(primitive:Any) -> Bool) {
 		switch status {
 			case Recovering(_): placeholder.get().inspect(child -> child.visitPrimitives(visitor));
-			case Active: child.get().inspect(child -> child.visitPrimitives(visitor));
+			case Active | Touched: child.get().inspect(child -> child.visitPrimitives(visitor));
 		}
 	}
 

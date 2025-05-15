@@ -149,7 +149,7 @@ class SuspenseSuite extends Suite {
 		return new Future(activate -> {
 			var document = new ElementPrimitive('#document');
 			mount(document, Provider
-				.provide(new SuspenseContext({
+				.provide(new SuspenseBoundaryContext({
 					onSuspended: () -> Assert.fail('Should not have suspended'),
 					onComplete: () -> {
 						document.toString({includeTextMarkers: false}).equals('Hello world');
@@ -182,7 +182,7 @@ class SuspenseSuite extends Suite {
 					.schedule(() -> activate(Error(new Error(InternalError, 'Failed intentionally'))));
 			}));
 			mount(document, Provider
-				.provide(new SuspenseContext({
+				.provide(new SuspenseBoundaryContext({
 					onSuspended: () -> Assert.pass(),
 					onComplete: () -> {
 						Assert.pass();
@@ -209,7 +209,7 @@ class SuspenseSuite extends Suite {
 			var document = new ElementPrimitive('#document');
 			var resource = new Resource<String>(() -> Task.error(new Error(InternalError, 'Failed intentionally')));
 			mount(document, Provider
-				.provide(new SuspenseContext({
+				.provide(new SuspenseBoundaryContext({
 					onSuspended: () -> Assert.fail('Should not have suspended'),
 					onComplete: () -> {
 						Assert.pass();

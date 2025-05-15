@@ -16,8 +16,8 @@ class PortalSuite extends Suite {
 		).node()
 			.renderAsync()
 			.flatMap(root -> new Future(activate -> {
-				root.getAdaptor().scheduleEffect(() -> {
-					var document:NodePrimitive = cast root.getPrimitive();
+				root.adaptor.scheduleEffect(() -> {
+					var document:NodePrimitive = cast root.primitive;
 					document.toString({includeTextMarkers: false}).equals('<div><p>Body</p></div>');
 					portalRoot.toString({includeTextMarkers: false}).equals('<div id="portal"><p>Test</p></div>');
 					root.dispose();

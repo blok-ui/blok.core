@@ -12,9 +12,9 @@ function main() {
 		.add(ObjectSuite)
 		.add(ModelSuite)
 		.add(SignalSuite)
-			// .add(ProviderSuite)
+		.add(ProviderSuite)
 		.add(HtmlSuite)
-			// .add(PortalSuite)
+		.add(PortalSuite)
 		.add(SuspenseSuite)
 		.run();
 }

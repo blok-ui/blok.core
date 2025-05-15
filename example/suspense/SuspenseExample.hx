@@ -14,7 +14,7 @@ function suspense() {
 
 class SuspenseExample extends Component {
 	function render():Child {
-		var body = Provider.provide(new SuspenseContext({
+		var body = Provider.provide(new SuspenseBoundaryContext({
 			onComplete: () -> trace('Will trigger when all suspended children are complete')
 		})).child(Fragment.of([
 			Html.div({

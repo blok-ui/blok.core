@@ -79,7 +79,7 @@ class PrimitiveView<Attrs:{}> implements View {
 	public function remove(cursor:Cursor):Result<View, ViewError> {
 		children.remove(adaptor.children(primitive)).orReturn();
 		cursor.remove(primitive)
-			.mapError(e -> ViewError.ViewKitError(this, e))
+			.mapError(e -> ViewError.ViewException(this, e))
 			.orReturn();
 		attributes.dispose();
 

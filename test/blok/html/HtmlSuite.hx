@@ -13,7 +13,7 @@ class HtmlSuite extends Suite {
 			.node()
 			.renderAsync()
 			.map(root -> {
-				root.firstPrimitive()
+				root.view.firstPrimitive()
 					.as(ElementPrimitive)
 					.toString({includeTextMarkers: false})
 					.equals('<div class="foo"><p>Foo</p></div>');

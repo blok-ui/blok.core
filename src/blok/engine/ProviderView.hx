@@ -42,7 +42,7 @@ class ProviderView<T:Providable> implements View {
 
 		if (currentContext != incomingProvider.context) {
 			if (node.shared) {
-				return Error(ViewError.ViewKitError(this, new Error(NotAcceptable, 'Shared providers should always have the same value')));
+				return Error(ViewError.ViewException(this, new Error(NotAcceptable, 'Shared providers should always have the same value')));
 			}
 			currentContext.dispose();
 		}

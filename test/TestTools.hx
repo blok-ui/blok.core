@@ -5,15 +5,24 @@ import blok.html.server.*;
 
 using blok.Modifiers;
 
-function renderAsync(body:Child):Future<Null<View>> {
+function renderAsync(body:Child):Future<Null<Root>> {
 	return new Future(activate -> {
-		var root:Null<View> = null;
+		var root:Null<Root> = null;
 		var doc = new ElementPrimitive('#document');
-		root = mount(doc, body
+		root = new Root(doc, new ServerAdaptor(), body
 			.inSuspense(() -> '...')
 			.onComplete(() -> activate(root))
 			.node()
 			.inErrorBoundary((e) -> throw e)
-		).orThrow();
+		);
+		root.mount();
+
+		// var root:Null<View> = null;
+		// root = mount(doc, body
+		// 	.inSuspense(() -> '...')
+		// 	.onComplete(() -> activate(root))
+		// 	.node()
+		// 	.inErrorBoundary((e) -> throw e)
+		// ).orThrow();
 	});
 }

@@ -3,8 +3,8 @@ package blok;
 import blok.core.*;
 import blok.engine.*;
 
-@:fallback(new SuspenseContext())
-class SuspenseContext implements Context {
+@:fallback(new SuspenseBoundaryContext())
+class SuspenseBoundaryContext implements Context {
 	public final onComplete = new Event();
 	public final onSuspended = new Event();
 

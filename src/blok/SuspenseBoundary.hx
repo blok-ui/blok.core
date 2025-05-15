@@ -68,27 +68,31 @@ class SuspenseBoundary implements BoundaryNode<ResourceException> {
 				var node = boundary.currentBoundaryNode();
 				switch status {
 					case CapturedPayload:
-						SuspenseContext
-							.maybeFrom(boundary)
-							.inspect(context -> context.add(boundary));
 						if (node?.onSuspended != null) {
 							node.onSuspended();
 						}
+						SuspenseBoundaryContext
+							.maybeFrom(boundary)
+							.inspect(context -> context.add(boundary));
+					case TouchedPayload:
+						SuspenseBoundaryContext
+							.maybeFrom(boundary)
+							.inspect(context -> context.remove(boundary));
 					case RecoveredFromCapture | Initialized:
 						if (node?.onComplete != null) {
 							node.onComplete();
 						}
-						SuspenseContext
+						SuspenseBoundaryContext
 							.maybeFrom(boundary)
 							.inspect(context -> context.remove(boundary));
 					case FailedToRecover:
-						SuspenseContext
+						SuspenseBoundaryContext
 							.maybeFrom(boundary)
 							.inspect(context -> context.remove(boundary));
 				}
 			},
 			onRemoval: boundary -> {
-				SuspenseContext
+				SuspenseBoundaryContext
 					.maybeFrom(boundary)
 					.inspect(context -> context.remove(boundary));
 			},

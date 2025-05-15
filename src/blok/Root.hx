@@ -1,12 +1,14 @@
 package blok;
 
+import blok.core.*;
 import blok.engine.*;
 
-class Root<Primitive = Any> implements ViewHost {
-	final primitive:Primitive;
-	final adaptor:Adaptor;
+class Root<Primitive = Any> implements ViewHost implements Disposable {
+	public final primitive:Primitive;
+	public final adaptor:Adaptor;
+	public final view:View;
+
 	final child:Node;
-	final view:View;
 
 	public function new(primitive, adaptor, child) {
 		this.primitive = primitive;
@@ -29,5 +31,9 @@ class Root<Primitive = Any> implements ViewHost {
 
 	public function getView():View {
 		return view;
+	}
+
+	public function dispose() {
+		view.remove(adaptor.children(primitive)).orThrow();
 	}
 }

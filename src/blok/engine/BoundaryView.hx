@@ -198,7 +198,6 @@ class BoundaryView<T, N:BoundaryNode<T>> implements View implements Boundary {
 	public function insert(cursor:Cursor, ?hydrate:Bool):Result<View, ViewError> {
 		marker.insert(cursor, false);
 
-		// cursor = adaptor.siblings(marker.firstPrimitive());
 		child.insert(node.child, cursor, hydrate)
 			.inspectError(error -> capture(child.get().unwrap(), error));
 
@@ -239,6 +238,7 @@ class BoundaryView<T, N:BoundaryNode<T>> implements View implements Boundary {
 	}
 
 	public function visitPrimitives(visitor:(primitive:Any) -> Bool) {
+		marker.visitPrimitives(visitor);
 		switch boundaryStatus {
 			case Recovering(_):
 				placeholder.get().inspect(child -> child.visitPrimitives(visitor));

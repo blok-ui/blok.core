@@ -1,17 +1,40 @@
 package blok.engine;
 
-class FragmentView implements View {
+import blok.core.*;
+
+class FragmentView implements View implements Boundary {
 	final adaptor:Adaptor;
 
+	var disposables:Null<DisposableCollection> = null;
 	var parent:Maybe<View>;
 	var node:FragmentNode;
 	var children:ViewListReconciler;
+	var rendering:Bool = false;
+	var errors:Array<Any> = [];
 
 	public function new(parent, node, adaptor) {
 		this.adaptor = adaptor;
 		this.parent = parent;
 		this.node = node;
 		this.children = new ViewListReconciler(this, adaptor);
+	}
+
+	public function capture(target:View, payload:Any) {
+		if (rendering) {
+			errors.push(payload);
+			return;
+		}
+
+		handleErrors([payload]);
+	}
+
+	function handleErrors(errors:Array<Any>) {
+		for (error in errors) {
+			this
+				.findAncestor(view -> view is Boundary)
+				.inspect(boundary -> (cast boundary : Boundary).capture(this, error))
+				.or(() -> throw error);
+		}
 	}
 
 	public function currentNode():Node {
@@ -23,14 +46,26 @@ class FragmentView implements View {
 	}
 
 	public function insert(cursor:Cursor, ?hydrate:Bool):Result<View, ViewError> {
-		var nodes = node.children;
-		if (nodes.length == 0) nodes = [new TextNode('')];
+		rendering = true;
 
-		this.children.reconcile(nodes, cursor, hydrate).orReturn();
+		var nodes = node.children;
+		if (nodes.length == 0) nodes = [Placeholder.node()];
+
+		this.children.reconcile(nodes, cursor, hydrate)
+			.always(() -> rendering = false)
+			.always(() -> {
+				if (errors.length > 0) {
+					handleErrors(errors);
+					errors = [];
+				}
+			})
+			.orReturn();
 		return Ok(this);
 	}
 
 	public function update(parent:Maybe<View>, node:Node, cursor:Cursor):Result<View, ViewError> {
+		rendering = true;
+
 		this.parent = parent;
 		this.node = this.node
 			.replaceWith(node)
@@ -38,14 +73,23 @@ class FragmentView implements View {
 			.orReturn();
 
 		var nodes = this.node.children;
-		if (nodes.length == 0) nodes = [new TextNode('')];
+		if (nodes.length == 0) nodes = [Placeholder.node()];
 
-		children.reconcile(nodes, cursor).orReturn();
+		children.reconcile(nodes, cursor)
+			.always(() -> rendering = false)
+			.always(() -> {
+				if (errors.length > 0) {
+					handleErrors(errors);
+					errors = [];
+				}
+			})
+			.orReturn();
 
 		return Ok(this);
 	}
 
 	public function remove(cursor:Cursor):Result<View, ViewError> {
+		disposables?.dispose();
 		this.children.remove(cursor).orReturn();
 		return Ok(this);
 	}
@@ -59,5 +103,14 @@ class FragmentView implements View {
 			child.visitPrimitives(visitor);
 			true;
 		});
+	}
+
+	public function addDisposable(disposable:DisposableItem) {
+		if (disposables == null) disposables = new DisposableCollection();
+		disposables.addDisposable(disposable);
+	}
+
+	public function removeDisposable(disposable:DisposableItem) {
+		disposables?.removeDisposable(disposable);
 	}
 }

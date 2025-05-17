@@ -1,10 +1,10 @@
 package blok.html.client;
 
-import js.html.*;
 import blok.engine.Cursor;
+import js.html.*;
 
 class ClientCursor implements Cursor {
-	final parent:DOMElement;
+	var parent:DOMElement;
 	var currentNode:Null<Node>;
 
 	public function new(parent, currentNode) {
@@ -31,7 +31,8 @@ class ClientCursor implements Cursor {
 			case Some(relative) if (relative == element):
 				return Ok(element);
 			case Some(relative):
-				(relative : DOMElement).after(element);
+				var relativeEl:DOMElement = relative;
+				relativeEl.after(element);
 			case None:
 				parent.prepend(element);
 		}

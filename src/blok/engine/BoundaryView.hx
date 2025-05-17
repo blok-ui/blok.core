@@ -1,6 +1,6 @@
 package blok.engine;
 
-import blok.core.Disposable;
+import blok.core.*;
 
 using Lambda;
 
@@ -32,25 +32,30 @@ typedef BoundaryViewState<T, N:BoundaryNode<T>> = {
 	public function recover(boundary:BoundaryView<T, N>, target:View, payload:T):Future<BoundaryRecovery>;
 }
 
-class BoundaryView<T, N:BoundaryNode<T>> implements View {
+// @todo: We should track view status on this view to ensure we don't try updating when it's
+// disposed/disposing.
+class BoundaryView<T, N:BoundaryNode<T>> implements View implements Boundary {
 	final adaptor:Adaptor;
 	final placeholder:ViewReconciler;
 	final child:ViewReconciler;
 	final state:BoundaryViewState<T, N>;
 	final marker:View;
+	final container:Any;
+	final disposables:DisposableCollection = new DisposableCollection();
 
 	var parent:Maybe<View>;
 	var node:N;
-	var status:BoundaryStatus<T> = Active;
+	var boundaryStatus:BoundaryStatus<T> = Active;
 
 	public function new(parent, node, adaptor, state) {
 		this.parent = parent;
 		this.node = node;
 		this.adaptor = adaptor;
 		this.state = state;
-		this.marker = new TextNode('').createView(Some(this), adaptor);
+		this.marker = Placeholder.node().createView(Some(this), adaptor);
 		this.placeholder = new ViewReconciler(this, adaptor);
 		this.child = new ViewReconciler(this, adaptor);
+		this.container = adaptor.createContainerPrimitive();
 	}
 
 	public function currentBoundaryNode():N {
@@ -75,7 +80,7 @@ class BoundaryView<T, N:BoundaryNode<T>> implements View {
 	}
 
 	public function bubblePayloadUpwards(target:View, payload:Any) {
-		status = Touched;
+		boundaryStatus = Touched;
 
 		if (state.onStatusChanged != null) {
 			adaptor.scheduleEffect(() -> {
@@ -93,14 +98,14 @@ class BoundaryView<T, N:BoundaryNode<T>> implements View {
 		function createLink() {
 			return state.recover(this, target, payload).handle(result -> switch result {
 				case Recovered:
-					switch status {
+					switch boundaryStatus {
 						case Recovering(links):
 							var recoveredLinks = links.filter(link -> if (link.payload == payload) {
 								link.dispose();
 								false;
 							} else true);
 
-							status = Recovering(recoveredLinks);
+							boundaryStatus = Recovering(recoveredLinks);
 
 							if (recoveredLinks.length == 0) {
 								adaptor.scheduleEffect(() -> {
@@ -125,14 +130,14 @@ class BoundaryView<T, N:BoundaryNode<T>> implements View {
 			});
 		}
 
-		switch status {
+		switch boundaryStatus {
 			case Recovering(links) if (links.exists(link -> link.payload == payload)):
 				return Ok(this);
 			case Recovering(links):
-				status = Recovering([new BoundaryLink(payload, createLink())].concat(links));
+				boundaryStatus = Recovering([new BoundaryLink(payload, createLink())].concat(links));
 				return Ok(this);
 			case Active | Touched:
-				status = Recovering([new BoundaryLink(payload, createLink())]);
+				boundaryStatus = Recovering([new BoundaryLink(payload, createLink())]);
 
 				if (state.onStatusChanged != null) {
 					state.onStatusChanged(this, CapturedPayload);
@@ -146,24 +151,14 @@ class BoundaryView<T, N:BoundaryNode<T>> implements View {
 					return Error(ViewException(this, e));
 				}
 
-				// Note: doing this as it ensures all child components will have
-				// had a chance to render before we try to remove them. This works,
-				// but I'm a little uncomfortable about it. I feel like this might lead to
-				// race conditions at some point.
-				adaptor.scheduleEffect(() -> {
-					placeholder
-						.insert(fallback, adaptor.siblings(marker.firstPrimitive()))
-						.orThrow();
+				placeholder
+					.insert(fallback, adaptor.siblings(marker.firstPrimitive()))
+					.orThrow();
 
-					var primitive = child.firstPrimitive();
-
-					if (primitive != null) {
-						var cursor = adaptor.siblings(primitive);
-						child.visitPrimitives(primitive -> {
-							cursor.detach(primitive);
-							true;
-						});
-					}
+				var cursor = adaptor.children(container);
+				child.visitPrimitives(primitive -> {
+					cursor.insert(primitive);
+					true;
 				});
 
 				return Ok(this);
@@ -171,29 +166,28 @@ class BoundaryView<T, N:BoundaryNode<T>> implements View {
 	}
 
 	public function showChild():Result<View, ViewError> {
-		switch status {
+		switch boundaryStatus {
 			case Recovering(links) if (links.length == 0):
-				status = Active;
-
-				var cursor = adaptor.siblings(marker.firstPrimitive());
-
-				placeholder.remove(cursor);
+				boundaryStatus = Active;
 
 				var child = switch this.child.get() {
 					case None: return Error(ViewException(this, new Error(NotFound, 'No child view found')));
 					case Some(view): view;
 				}
 
-				child.visitPrimitives(primitive -> {
-					cursor.insert(primitive);
-					true;
-				});
+				adaptor.scheduleEffect(() -> {
+					if (boundaryStatus == Active) {
+						var cursor = adaptor.siblings(marker.firstPrimitive());
+						placeholder.remove(cursor);
 
-				if (state.onStatusChanged != null) {
-					adaptor.scheduleEffect(() -> {
-						if (status == Active) state.onStatusChanged(this, RecoveredFromCapture);
-					});
-				}
+						child.visitPrimitives(primitive -> {
+							cursor.insert(primitive);
+							true;
+						});
+
+						if (state.onStatusChanged != null) state.onStatusChanged(this, RecoveredFromCapture);
+					}
+				});
 
 				return Ok(this);
 			default:
@@ -204,13 +198,13 @@ class BoundaryView<T, N:BoundaryNode<T>> implements View {
 	public function insert(cursor:Cursor, ?hydrate:Bool):Result<View, ViewError> {
 		marker.insert(cursor, false);
 
-		cursor = adaptor.siblings(marker.firstPrimitive());
+		// cursor = adaptor.siblings(marker.firstPrimitive());
 		child.insert(node.child, cursor, hydrate)
 			.inspectError(error -> capture(child.get().unwrap(), error));
 
-		if (status == Active && state.onStatusChanged != null) {
+		if (boundaryStatus == Active && state.onStatusChanged != null) {
 			adaptor.scheduleEffect(() -> {
-				if (status == Active) state.onStatusChanged(this, Initialized);
+				if (boundaryStatus == Active) state.onStatusChanged(this, Initialized);
 			});
 		}
 
@@ -222,58 +216,61 @@ class BoundaryView<T, N:BoundaryNode<T>> implements View {
 			.mapError(_ -> ViewError.ViewIncorrectNodeType(this, node))
 			.orReturn();
 
-		marker.update(Some(this), new TextNode(''), cursor).orReturn();
-		cursor = adaptor.siblings(marker.firstPrimitive());
-
-		status.extract(if (Recovering(links)) {
+		boundaryStatus.extract(if (Recovering(links)) {
 			for (link in links) link.dispose();
 			placeholder.remove(cursor);
-			status = Active;
+			boundaryStatus = Active;
 		});
+
+		marker.update(Some(this), Placeholder.node(), cursor).orReturn();
+		cursor = adaptor.siblings(marker.firstPrimitive());
 
 		child.reconcile(this.node.child, cursor)
 			.inspectError(error -> capture(child.get().unwrap(), error));
 
 		return Ok(this);
-
-		// // @todo: This was my first take on things, which I think is wrong:
-		// switch status {
-		// 	case Recovering(links) if (links.length > 0):
-		// 		placeholder.reconcile(this.node.fallback(links[0].payload), cursor).orReturn();
-		// 	default:
-		// 		child.reconcile(this.node.child, cursor).orReturn();
-		// }
-
-		// return Ok(this);
 	}
 
 	public function visitChildren(visitor:(child:View) -> Bool) {
-		switch status {
+		switch boundaryStatus {
 			case Recovering(_): placeholder.get().inspect(child -> visitor(child));
 			case Active | Touched: child.get().inspect(child -> visitor(child));
 		}
 	}
 
 	public function visitPrimitives(visitor:(primitive:Any) -> Bool) {
-		switch status {
-			case Recovering(_): placeholder.get().inspect(child -> child.visitPrimitives(visitor));
-			case Active | Touched: child.get().inspect(child -> child.visitPrimitives(visitor));
+		switch boundaryStatus {
+			case Recovering(_):
+				placeholder.get().inspect(child -> child.visitPrimitives(visitor));
+			case Active | Touched:
+				child.get().inspect(child -> child.visitPrimitives(visitor));
 		}
 	}
 
+	public function addDisposable(disposable:DisposableItem) {
+		disposables.addDisposable(disposable);
+	}
+
+	public function removeDisposable(disposable:DisposableItem) {
+		disposables.removeDisposable(disposable);
+	}
+
 	public function remove(cursor:Cursor):Result<View, ViewError> {
-		switch status {
+		disposables.dispose();
+
+		switch boundaryStatus {
 			case Recovering(links):
 				for (link in links) link.dispose();
 			default:
 		}
 
-		status = Active;
+		boundaryStatus = Active;
 
 		if (state.onRemoval != null) {
 			state.onRemoval(this);
 		}
 
+		adaptor.removePrimitive(container);
 		marker.remove(cursor).orReturn();
 		placeholder.remove(cursor).orReturn();
 		child.remove(cursor).orReturn();
@@ -282,7 +279,7 @@ class BoundaryView<T, N:BoundaryNode<T>> implements View {
 	}
 }
 
-class BoundaryLink<T> implements Disposable {
+private class BoundaryLink<T> implements Disposable {
 	public final payload:T;
 
 	final link:Null<Cancellable> = null;

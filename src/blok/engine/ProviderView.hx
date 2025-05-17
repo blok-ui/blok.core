@@ -1,9 +1,12 @@
 package blok.engine;
 
+import blok.core.*;
+
 class ProviderView<T:Providable> implements View {
 	final adaptor:Adaptor;
 	final child:ViewReconciler;
 
+	var disposables:Null<DisposableCollection>;
 	var parent:Maybe<View>;
 	var node:ProviderNode<T>;
 
@@ -54,6 +57,7 @@ class ProviderView<T:Providable> implements View {
 	}
 
 	public function remove(cursor:Cursor):Result<View, ViewError> {
+		disposables?.dispose();
 		if (!node.shared) node.context.dispose();
 		child.remove(cursor);
 		return Ok(this);
@@ -65,5 +69,14 @@ class ProviderView<T:Providable> implements View {
 
 	public function visitPrimitives(visitor:(primitive:Any) -> Bool) {
 		child.get().inspect(view -> view.visitPrimitives(visitor));
+	}
+
+	public function addDisposable(disposable:DisposableItem) {
+		if (disposables == null) disposables = new DisposableCollection();
+		disposables.addDisposable(disposable);
+	}
+
+	public function removeDisposable(disposable:DisposableItem) {
+		disposables?.removeDisposable(disposable);
 	}
 }

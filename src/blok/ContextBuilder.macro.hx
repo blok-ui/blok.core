@@ -38,30 +38,26 @@ class ContextBuildStep implements BuildStep {
 		var ret:ComplexType = TPath({
 			pack: tp.pack,
 			name: tp.name,
-			// @todo: ...no idea if this will work. Probably not.
 			params: createParams.map(p -> TPType(TPath({name: p.name, pack: []})))
 		});
 		var resolvers = macro class {
 			@:noUsing
 			public static function from(view:blok.engine.ViewContext):$ret {
 				return @:pos(fallback.pos) return maybeFrom(view).or(() -> {
-					var fallback:$ret = $fallback;
-					return fallback;
+					if (__fallbackInstances == null) {
+						__fallbackInstances = [];
+					}
 
-					// if (__fallbackInstances == null) {
-					// 	__fallbackInstances = [];
-					// }
+					if (!__fallbackInstances.exists(view)) {
+						var fallback:$ret = $fallback;
+						__fallbackInstances.set(view, fallback);
+						view.addDisposable(() -> {
+							__fallbackInstances.remove(view);
+							fallback.dispose();
+						});
+					}
 
-					// if (!__fallbackInstances.exists(view)) {
-					// 	var fallback:$ret = $fallback;
-					// 	__fallbackInstances.set(view, fallback);
-					// 	view.addDisposable(() -> {
-					// 		__fallbackInstances.remove(view);
-					// 		fallback.dispose();
-					// 	});
-					// }
-
-					// return __fallbackInstances.get(view);
+					return __fallbackInstances.get(view);
 				});
 			}
 
@@ -90,8 +86,8 @@ class ContextBuildStep implements BuildStep {
 			@:noCompletion
 			public static final __contextId = new kit.UniqueId();
 
-			// @:noCompletion
-			// static var __fallbackInstances:Null<Map<blok.engine.View, Any>> = null;
+			@:noCompletion
+			static var __fallbackInstances:Null<Map<blok.engine.View, Any>> = null;
 
 			public function getContextId() {
 				return __contextId;

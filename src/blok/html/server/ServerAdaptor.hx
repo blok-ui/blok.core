@@ -2,7 +2,6 @@ package blok.html.server;
 
 import blok.engine.*;
 import blok.core.*;
-import blok.debug.Debug;
 
 using StringTools;
 
@@ -88,9 +87,12 @@ class ServerAdaptor implements Adaptor {
 		var node:NodePrimitive = primitive;
 		var parent = node.parent;
 
-		if (parent == null) parent = new ElementPrimitive('#document');
-
 		return new ServerCursor(parent, node);
+	}
+
+	public function removePrimitive(primitive:Any) {
+		var node:NodePrimitive = primitive;
+		node.remove();
 	}
 }
 

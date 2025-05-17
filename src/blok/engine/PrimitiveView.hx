@@ -8,6 +8,7 @@ class PrimitiveView<Attrs:{}> implements View {
 	final adaptor:Adaptor;
 	final attributes:PrimitiveAttributes<Attrs>;
 
+	var disposables:Null<DisposableCollection> = null;
 	var parent:Maybe<View>;
 	var node:PrimitiveNode<Attrs>;
 	var primitive:Any = null;
@@ -77,6 +78,7 @@ class PrimitiveView<Attrs:{}> implements View {
 	}
 
 	public function remove(cursor:Cursor):Result<View, ViewError> {
+		disposables?.dispose();
 		children.remove(adaptor.children(primitive)).orReturn();
 		cursor.remove(primitive)
 			.mapError(e -> ViewError.ViewException(this, e))
@@ -92,6 +94,15 @@ class PrimitiveView<Attrs:{}> implements View {
 
 	public function visitPrimitives(visitor:(primitive:Any) -> Bool) {
 		if (primitive != null) visitor(primitive);
+	}
+
+	public function addDisposable(disposable:DisposableItem) {
+		if (disposables == null) disposables = new DisposableCollection();
+		disposables.addDisposable(disposable);
+	}
+
+	public function removeDisposable(disposable:DisposableItem) {
+		disposables?.removeDisposable(disposable);
 	}
 }
 

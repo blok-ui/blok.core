@@ -52,11 +52,11 @@ class Scheduler {
 	public function scheduleEffect(effect:() -> Void) {
 		switch scheduled {
 			case Some(scheduled):
-				scheduled.renders.push(effect);
+				scheduled.effects.push(effect);
 			case None:
 				scheduled = Some({
-					renders: [effect],
-					effects: []
+					renders: [],
+					effects: [effect]
 				});
 				adaptor(resolve);
 		}
@@ -70,13 +70,7 @@ class Scheduler {
 		scheduled = None;
 
 		for (effect in pending.renders) effect();
-
-		switch scheduled {
-			case None:
-				for (effect in pending.effects) effect();
-			case Some(scheduled):
-				for (effect in pending.effects) scheduled.effects.push(effect);
-		}
+		for (effect in pending.effects) effect();
 	}
 }
 

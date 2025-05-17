@@ -1,10 +1,13 @@
 package blok.engine;
 
+import blok.core.*;
+
 class PortalView implements View {
 	final adaptor:Adaptor;
 	final portal:ViewReconciler;
 	final marker:ViewReconciler;
 
+	var disposables:Null<DisposableCollection> = null;
 	var parent:Maybe<View>;
 	var node:PortalNode;
 
@@ -26,7 +29,7 @@ class PortalView implements View {
 
 	public function insert(cursor:Cursor, ?hydrate:Bool):Result<View, ViewError> {
 		portal.insert(node.child, adaptor.children(node.target), hydrate).orReturn();
-		return marker.insert(new TextNode(''), cursor, hydrate);
+		return marker.insert(Placeholder.node(), cursor, hydrate);
 	}
 
 	public function update(parent:Maybe<View>, node:Node, cursor:Cursor):Result<View, ViewError> {
@@ -46,7 +49,7 @@ class PortalView implements View {
 			portal.reconcile(this.node.child, adaptor.children(this.node.target)).orReturn();
 		}
 
-		return marker.reconcile(new TextNode(''), cursor);
+		return marker.reconcile(Placeholder.node(), cursor);
 	}
 
 	public function visitPrimitives(visitor:(primitive:Any) -> Bool) {
@@ -58,7 +61,17 @@ class PortalView implements View {
 	}
 
 	public function remove(cursor:Cursor):Result<View, ViewError> {
+		disposables?.dispose();
 		portal.remove(adaptor.children(this.node.target)).orReturn();
 		return marker.remove(cursor).map(_ -> (this : View));
+	}
+
+	public function addDisposable(disposable:DisposableItem) {
+		if (disposables == null) disposables = new DisposableCollection();
+		disposables.addDisposable(disposable);
+	}
+
+	public function removeDisposable(disposable:DisposableItem) {
+		disposables?.removeDisposable(disposable);
 	}
 }

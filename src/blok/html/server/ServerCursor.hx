@@ -22,6 +22,8 @@ class ServerCursor implements Cursor {
 
 		// assert(currentNode != null);
 
+		parent = currentNode.parent;
+
 		var index = parent.children.indexOf(currentNode);
 		currentNode = parent.children[index + 1];
 	}
@@ -35,6 +37,7 @@ class ServerCursor implements Cursor {
 
 		switch current() {
 			case Some(previous):
+				parent = (previous : NodePrimitive).parent;
 				var index = parent.children.indexOf(previous);
 				parent.insert(index + 1, node);
 			case None:
@@ -50,6 +53,8 @@ class ServerCursor implements Cursor {
 	public function remove(primitive:Any):Result<Any, Error> {
 		var toRemove:NodePrimitive = primitive;
 		var index = parent.children.indexOf(currentNode);
+
+		parent = toRemove.parent ?? parent;
 
 		toRemove.remove();
 		// Move cursor to the next node in line.

@@ -1,14 +1,13 @@
 package blok.html.client;
 
-import js.html.DocumentFragment;
-import js.html.DOMElement;
-import js.html.Node;
 import blok.core.*;
 import blok.engine.Adaptor;
 import blok.engine.Cursor;
 import blok.html.HtmlEvents;
 import js.Browser;
+import js.html.DOMElement;
 import js.html.Element;
+import js.html.Node;
 
 using StringTools;
 
@@ -192,7 +191,11 @@ class ClientAdaptor implements Adaptor {
 	public function siblings(primitive:Any):Cursor {
 		var node:Node = primitive;
 		var parent:DOMElement = node.parentElement;
-		if (parent == null) parent = cast new DocumentFragment(); // Hm
 		return new ClientCursor(parent, node);
+	}
+
+	public function removePrimitive(primitive:Any) {
+		var node:DOMElement = primitive;
+		node.remove();
 	}
 }

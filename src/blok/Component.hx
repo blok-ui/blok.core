@@ -2,12 +2,11 @@ package blok;
 
 import blok.core.*;
 import blok.engine.*;
-import blok.engine.ComposedView;
 
 // @todo: This is probably going to work best by just extending ComposedView.
 
 @:autoBuild(blok.ComponentBuilder.build())
-abstract class Component implements ViewHost implements DisposableHost implements Disposable {
+abstract class Component implements ViewHost implements DisposableHost {
 	@:noCompletion
 	final __disposables:DisposableCollection = new DisposableCollection();
 
@@ -15,7 +14,7 @@ abstract class Component implements ViewHost implements DisposableHost implement
 
 	abstract public function setup():Void;
 
-	abstract function getViewStatus():ComposedViewStatus;
+	abstract function getViewStatus():ViewStatus;
 
 	inline final function viewIsMounted() {
 		return switch getViewStatus() {
@@ -75,10 +74,6 @@ abstract class Component implements ViewHost implements DisposableHost implement
 
 	public function removeDisposable(disposable:DisposableItem) {
 		__disposables.removeDisposable(disposable);
-	}
-
-	public function dispose() {
-		__disposables.dispose();
 	}
 }
 

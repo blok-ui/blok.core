@@ -28,42 +28,42 @@ class SuspenseSuite extends Suite {
 		});
 	}
 
-	// @:test(expects = 6)
-	// function nestedSuspensionsWork() {
-	// 	return new Future(activate -> {
-	// 		var document = new ElementPrimitive('#document');
-	// 		var resource1 = new Resource(() -> new Task(activate -> {
-	// 			Timer.delay(() -> activate(Ok('Hello world')), 100);
-	// 		}));
-	// 		var resource2 = new Resource(() -> new Task(activate -> {
-	// 			Timer.delay(() -> activate(Ok('Hello other world')), 150);
-	// 		}));
-	// 		mount(document, Provider
-	// 			.provide(new SuspenseContext({
-	// 				onSuspended: () -> Assert.pass(),
-	// 				onComplete: () -> {
-	// 					document.toString({includeTextMarkers: false}).equals('Hello world | Hello other world');
-	// 					activate(Nothing);
-	// 				}
-	// 			}))
-	// 			.child(SuspenseBoundary.node({
-	// 				onSuspended: () -> Assert.pass(),
-	// 				onComplete: () -> Assert.pass(),
-	// 				fallback: () -> 'loading...',
-	// 				child: Scope.wrap(_ -> Fragment.of([
-	// 					Text.node(resource1()),
-	// 					Text.node(' | '),
-	// 					SuspenseBoundary.node({
-	// 						onSuspended: () -> Assert.pass(),
-	// 						onComplete: () -> Assert.pass(),
-	// 						fallback: () -> 'Loading...',
-	// 						child: Scope.wrap(_ -> resource2())
-	// 					}),
-	// 				]))
-	// 			}))
-	// 		);
-	// 	});
-	// }
+	@:test(expects = 6)
+	function nestedSuspensionsWork() {
+		return new Future(activate -> {
+			var document = new ElementPrimitive('#document');
+			var resource1 = new Resource(() -> new Task(activate -> {
+				Timer.delay(() -> activate(Ok('Hello world')), 100);
+			}));
+			var resource2 = new Resource(() -> new Task(activate -> {
+				Timer.delay(() -> activate(Ok('Hello other world')), 150);
+			}));
+			mount(document, Provider
+				.provide(new SuspenseBoundaryContext({
+					onSuspended: () -> Assert.pass(),
+					onComplete: () -> {
+						document.toString({includeTextMarkers: false}).equals('Hello world | Hello other world');
+						activate(Nothing);
+					}
+				}))
+				.child(SuspenseBoundary.node({
+					onSuspended: () -> Assert.pass(),
+					onComplete: () -> Assert.pass(),
+					fallback: () -> 'loading...',
+					child: Scope.wrap(_ -> Fragment.of([
+						Text.node(resource1()),
+						Text.node(' | '),
+						SuspenseBoundary.node({
+							onSuspended: () -> Assert.pass(),
+							onComplete: () -> Assert.pass(),
+							fallback: () -> 'Loading...',
+							child: Scope.wrap(_ -> resource2())
+						}),
+					]))
+				}))
+			);
+		});
+	}
 
 	@:test(expects = 1)
 	function errorBoundariesWillTryToPassSuspenseExceptionsUpwards() {

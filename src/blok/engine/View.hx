@@ -1,7 +1,9 @@
 package blok.engine;
 
+import blok.core.*;
+
 @:using(View.ViewTools)
-interface View {
+interface View extends DisposableHost {
 	public function currentNode():Node;
 	public function currentParent():Maybe<View>;
 	public function insert(cursor:Cursor, ?hydrate:Bool):Result<View, ViewError>;

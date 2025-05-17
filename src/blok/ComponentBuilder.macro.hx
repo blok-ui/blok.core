@@ -57,7 +57,8 @@ class ComponentBuilder implements BuildBundle implements BuildStep {
 						parent,
 						node,
 						adaptor,
-						this
+						this,
+						__disposables
 					);
 
 					${
@@ -151,7 +152,7 @@ class ComponentBuilder implements BuildBundle implements BuildStep {
 				return __view;
 			}
 
-			public function getViewStatus():blok.engine.ComposedView.ComposedViewStatus {
+			public function getViewStatus():blok.engine.ViewStatus {
 				return @:privateAccess __view.status;
 			}
 

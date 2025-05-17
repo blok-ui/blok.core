@@ -7,79 +7,31 @@ typedef ComposedViewState<T:Node> = {
 	public function render():Child;
 	public function setup():Void;
 	public function update(node:T):Void;
-	public function dispose():Void;
 }
-
-enum ComposedViewRenderingMode {
-	Normal;
-	Hydrating;
-}
-
-enum ComposedViewStatus {
-	Valid;
-	Invalid;
-	Rendering(mode:ComposedViewRenderingMode);
-	Disposing;
-	Disposed;
-}
-
-class ComposedViewValidationQueue<T:Node, State:ComposedViewState<T>> {
-	final view:ComposedView<T, State>;
-
-	var pending:Array<ComposedView<Node, ComposedViewState<Node>>> = [];
-
-	public function new(view) {
-		this.view = view;
-	}
-
-	public function enqueue(child:ComposedView<Node, ComposedViewState<Node>>) {
-		if (view.status == Invalid) return;
-		if (pending.contains(child)) return;
-
-		pending.push(child);
-
-		switch view.findAncestorOfType(ComposedView) {
-			case Some(parent):
-				parent.queue.enqueue(cast view);
-			case None:
-				view.adaptor.schedule(() -> view.validate());
-		}
-	}
-
-	public function validate() {
-		if (pending.length == 0) return;
-		var toValidate = pending.copy();
-		pending = [];
-		for (child in toValidate) child.validate();
-	}
-}
-
-// @todo: This is probably a good place to be handling errors returned from `insert`,
-// `update` etc.
 
 @:allow(blok)
 class ComposedView<T:Node, State:ComposedViewState<T>> implements View {
 	public final state:State;
 	public final queue:ComposedViewValidationQueue<T, State>;
+	public var status(default, null):ViewStatus = Invalid;
 
 	final adaptor:Adaptor;
-	final owner:Owner = new Owner();
+	final disposables:DisposableCollection;
 	final render:Computation<Result<Node, Any>>;
 	final child:ViewReconciler;
 
-	var status:ComposedViewStatus = Valid;
 	var parent:Maybe<View>;
 	var node:T;
-	var invalidQueue:Array<View> = [];
 
-	public function new(parent, node, adaptor, state) {
+	public function new(parent, node, adaptor, state, ?disposables) {
 		this.adaptor = adaptor;
 		this.parent = parent;
 		this.node = node;
 		this.state = state;
+		this.disposables = disposables ?? new DisposableCollection();
 		this.queue = new ComposedViewValidationQueue(this);
 		this.child = new ViewReconciler(this, adaptor);
-		this.render = Owner.capture(owner, {
+		this.render = Owner.capture(this.disposables, {
 			var isolate = new Isolate(state.render);
 			Computation.persist(() -> switch status {
 				case Disposing | Disposed:
@@ -110,14 +62,18 @@ class ComposedView<T:Node, State:ComposedViewState<T>> implements View {
 
 	public function insert(cursor:Cursor, ?hydrate:Bool):Result<View, ViewError> {
 		status = Rendering(hydrate == true ? Hydrating : Normal);
+
+		var result = doRender();
+
 		return child
-			.insert(doRender(), cursor, hydrate)
+			.insert(result.node, cursor, hydrate)
 			.always(() -> {
-				Owner.capture(owner, {
+				Owner.capture(disposables, {
 					state.setup();
 				});
 			})
 			.always(() -> status = Valid)
+			.always(() -> attemptToHandleError(result))
 			.map(_ -> (this : View));
 	}
 
@@ -131,10 +87,13 @@ class ComposedView<T:Node, State:ComposedViewState<T>> implements View {
 
 		state.update(this.node);
 
+		var result = doRender();
+
 		return child
-			.reconcile(doRender(), cursor)
-			.map(_ -> (this : View))
-			.always(() -> status = Valid);
+			.reconcile(result.node, cursor)
+			.always(() -> status = Valid)
+			.always(() -> attemptToHandleError(result))
+			.map(_ -> (this : View));
 	}
 
 	public function invalidate() {
@@ -158,18 +117,21 @@ class ComposedView<T:Node, State:ComposedViewState<T>> implements View {
 		}
 
 		status = Rendering(Normal);
+
+		var result = doRender();
+
 		return child
-			.reconcile(doRender(), adaptor.siblings(this.firstPrimitive()))
-			.map(_ -> (this : View))
-			.always(() -> status = Valid);
+			.reconcile(result.node, adaptor.siblings(this.firstPrimitive()))
+			.always(() -> status = Valid)
+			.always(() -> attemptToHandleError(result))
+			.map(_ -> (this : View));
 	}
 
 	public function remove(cursor:Cursor):Result<View, ViewError> {
 		status = Disposing;
 
-		owner.dispose();
+		disposables.dispose();
 		child.remove(cursor);
-		state.dispose();
 
 		status = Disposed;
 
@@ -184,16 +146,60 @@ class ComposedView<T:Node, State:ComposedViewState<T>> implements View {
 		child.get().inspect(child -> child.visitPrimitives(visitor));
 	}
 
-	function doRender() {
+	function doRender():{node:Node, error:Maybe<Any>} {
 		return switch render.peek() {
 			case Ok(node):
-				node;
+				{node: node, error: None};
 			case Error(error):
-				this
-					.findAncestorOfType(BoundaryView)
-					.inspect(boundary -> boundary.capture(this, error))
-					.or(() -> throw error);
-				Placeholder.node();
+				{node: Placeholder.node(), error: Some(error)};
 		}
+	}
+
+	function attemptToHandleError(result:{node:Node, error:Maybe<Any>}) {
+		result.error.extract(if (Some(error)) {
+			this
+				.findAncestor(view -> view is Boundary)
+				.inspect(boundary -> (cast boundary : Boundary).capture(this, error))
+				.or(() -> throw error);
+		});
+	}
+
+	public function addDisposable(disposable:DisposableItem) {
+		disposables.addDisposable(disposable);
+	}
+
+	public function removeDisposable(disposable:DisposableItem) {
+		disposables.removeDisposable(disposable);
+	}
+}
+
+private class ComposedViewValidationQueue<T:Node, State:ComposedViewState<T>> {
+	final view:ComposedView<T, State>;
+
+	var pending:Array<ComposedView<Node, ComposedViewState<Node>>> = [];
+
+	public function new(view) {
+		this.view = view;
+	}
+
+	public function enqueue(child:ComposedView<Node, ComposedViewState<Node>>) {
+		if (view.status == Invalid) return;
+		if (pending.contains(child)) return;
+
+		pending.push(child);
+
+		switch view.findAncestorOfType(ComposedView) {
+			case Some(parent):
+				parent.queue.enqueue(cast view);
+			case None:
+				view.adaptor.schedule(() -> view.validate());
+		}
+	}
+
+	public function validate() {
+		if (pending.length == 0) return;
+		var toValidate = pending.copy();
+		pending = [];
+		for (child in toValidate) child.validate();
 	}
 }

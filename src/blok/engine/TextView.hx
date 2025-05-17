@@ -1,8 +1,11 @@
 package blok.engine;
 
+import blok.core.*;
+
 class TextView implements View {
 	final adaptor:Adaptor;
 
+	var disposables:Null<DisposableCollection>;
 	var primitive:Any = null;
 	var parent:Maybe<View>;
 	var node:TextNode;
@@ -66,6 +69,7 @@ class TextView implements View {
 	}
 
 	public function remove(cursor:Cursor):Result<View, ViewError> {
+		disposables?.dispose();
 		cursor.remove(primitive)
 			.mapError(e -> ViewError.ViewInsertionFailed(this))
 			.orReturn();
@@ -77,5 +81,14 @@ class TextView implements View {
 
 	public function visitPrimitives(visitor:(primitive:Any) -> Bool) {
 		if (primitive != null) visitor(primitive);
+	}
+
+	public function addDisposable(disposable:DisposableItem) {
+		if (disposables == null) disposables = new DisposableCollection();
+		disposables.addDisposable(disposable);
+	}
+
+	public function removeDisposable(disposable:DisposableItem) {
+		disposables?.removeDisposable(disposable);
 	}
 }

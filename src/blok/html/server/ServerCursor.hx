@@ -1,6 +1,5 @@
 package blok.html.server;
 
-// import blok.debug.Debug;
 import blok.engine.*;
 
 class ServerCursor implements Cursor {
@@ -20,8 +19,6 @@ class ServerCursor implements Cursor {
 			return;
 		}
 
-		// assert(currentNode != null);
-
 		parent = currentNode.parent;
 
 		var index = parent.children.indexOf(currentNode);
@@ -37,7 +34,6 @@ class ServerCursor implements Cursor {
 
 		switch current() {
 			case Some(previous):
-				parent = (previous : NodePrimitive).parent;
 				var index = parent.children.indexOf(previous);
 				parent.insert(index + 1, node);
 			case None:

@@ -155,13 +155,8 @@ class ComposedView<T:Node, State:ComposedViewState<T>> implements View {
 		}
 	}
 
-	function attemptToHandleError(result:{node:Node, error:Maybe<Any>}) {
-		result.error.extract(if (Some(error)) {
-			this
-				.findAncestor(view -> view is Boundary)
-				.inspect(boundary -> (cast boundary : Boundary).capture(this, error))
-				.or(() -> throw error);
-		});
+	inline function attemptToHandleError(result:{node:Node, error:Maybe<Any>}) {
+		result.error.extract(if (Some(error)) this.captureWithBoundary(this, error));
 	}
 
 	public function addDisposable(disposable:DisposableItem) {

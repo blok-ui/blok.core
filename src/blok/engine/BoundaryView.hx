@@ -1,13 +1,14 @@
 package blok.engine;
 
+import blok.engine.BoundaryNode;
 import blok.core.*;
 
 using Lambda;
 
-enum BoundaryStatus<T> {
+enum BoundaryStatus<T, N:BoundaryNode<T>> {
 	Active;
 	Touched;
-	Recovering(links:Array<BoundaryLink<T>>);
+	Recovering(links:Array<BoundaryLink<T, N>>);
 }
 
 enum BoundaryRecovery {
@@ -45,7 +46,7 @@ class BoundaryView<T, N:BoundaryNode<T>> implements View implements Boundary {
 
 	var parent:Maybe<View>;
 	var node:N;
-	var boundaryStatus:BoundaryStatus<T> = Active;
+	var boundaryStatus:BoundaryStatus<T, N> = Active;
 
 	public function new(parent, node, adaptor, state) {
 		this.parent = parent;
@@ -88,56 +89,64 @@ class BoundaryView<T, N:BoundaryNode<T>> implements View implements Boundary {
 			});
 		}
 
-		this
-			.findAncestorOfType(BoundaryView)
-			.inspect(boundary -> boundary.capture(target, payload))
-			.or(() -> throw payload);
+		this.captureWithBoundary(target, payload);
+	}
+
+	function createLink(target, payload) {
+		var link = state.recover(this, target, payload).handle(result -> switch result {
+			case Recovered:
+				switch boundaryStatus {
+					case Recovering(links):
+						var recoveredLinks = links.filter(link -> if (link.payload == payload) {
+							link.cancel();
+							false;
+						} else true);
+						boundaryStatus = Recovering(recoveredLinks);
+						if (recoveredLinks.length == 0) scheduleShowChild();
+					case Active | Touched:
+				}
+			case Ignore:
+			case Failed(e):
+				if (state.onStatusChanged != null) {
+					adaptor.scheduleEffect(() -> {
+						state.onStatusChanged(this, FailedToRecover);
+					});
+				}
+				bubblePayloadUpwards(target, e);
+		});
+
+		return new BoundaryLink(target, this, payload, link);
+	}
+
+	public function dissolveLink(target:BoundaryLink<T, N>) {
+		switch boundaryStatus {
+			case Recovering(links):
+				var newLinks = links.filter(link -> link != target);
+				boundaryStatus = Recovering(newLinks);
+				if (newLinks.length == 0) scheduleShowChild();
+			default:
+		}
+	}
+
+	function scheduleShowChild() {
+		adaptor.scheduleEffect(() -> {
+			adaptor.schedule(() -> switch showChild() {
+				case Ok(_):
+				case Error(error):
+					bubblePayloadUpwards(this, error);
+			});
+		});
 	}
 
 	public function showPlaceholder(target:View, payload:T):Result<View, ViewError> {
-		function createLink() {
-			return state.recover(this, target, payload).handle(result -> switch result {
-				case Recovered:
-					switch boundaryStatus {
-						case Recovering(links):
-							var recoveredLinks = links.filter(link -> if (link.payload == payload) {
-								link.dispose();
-								false;
-							} else true);
-
-							boundaryStatus = Recovering(recoveredLinks);
-
-							if (recoveredLinks.length == 0) {
-								adaptor.scheduleEffect(() -> {
-									adaptor.schedule(() -> switch showChild() {
-										case Ok(_):
-										case Error(error):
-											bubblePayloadUpwards(this, error);
-									});
-								});
-							}
-
-						case Active | Touched:
-					}
-				case Ignore:
-				case Failed(e):
-					if (state.onStatusChanged != null) {
-						adaptor.scheduleEffect(() -> {
-							state.onStatusChanged(this, FailedToRecover);
-						});
-					}
-					bubblePayloadUpwards(target, e);
-			});
-		}
-
 		switch boundaryStatus {
 			case Recovering(links) if (links.exists(link -> link.payload == payload)):
 				return Ok(this);
 			case Recovering(links):
-				boundaryStatus = Recovering([new BoundaryLink(payload, createLink())].concat(links));
+				boundaryStatus = Recovering([createLink(target, payload)].concat(links));
 				return Ok(this);
 			case Active | Touched:
-				boundaryStatus = Recovering([new BoundaryLink(payload, createLink())]);
+				boundaryStatus = Recovering([createLink(target, payload)]);
 
 				if (state.onStatusChanged != null) {
 					state.onStatusChanged(this, CapturedPayload);
@@ -216,7 +225,7 @@ class BoundaryView<T, N:BoundaryNode<T>> implements View implements Boundary {
 			.orReturn();
 
 		boundaryStatus.extract(if (Recovering(links)) {
-			for (link in links) link.dispose();
+			for (link in links) link.cancel();
 			placeholder.remove(cursor);
 			boundaryStatus = Active;
 		});
@@ -260,7 +269,7 @@ class BoundaryView<T, N:BoundaryNode<T>> implements View implements Boundary {
 
 		switch boundaryStatus {
 			case Recovering(links):
-				for (link in links) link.dispose();
+				for (link in links) link.cancel();
 			default:
 		}
 
@@ -279,17 +288,28 @@ class BoundaryView<T, N:BoundaryNode<T>> implements View implements Boundary {
 	}
 }
 
-private class BoundaryLink<T> implements Disposable {
+private class BoundaryLink<T, N:BoundaryNode<T>> implements Disposable {
+	public final view:View;
 	public final payload:T;
 
-	final link:Null<Cancellable> = null;
+	final boundary:BoundaryView<T, N>;
+	final link:Cancellable;
 
-	public function new(payload, link) {
+	public function new(view, boundary, payload, link) {
+		this.view = view;
+		this.boundary = boundary;
 		this.payload = payload;
 		this.link = link;
+		view.addDisposable(this);
+	}
+
+	public function cancel() {
+		view.removeDisposable(this);
+		dispose();
 	}
 
 	public function dispose() {
+		boundary.dissolveLink(this);
 		link.cancel();
 	}
 }

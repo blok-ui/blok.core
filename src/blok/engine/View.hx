@@ -89,4 +89,11 @@ class ViewTools {
 	public static function findChildOfType<T:View>(view:View, kind:Class<T>, recursive:Bool = false):Maybe<T> {
 		return cast view.findChild(child -> Std.isOfType(child, kind), recursive);
 	}
+
+	public static function captureWithBoundary(view:View, target:View, payload:Any) {
+		view
+			.findAncestor(view -> view is Boundary)
+			.inspect(boundary -> (cast boundary : Boundary).capture(target, payload))
+			.or(() -> throw payload);
+	}
 }

@@ -10,7 +10,7 @@ class FragmentView implements View implements Boundary {
 	var node:FragmentNode;
 	var children:ViewListReconciler;
 	var rendering:Bool = false;
-	var errors:Array<Any> = [];
+	var errors:Array<() -> Void> = [];
 
 	public function new(parent, node, adaptor) {
 		this.adaptor = adaptor;
@@ -21,20 +21,10 @@ class FragmentView implements View implements Boundary {
 
 	public function capture(target:View, payload:Any) {
 		if (rendering) {
-			errors.push(payload);
+			errors.push(() -> this.captureWithBoundary(target, payload));
 			return;
 		}
-
-		handleErrors([payload]);
-	}
-
-	function handleErrors(errors:Array<Any>) {
-		for (error in errors) {
-			this
-				.findAncestor(view -> view is Boundary)
-				.inspect(boundary -> (cast boundary : Boundary).capture(this, error))
-				.or(() -> throw error);
-		}
+		this.captureWithBoundary(target, payload);
 	}
 
 	public function currentNode():Node {
@@ -55,7 +45,7 @@ class FragmentView implements View implements Boundary {
 			.always(() -> rendering = false)
 			.always(() -> {
 				if (errors.length > 0) {
-					handleErrors(errors);
+					for (lazy in errors) lazy();
 					errors = [];
 				}
 			})
@@ -79,7 +69,7 @@ class FragmentView implements View implements Boundary {
 			.always(() -> rendering = false)
 			.always(() -> {
 				if (errors.length > 0) {
-					handleErrors(errors);
+					for (lazy in errors) lazy();
 					errors = [];
 				}
 			})

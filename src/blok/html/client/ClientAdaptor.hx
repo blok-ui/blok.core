@@ -168,7 +168,8 @@ class ClientAdaptor implements Adaptor {
 
 	public function checkPrimitiveType(primitive:Any, type:String):Result<Any, Error> {
 		var node:Node = primitive;
-		if (node.nodeName != type.toUpperCase()) {
+		var name = (type.startsWith('svg:') ? type.substr(4) : type).toUpperCase();
+		if (node.nodeName.toUpperCase() != name) {
 			return Error(new Error(InternalError, 'Not a ${type}'));
 		}
 		return Ok(node);

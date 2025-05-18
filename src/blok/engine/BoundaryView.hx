@@ -220,7 +220,7 @@ class BoundaryView<T, N:BoundaryNode<T>> implements View implements Boundary {
 	}
 
 	public function update(parent:Maybe<View>, node:Node, cursor:Cursor):Result<View, ViewError> {
-		this.node = cast(this.node : Node).replaceWith(node)
+		this.node = Node.NodeTools.replaceWith(this.node, node)
 			.mapError(_ -> ViewError.IncorrectNodeType(this, node))
 			.orReturn();
 

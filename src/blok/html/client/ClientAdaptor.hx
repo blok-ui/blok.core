@@ -168,7 +168,7 @@ class ClientAdaptor implements Adaptor {
 
 	public function checkPrimitiveType(primitive:Any, type:String):Result<Any, Error> {
 		var node:Node = primitive;
-		if (node.nodeName != type) {
+		if (node.nodeName != type.toUpperCase()) {
 			return Error(new Error(InternalError, 'Not a ${type}'));
 		}
 		return Ok(node);
@@ -184,7 +184,7 @@ class ClientAdaptor implements Adaptor {
 
 	public function children(primitive:Any):Cursor {
 		var parent:DOMElement = primitive;
-		var node = parent.children.item(0);
+		var node = parent.firstChild;
 		return new ClientCursor(parent, node);
 	}
 

@@ -4,7 +4,7 @@ import blok.engine.*;
 
 @:forward
 abstract Placeholder(Node) to Node to Child {
-	public inline static function node(?key:Key) {
+	public static function node(?key:Key) {
 		return if (key == null) {
 			static var reusableNode:Null<Placeholder> = null;
 			if (reusableNode == null) reusableNode = new Placeholder();

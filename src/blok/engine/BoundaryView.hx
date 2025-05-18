@@ -153,11 +153,11 @@ class BoundaryView<T, N:BoundaryNode<T>> implements View implements Boundary {
 				}
 
 				var child = switch this.child.get() {
-					case None: return Error(ViewException(this, new Error(NotFound, 'No child view found')));
+					case None: return Error(CausedException(this, new Error(NotFound, 'No child view found')));
 					case Some(view): view;
 				}
 				var fallback = try node.fallback(payload) catch (e) {
-					return Error(ViewException(this, e));
+					return Error(CausedException(this, e));
 				}
 
 				placeholder
@@ -180,7 +180,7 @@ class BoundaryView<T, N:BoundaryNode<T>> implements View implements Boundary {
 				boundaryStatus = Active;
 
 				var child = switch this.child.get() {
-					case None: return Error(ViewException(this, new Error(NotFound, 'No child view found')));
+					case None: return Error(CausedException(this, new Error(NotFound, 'No child view found')));
 					case Some(view): view;
 				}
 
@@ -221,7 +221,7 @@ class BoundaryView<T, N:BoundaryNode<T>> implements View implements Boundary {
 
 	public function update(parent:Maybe<View>, node:Node, cursor:Cursor):Result<View, ViewError> {
 		this.node = cast(this.node : Node).replaceWith(node)
-			.mapError(_ -> ViewError.ViewIncorrectNodeType(this, node))
+			.mapError(_ -> ViewError.IncorrectNodeType(this, node))
 			.orReturn();
 
 		boundaryStatus.extract(if (Recovering(links)) {

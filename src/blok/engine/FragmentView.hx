@@ -59,7 +59,7 @@ class FragmentView implements View implements Boundary {
 		this.parent = parent;
 		this.node = this.node
 			.replaceWith(node)
-			.mapError(node -> ViewError.ViewIncorrectNodeType(this, node))
+			.mapError(node -> ViewError.IncorrectNodeType(this, node))
 			.orReturn();
 
 		var nodes = this.node.children;

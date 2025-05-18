@@ -38,7 +38,7 @@ class PortalView implements View {
 		var prevTarget = this.node.target;
 
 		this.node = this.node.replaceWith(node)
-			.mapError(node -> ViewError.ViewIncorrectNodeType(this, node))
+			.mapError(node -> ViewError.IncorrectNodeType(this, node))
 			.orReturn();
 
 		if (prevTarget != this.node.target) {

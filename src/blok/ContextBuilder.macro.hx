@@ -42,7 +42,7 @@ class ContextBuildStep implements BuildStep {
 		});
 		var resolvers = macro class {
 			@:noUsing
-			public static function from(view:blok.engine.ViewContext):$ret {
+			public static function from(view:blok.engine.IntoView):$ret {
 				return @:pos(fallback.pos) return maybeFrom(view).or(() -> {
 					if (__fallbackInstances == null) {
 						__fallbackInstances = [];
@@ -62,7 +62,7 @@ class ContextBuildStep implements BuildStep {
 			}
 
 			@:noUsing
-			public static function maybeFrom(view:blok.engine.ViewContext):kit.Maybe<$ret> {
+			public static function maybeFrom(view:blok.engine.IntoView):kit.Maybe<$ret> {
 				return view
 					.unwrap()
 					.findAncestor(ancestor -> switch Std.downcast(ancestor, blok.engine.ProviderView) {

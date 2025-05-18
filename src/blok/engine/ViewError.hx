@@ -4,9 +4,9 @@ import haxe.Exception;
 
 enum ViewError {
 	ViewAlreadyExists(view:View);
-	ViewInsertionFailed(view:View, ?message:String);
-	ViewIncorrectNodeType(view:View, node:Node);
-	ViewException(view:View, exception:Exception);
-	ViewHydrationMismatch(view:View, expected:String, actual:Any);
-	ViewHydrationNoNode(view:View, expected:String);
+	InsertionFailed(view:View, ?message:String);
+	IncorrectNodeType(view:View, node:Node);
+	HydrationMismatch(view:View, expected:String, actual:Any);
+	NoNodeFoundDuringHydration(view:View, expected:String);
+	CausedException(view:View, exception:Exception);
 }

@@ -30,18 +30,18 @@ class TextView implements View {
 				case Some(current):
 					primitive = adaptor
 						.checkText(current)
-						.mapError(e -> ViewError.ViewHydrationMismatch(this, '#text', current))
+						.mapError(e -> ViewError.HydrationMismatch(this, '#text', current))
 						.orReturn();
 					cursor.next();
 					return Ok(this);
 				case None:
-					return Error(ViewHydrationNoNode(this, '#text'));
+					return Error(NoNodeFoundDuringHydration(this, '#text'));
 			}
 		}
 
 		primitive = adaptor.createTextPrimitive(node.content);
 		cursor.insert(primitive)
-			.mapError(e -> ViewError.ViewInsertionFailed(this))
+			.mapError(e -> ViewError.InsertionFailed(this))
 			.orReturn();
 
 		return Ok(this);
@@ -51,13 +51,13 @@ class TextView implements View {
 		this.parent = parent;
 		this.node = this.node
 			.replaceWith(node)
-			.mapError(node -> ViewError.ViewIncorrectNodeType(this, node))
+			.mapError(node -> ViewError.IncorrectNodeType(this, node))
 			.orReturn();
 
 		adaptor.updateTextPrimitive(primitive, this.node.content);
 
 		cursor.insert(primitive)
-			.mapError(e -> ViewError.ViewInsertionFailed(this))
+			.mapError(e -> ViewError.InsertionFailed(this))
 			.orReturn();
 
 		return Ok(this);
@@ -71,7 +71,7 @@ class TextView implements View {
 	public function remove(cursor:Cursor):Result<View, ViewError> {
 		disposables?.dispose();
 		cursor.remove(primitive)
-			.mapError(e -> ViewError.ViewInsertionFailed(this))
+			.mapError(e -> ViewError.InsertionFailed(this))
 			.orReturn();
 		primitive = null;
 		return Ok(this);

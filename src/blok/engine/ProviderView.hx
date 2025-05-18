@@ -38,14 +38,14 @@ class ProviderView<T:Providable> implements View {
 	}
 
 	public function update(parent:Maybe<View>, incoming:Node, cursor:Cursor):Result<View, ViewError> {
-		if (!this.node.matches(node)) return Error(ViewIncorrectNodeType(this, node));
+		if (!this.node.matches(node)) return Error(IncorrectNodeType(this, node));
 
 		var currentContext = node.context;
 		var incomingProvider:ProviderNode<T> = cast incoming;
 
 		if (currentContext != incomingProvider.context) {
 			if (node.shared) {
-				return Error(ViewError.ViewException(this, new Error(NotAcceptable, 'Shared providers should always have the same value')));
+				return Error(ViewError.CausedException(this, new Error(NotAcceptable, 'Shared providers should always have the same value')));
 			}
 			currentContext.dispose();
 		}

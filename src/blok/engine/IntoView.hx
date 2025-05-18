@@ -1,8 +1,8 @@
 package blok.engine;
 
 @:forward
-abstract ViewContext(View) from View {
-	@:from public static inline function ofViewHost(host:ViewHost):ViewContext {
+abstract IntoView(View) from View {
+	@:from public static inline function ofViewHost(host:ViewHost):IntoView {
 		return host.getView();
 	}
 

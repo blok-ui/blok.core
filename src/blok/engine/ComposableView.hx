@@ -3,14 +3,14 @@ package blok.engine;
 import blok.core.*;
 import blok.signal.Computation;
 
-typedef ComposedViewState<T:Node> = {
+typedef ComposableViewState<T:Node> = {
 	public function render():Child;
 	public function setup():Void;
 	public function update(node:T):Void;
 }
 
 @:allow(blok)
-class ComposedView<T:Node, State:ComposedViewState<T>> implements View {
+class ComposableView<T:Node, State:ComposableViewState<T>> implements View {
 	public final state:State;
 	public final queue:ComposedViewValidationQueue<T, State>;
 	public var status(default, null):ViewStatus = Invalid;
@@ -78,7 +78,7 @@ class ComposedView<T:Node, State:ComposedViewState<T>> implements View {
 	}
 
 	public function update(parent:Maybe<View>, node:Node, cursor:Cursor):Result<View, ViewError> {
-		if (!this.node.matches(node)) return Error(ViewIncorrectNodeType(this, node));
+		if (!this.node.matches(node)) return Error(IncorrectNodeType(this, node));
 
 		this.node = cast node;
 		this.parent = parent;
@@ -101,7 +101,7 @@ class ComposedView<T:Node, State:ComposedViewState<T>> implements View {
 
 		status = Invalid;
 
-		switch this.findAncestorOfType(ComposedView) {
+		switch this.findAncestorOfType(ComposableView) {
 			case Some(parent):
 				parent.queue.enqueue(cast this);
 			case None:
@@ -168,22 +168,22 @@ class ComposedView<T:Node, State:ComposedViewState<T>> implements View {
 	}
 }
 
-private class ComposedViewValidationQueue<T:Node, State:ComposedViewState<T>> {
-	final view:ComposedView<T, State>;
+private class ComposedViewValidationQueue<T:Node, State:ComposableViewState<T>> {
+	final view:ComposableView<T, State>;
 
-	var pending:Array<ComposedView<Node, ComposedViewState<Node>>> = [];
+	var pending:Array<ComposableView<Node, ComposableViewState<Node>>> = [];
 
 	public function new(view) {
 		this.view = view;
 	}
 
-	public function enqueue(child:ComposedView<Node, ComposedViewState<Node>>) {
+	public function enqueue(child:ComposableView<Node, ComposableViewState<Node>>) {
 		if (view.status == Invalid) return;
 		if (pending.contains(child)) return;
 
 		pending.push(child);
 
-		switch view.findAncestorOfType(ComposedView) {
+		switch view.findAncestorOfType(ComposableView) {
 			case Some(parent):
 				parent.queue.enqueue(cast view);
 			case None:

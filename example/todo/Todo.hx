@@ -239,7 +239,7 @@ class TodoInput extends Component {
 
 	@:effect function trackEditing():Void {
 		if (isEditing()) {
-			this.getView().firstPrimitive().as(js.html.InputElement)?.focus();
+			investigate().getPrimitive().as(js.html.InputElement)?.focus();
 		}
 	}
 

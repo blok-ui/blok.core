@@ -53,7 +53,7 @@ class ComponentBuilder implements BuildBundle implements BuildStep {
 					${options.inits};
 					${late};
 
-					__view = new blok.engine.ComposedView(
+					__view = new blok.engine.ComposableView(
 						parent,
 						node,
 						adaptor,
@@ -75,6 +75,7 @@ class ComponentBuilder implements BuildBundle implements BuildStep {
 
 	public function apply(builder:ClassBuilder) {
 		var cls = builder.getClass();
+		var componentTypePath = builder.getTypePath();
 		var componentType = builder.getType().toComplexType();
 		var createParams = cls.params.toTypeParamDecl();
 		var props = builder.hook(Init).getProps().concat(builder.hook(LateInit).getProps());
@@ -86,7 +87,7 @@ class ComponentBuilder implements BuildBundle implements BuildStep {
 		var constructors = macro class {
 			@:noUsing
 			public static function node(props:$propType, ?key:Null<blok.engine.Key>):blok.engine.Node {
-				return new blok.Component.ComponentNode(componentType, props, $i{cls.name}.new, key);
+				return new blok.Component.ComponentNode(componentType, props, (node, parent, adaptor) -> new $componentTypePath(node, parent, adaptor), key);
 			}
 
 			@:fromMarkup
@@ -146,7 +147,7 @@ class ComponentBuilder implements BuildBundle implements BuildStep {
 			public static final componentType = new kit.UniqueId();
 
 			@:noCompletion
-			final __view:blok.engine.ComposedView<blok.Component.ComponentNode<$propType>, $componentType>;
+			final __view:blok.engine.ComposableView<blok.Component.ComponentNode<$propType>, $componentType>;
 
 			public function getView():blok.engine.View {
 				return __view;

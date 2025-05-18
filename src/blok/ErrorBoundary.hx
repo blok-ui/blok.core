@@ -37,7 +37,7 @@ class ErrorBoundary implements BoundaryNode<Exception> {
 			decode: (_, _, payload) -> {
 				if (payload is ResourceException) return None;
 				if (payload is ViewError) return switch (payload : ViewError) {
-					case ViewException(_, exception):
+					case CausedException(_, exception):
 						Some(exception);
 					default:
 						// @todo: Figure out how to handle this.

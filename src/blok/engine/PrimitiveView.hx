@@ -38,16 +38,16 @@ class PrimitiveView<Attrs:{}> implements View {
 			switch cursor.current() {
 				case Some(current):
 					primitive = adaptor.checkPrimitiveType(current, node.tag)
-						.mapError(e -> ViewError.ViewHydrationMismatch(this, node.tag, current))
+						.mapError(e -> ViewError.HydrationMismatch(this, node.tag, current))
 						.orReturn();
 					cursor.next();
 				default:
-					return Error(ViewError.ViewHydrationNoNode(this, node.tag));
+					return Error(ViewError.NoNodeFoundDuringHydration(this, node.tag));
 			}
 		} else {
 			primitive = adaptor.createPrimitive(node.tag);
 			cursor.insert(primitive)
-				.mapError(_ -> ViewError.ViewInsertionFailed(this))
+				.mapError(_ -> ViewError.InsertionFailed(this))
 				.orReturn();
 		}
 
@@ -62,11 +62,11 @@ class PrimitiveView<Attrs:{}> implements View {
 	public function update(parent:Maybe<View>, node:Node, cursor:Cursor):Result<View, ViewError> {
 		this.parent = parent;
 		this.node = this.node.replaceWith(node)
-			.mapError(node -> ViewError.ViewIncorrectNodeType(this, node))
+			.mapError(node -> ViewError.IncorrectNodeType(this, node))
 			.orReturn();
 
 		cursor.insert(primitive)
-			.mapError(_ -> ViewError.ViewInsertionFailed(this))
+			.mapError(_ -> ViewError.InsertionFailed(this))
 			.orReturn();
 
 		attributes.reconcile(this.node.attributes);
@@ -81,7 +81,7 @@ class PrimitiveView<Attrs:{}> implements View {
 		disposables?.dispose();
 		children.remove(adaptor.children(primitive)).orReturn();
 		cursor.remove(primitive)
-			.mapError(e -> ViewError.ViewException(this, e))
+			.mapError(e -> ViewError.CausedException(this, e))
 			.orReturn();
 		attributes.dispose();
 

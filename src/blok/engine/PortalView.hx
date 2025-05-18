@@ -5,7 +5,6 @@ import blok.core.*;
 class PortalView implements View {
 	final adaptor:Adaptor;
 	final portal:ViewReconciler;
-	final marker:ViewReconciler;
 
 	var disposables:Null<DisposableCollection> = null;
 	var parent:Maybe<View>;
@@ -16,7 +15,6 @@ class PortalView implements View {
 		this.node = node;
 		this.adaptor = adaptor;
 		this.portal = new ViewReconciler(this, adaptor);
-		this.marker = new ViewReconciler(this, adaptor);
 	}
 
 	public function currentNode():Node {
@@ -28,8 +26,7 @@ class PortalView implements View {
 	}
 
 	public function insert(cursor:Cursor, ?hydrate:Bool):Result<View, ViewError> {
-		portal.insert(node.child, adaptor.children(node.target), hydrate).orReturn();
-		return marker.insert(Placeholder.node(), cursor, hydrate);
+		return portal.insert(node.child, adaptor.children(node.target), hydrate);
 	}
 
 	public function update(parent:Maybe<View>, node:Node, cursor:Cursor):Result<View, ViewError> {
@@ -41,15 +38,13 @@ class PortalView implements View {
 			.mapError(node -> ViewError.IncorrectNodeType(this, node))
 			.orReturn();
 
-		if (prevTarget != this.node.target) {
+		return if (prevTarget != this.node.target) {
 			var cursor = adaptor.children(prevTarget);
 			portal.remove(cursor).orReturn();
-			portal.insert(this.node.child, adaptor.children(this.node.target));
+			portal.insert(this.node.child, adaptor.children(this.node.target)).map(_ -> (this : View));
 		} else {
-			portal.reconcile(this.node.child, adaptor.children(this.node.target)).orReturn();
+			portal.reconcile(this.node.child, adaptor.children(this.node.target)).map(_ -> (this : View));
 		}
-
-		return marker.reconcile(Placeholder.node(), cursor);
 	}
 
 	public function visitPrimitives(visitor:(primitive:Any) -> Bool) {
@@ -62,8 +57,9 @@ class PortalView implements View {
 
 	public function remove(cursor:Cursor):Result<View, ViewError> {
 		disposables?.dispose();
-		portal.remove(adaptor.children(this.node.target)).orReturn();
-		return marker.remove(cursor).map(_ -> (this : View));
+		return portal
+			.remove(adaptor.children(this.node.target))
+			.map(_ -> (this : View));
 	}
 
 	public function addDisposable(disposable:DisposableItem) {

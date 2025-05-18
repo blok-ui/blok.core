@@ -34,8 +34,10 @@ class TextView implements View {
 						.orReturn();
 					cursor.next();
 					return Ok(this);
-				case None:
+				case None if (node.content != ''):
 					return Error(NoNodeFoundDuringHydration(this, '#text'));
+				case None:
+					// An empty text node is a Placeholder; we can safely just insert it.
 			}
 		}
 

@@ -55,7 +55,6 @@ function buildAttrNameEnum(attrType:Type) {
 				});
 			}
 		default:
-			trace(attrType.follow());
 			Context.currentPos().error('Invalid target: ${attrType.follow()}');
 	}
 

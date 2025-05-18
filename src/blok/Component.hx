@@ -64,8 +64,29 @@ abstract ComponentInvestigator(ComposableView<Dynamic, Dynamic>) {
 		return this.firstPrimitive();
 	}
 
-	public inline function status():ViewStatus {
+	public inline function getStatus():ViewStatus {
 		return this.status;
+	}
+
+	public inline function isMounted() {
+		return switch getStatus() {
+			case Disposing | Disposed: false;
+			default: true;
+		}
+	}
+
+	public inline function isHydrating() {
+		return switch getStatus() {
+			case Rendering(Hydrating): true;
+			default: false;
+		}
+	}
+
+	public inline function isRendering() {
+		return switch getStatus() {
+			case Rendering(_): true;
+			default: false;
+		}
 	}
 
 	public inline function filterComponents<T:ComponentLike>(kind:Class<T>, ?recursive:Bool):Array<T> {

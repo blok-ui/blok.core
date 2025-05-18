@@ -67,13 +67,13 @@ class ComposableView<T:Node, State:ComposableViewState<T>> implements View {
 
 		return child
 			.insert(result.node, cursor, hydrate)
+			.always(() -> status = Valid)
+			.always(() -> attemptToHandleError(result))
 			.always(() -> {
 				Owner.capture(disposables, {
 					state.setup();
 				});
 			})
-			.always(() -> status = Valid)
-			.always(() -> attemptToHandleError(result))
 			.map(_ -> (this : View));
 	}
 

@@ -28,7 +28,7 @@ abstract Children(Array<Node>) from Array<Child> from Array<Node> to Array<Node>
 		return this;
 	}
 
-	// @:to public inline function toChild():Child {
-	// 	return Fragment.of(this);
-	// }
+	@:to public inline function toChild():Child {
+		return Fragment.of(this);
+	}
 }

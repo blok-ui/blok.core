@@ -53,11 +53,11 @@ class PortalView implements View {
 	}
 
 	public function visitPrimitives(visitor:(primitive:Any) -> Bool) {
-		marker.get().inspect(marker -> marker.visitPrimitives(visitor));
+		portal.get().inspect(portal -> portal.visitPrimitives(visitor));
 	}
 
 	public function visitChildren(visitor:(child:View) -> Bool) {
-		marker.get().inspect(marker -> visitor(marker));
+		portal.get().inspect(portal -> visitor(portal));
 	}
 
 	public function remove(cursor:Cursor):Result<View, ViewError> {

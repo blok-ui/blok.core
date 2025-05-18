@@ -119,9 +119,10 @@ class ComposableView<T:Node, State:ComposableViewState<T>> implements View {
 		status = Rendering(Normal);
 
 		var result = doRender();
+		var cursor = adaptor.siblings(this.firstPrimitive());
 
 		return child
-			.reconcile(result.node, adaptor.siblings(this.firstPrimitive()))
+			.reconcile(result.node, cursor)
 			.always(() -> status = Valid)
 			.always(() -> attemptToHandleError(result))
 			.map(_ -> (this : View));

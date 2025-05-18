@@ -28,8 +28,9 @@ class ViewReconciler {
 			case Some(child) if (child.currentNode().matches(node)):
 				child.update(Some(parent), node, cursor).orReturn();
 			case Some(child):
+				var view = node.createView(Some(parent), adaptor).insert(cursor).orReturn();
 				child.remove(cursor);
-				node.createView(Some(parent), adaptor).insert(cursor).orReturn();
+				view;
 			case None:
 				node.createView(Some(parent), adaptor).insert(cursor).orReturn();
 		});

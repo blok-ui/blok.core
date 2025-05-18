@@ -33,9 +33,10 @@ class ViewListReconciler {
 				return Ok(view);
 			}
 
-			view?.remove(cursor);
-
-			return node.createView(Some(parent), adaptor).insert(cursor, hydrate);
+			return node
+				.createView(Some(parent), adaptor)
+				.insert(cursor, hydrate)
+				.always(() -> view?.remove(cursor));
 		}
 
 		// Scan from the top of the list, syncing until we can't anymore.

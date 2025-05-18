@@ -44,12 +44,15 @@ class ClientCursor implements Cursor {
 
 	public function remove(primitive:Any):Result<Any, Error> {
 		var toRemove:DOMElement = primitive;
-		var sibling = toRemove?.nextSibling;
 
-		toRemove?.remove();
-		// Move cursor to the next node in line.
-		currentNode = sibling;
+		if (currentNode == toRemove) {
+			var sibling = toRemove?.nextSibling;
+			toRemove.remove();
+			currentNode = sibling;
+			return Ok(toRemove);
+		}
 
+		toRemove.remove();
 		return Ok(toRemove);
 	}
 

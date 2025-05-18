@@ -48,14 +48,15 @@ class ServerCursor implements Cursor {
 
 	public function remove(primitive:Any):Result<Any, Error> {
 		var toRemove:NodePrimitive = primitive;
-		var index = parent.children.indexOf(currentNode);
 
-		parent = toRemove.parent ?? parent;
+		if (currentNode == toRemove) {
+			var index = parent.children.indexOf(primitive);
+			toRemove.remove();
+			currentNode = parent.children[index];
+			return Ok(toRemove);
+		}
 
 		toRemove.remove();
-		// Move cursor to the next node in line.
-		currentNode = parent.children[index];
-
 		return Ok(toRemove);
 	}
 

@@ -25,11 +25,11 @@ class PortalView implements View {
 		return parent;
 	}
 
-	public function insert(cursor:Cursor, ?hydrate:Bool):Result<View, ViewError> {
+	public function insert(_:Cursor, ?hydrate:Bool):Result<View, ViewError> {
 		return portal.insert(node.child, adaptor.children(node.target), hydrate);
 	}
 
-	public function update(parent:Maybe<View>, node:Node, cursor:Cursor):Result<View, ViewError> {
+	public function update(parent:Maybe<View>, node:Node, _:Cursor):Result<View, ViewError> {
 		this.parent = parent;
 
 		var prevTarget = this.node.target;

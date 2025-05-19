@@ -55,7 +55,7 @@ class PortalView implements View {
 		portal.get().inspect(portal -> visitor(portal));
 	}
 
-	public function remove(cursor:Cursor):Result<View, ViewError> {
+	public function remove(_:Cursor):Result<View, ViewError> {
 		disposables?.dispose();
 		return portal
 			.remove(adaptor.children(this.node.target))

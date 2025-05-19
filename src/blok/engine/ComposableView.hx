@@ -157,7 +157,7 @@ class ComposableView<T:Node, State:ComposableViewState<T>> implements View {
 	}
 
 	inline function attemptToHandleError(result:{node:Node, error:Maybe<Any>}) {
-		result.error.extract(if (Some(error)) this.captureWithBoundary(this, error));
+		result.error.extract(if (Some(error)) this.sendErrorToBoundary(this, error));
 	}
 
 	public function addDisposable(disposable:DisposableItem) {

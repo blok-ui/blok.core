@@ -18,11 +18,11 @@ enum BoundaryRecovery {
 }
 
 enum BoundaryStatusChanged {
-	Initialized;
-	CapturedPayload;
-	TouchedPayload;
-	RecoveredFromCapture;
-	FailedToRecover;
+	InitializedWithoutError;
+	CaughtError;
+	TouchedError;
+	RecoveredFromError;
+	FailedToRecoverFromError;
 }
 
 typedef BoundaryViewState<T, N:BoundaryNode<T>> = {
@@ -71,7 +71,7 @@ class BoundaryView<T, N:BoundaryNode<T>> implements View implements Boundary {
 		return parent;
 	}
 
-	public function capture(target:View, payload:Any):Void {
+	public function inspectError(target:View, payload:Any):Void {
 		switch state.decode(this, target, payload) {
 			case Some(decoded):
 				showPlaceholder(target, decoded).orThrow();
@@ -85,11 +85,11 @@ class BoundaryView<T, N:BoundaryNode<T>> implements View implements Boundary {
 
 		if (state.onStatusChanged != null) {
 			adaptor.scheduleEffect(() -> {
-				state.onStatusChanged(this, TouchedPayload);
+				state.onStatusChanged(this, TouchedError);
 			});
 		}
 
-		this.captureWithBoundary(target, payload);
+		this.sendErrorToBoundary(target, payload);
 	}
 
 	function createLink(target, payload) {
@@ -109,7 +109,7 @@ class BoundaryView<T, N:BoundaryNode<T>> implements View implements Boundary {
 			case Failed(e):
 				if (state.onStatusChanged != null) {
 					adaptor.scheduleEffect(() -> {
-						state.onStatusChanged(this, FailedToRecover);
+						state.onStatusChanged(this, FailedToRecoverFromError);
 					});
 				}
 				bubblePayloadUpwards(target, e);
@@ -149,7 +149,7 @@ class BoundaryView<T, N:BoundaryNode<T>> implements View implements Boundary {
 				boundaryStatus = Recovering([createLink(target, payload)]);
 
 				if (state.onStatusChanged != null) {
-					state.onStatusChanged(this, CapturedPayload);
+					state.onStatusChanged(this, CaughtError);
 				}
 
 				var child = switch this.child.get() {
@@ -194,7 +194,7 @@ class BoundaryView<T, N:BoundaryNode<T>> implements View implements Boundary {
 							true;
 						});
 
-						if (state.onStatusChanged != null) state.onStatusChanged(this, RecoveredFromCapture);
+						if (state.onStatusChanged != null) state.onStatusChanged(this, RecoveredFromError);
 					}
 				});
 
@@ -208,11 +208,11 @@ class BoundaryView<T, N:BoundaryNode<T>> implements View implements Boundary {
 		marker.insert(cursor, false);
 
 		child.insert(node.child, cursor, hydrate)
-			.inspectError(error -> capture(child.get().unwrap(), error));
+			.inspectError(error -> inspectError(child.get().unwrap(), error));
 
 		if (boundaryStatus == Active && state.onStatusChanged != null) {
 			adaptor.scheduleEffect(() -> {
-				if (boundaryStatus == Active) state.onStatusChanged(this, Initialized);
+				if (boundaryStatus == Active) state.onStatusChanged(this, InitializedWithoutError);
 			});
 		}
 
@@ -234,7 +234,7 @@ class BoundaryView<T, N:BoundaryNode<T>> implements View implements Boundary {
 		cursor = adaptor.siblings(marker.firstPrimitive());
 
 		child.reconcile(this.node.child, cursor)
-			.inspectError(error -> capture(child.get().unwrap(), error));
+			.inspectError(error -> inspectError(child.get().unwrap(), error));
 
 		return Ok(this);
 	}

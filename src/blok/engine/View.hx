@@ -90,10 +90,10 @@ class ViewTools {
 		return cast view.findChild(child -> Std.isOfType(child, kind), recursive);
 	}
 
-	public static function captureWithBoundary(view:View, target:View, payload:Any) {
+	public static function sendErrorToBoundary(view:View, target:View, error:Any) {
 		view
 			.findAncestor(view -> view is Boundary)
-			.inspect(boundary -> (cast boundary : Boundary).capture(target, payload))
-			.or(() -> throw payload);
+			.inspect(boundary -> (cast boundary : Boundary).inspectError(target, error))
+			.or(() -> throw error);
 	}
 }

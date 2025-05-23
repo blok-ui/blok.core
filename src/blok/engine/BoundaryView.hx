@@ -33,8 +33,6 @@ typedef BoundaryViewState<T, N:BoundaryNode<T>> = {
 	public function recover(boundary:BoundaryView<T, N>, target:View, payload:T):Future<BoundaryRecovery>;
 }
 
-// @todo: We should track view status on this view to ensure we don't try updating when it's
-// disposed/disposing.
 class BoundaryView<T, N:BoundaryNode<T>> implements View implements Boundary {
 	final adaptor:Adaptor;
 	final placeholder:ViewReconciler;
@@ -275,14 +273,14 @@ class BoundaryView<T, N:BoundaryNode<T>> implements View implements Boundary {
 
 		boundaryStatus = Active;
 
-		if (state.onRemoval != null) {
-			state.onRemoval(this);
-		}
-
 		adaptor.removePrimitive(container);
 		marker.remove(cursor).orReturn();
 		placeholder.remove(cursor).orReturn();
 		child.remove(cursor).orReturn();
+
+		if (state.onRemoval != null) {
+			state.onRemoval(this);
+		}
 
 		return Ok(this);
 	}

@@ -52,6 +52,7 @@ class SignalFieldBuildStep implements BuildStep {
 					.addProp({
 						name: name,
 						type: t,
+						doc: field.doc,
 						optional: isOptional
 					})
 					.addExpr(if (isOptional) {

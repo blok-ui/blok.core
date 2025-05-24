@@ -67,6 +67,7 @@ class ObservableFieldBuildStep implements BuildStep {
 					.addProp({
 						name: name,
 						type: type,
+						doc: field.doc,
 						optional: isOptional
 					})
 					.addExpr(macro @:mergeBlock $b{init});

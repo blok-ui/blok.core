@@ -2,10 +2,7 @@ package blok.signal;
 
 import blok.core.*;
 
-// @todo: Why is Observer an abstract?
-
-@:forward(dispose)
-abstract Observer(ObserverObject) to DisposableItem to Disposable {
+class Observer implements Disposable {
 	public static function untrack(effect:() -> Void):Void {
 		Runtime.current().untrack(effect);
 	}
@@ -14,12 +11,6 @@ abstract Observer(ObserverObject) to DisposableItem to Disposable {
 		return new Observer(effect);
 	}
 
-	public inline function new(effect:() -> Void) {
-		this = new ObserverObject(effect);
-	}
-}
-
-class ObserverObject implements Disposable {
 	var node:Null<ReactiveNode>;
 
 	public function new(effect:() -> Void) {

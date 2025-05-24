@@ -50,6 +50,7 @@ class AttributeFieldBuildStep implements BuildStep {
 					.addProp({
 						name: name,
 						type: t,
+						doc: field.doc,
 						optional: e != null
 					})
 					.addExpr(if (e == null) {

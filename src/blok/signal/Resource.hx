@@ -4,13 +4,6 @@ import blok.core.*;
 import blok.signal.Signal;
 import haxe.Exception;
 
-/**
-	A Resource is represents a reactive, async value designed to be used inside Blok's sync
-	API. When it's used and is still loading it will throw a SuspenseException that can be
-	caught by a wrapping SuspenseBoundary that will remount the UI once the Resource is ready.
-	Because it is so tied into Blok's lifecycle it's not really suitable for use outside 
-	Components and you should use some other method for non-ui code.
-**/
 @:forward
 abstract Resource<T, E = kit.Error>(ResourceObject<T, E>) from ResourceObject<T, E> to Disposable to DisposableItem {
 	@:from

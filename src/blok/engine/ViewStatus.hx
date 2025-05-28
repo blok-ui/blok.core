@@ -10,7 +10,6 @@ enum ViewStatus {
 	Invalid;
 	Valid;
 	Rendering(mode:ViewRenderMode);
-	Rendered;
 	Disposing;
 	Disposed;
 }

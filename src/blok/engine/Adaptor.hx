@@ -1,6 +1,8 @@
 package blok.engine;
 
 interface Adaptor {
+	public final environment:AdaptorEnvironment;
+
 	public function schedule(effect:() -> Void):Void;
 	public function scheduleEffect(effect:() -> Void):Void;
 	public function createPrimitive(tag:String):Any;

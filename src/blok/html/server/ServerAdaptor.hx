@@ -6,6 +6,11 @@ import blok.core.*;
 using StringTools;
 
 class ServerAdaptor implements Adaptor {
+	public final environment:AdaptorEnvironment = {
+		server: true,
+		name: 'html/server'
+	};
+
 	final scheduler:Scheduler;
 
 	public function new(?scheduler) {

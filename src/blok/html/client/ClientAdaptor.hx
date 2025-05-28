@@ -1,8 +1,7 @@
 package blok.html.client;
 
 import blok.core.*;
-import blok.engine.Adaptor;
-import blok.engine.Cursor;
+import blok.engine.*;
 import blok.html.HtmlEvents;
 import js.Browser;
 import js.html.DOMElement;
@@ -14,6 +13,11 @@ using StringTools;
 inline extern final svgNamespace = 'http://www.w3.org/2000/svg';
 
 class ClientAdaptor implements Adaptor {
+	public final environment:AdaptorEnvironment = {
+		server: false,
+		name: 'html/client'
+	};
+
 	final scheduler:Scheduler;
 
 	public function new(?scheduler) {

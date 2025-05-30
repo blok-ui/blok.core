@@ -96,9 +96,7 @@ class ViewListReconciler {
 			if (hasOldViews) {
 				var key = newNode.key;
 				if (key != null) {
-					if (oldKeyedViews == null) {
-						throw 'assert'; // This should never happen
-					}
+					assert(oldKeyedViews != null, 'oldKeyedViews should never be null at this point');
 
 					oldView = oldKeyedViews.get(key);
 					if (oldView != null) {

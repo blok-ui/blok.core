@@ -104,7 +104,7 @@ class TodoRoot extends Component {
 					Border.width(.5),
 					Breakpoint.viewport('700px', Sizing.width('700px'))
 				)}>
-					<Provider context={TodoContext.load()}>
+					<Provider provide={TodoContext.load()}>
 						<TodoHeader />
 						<TodoList />
 						<TodoFooter />

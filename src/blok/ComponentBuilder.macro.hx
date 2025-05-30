@@ -98,6 +98,9 @@ class ComponentBuilder implements BuildBundle implements BuildStep {
 			}
 		};
 
+		builder.findField('update')
+			.inspect(field -> field.pos.error('"update" is a reserved field for Components. Did you mean "setup"?'));
+
 		var setup = builder.setupHook().getExprs();
 		switch builder.findField('setup') {
 			case Some(field):
@@ -122,7 +125,7 @@ class ComponentBuilder implements BuildBundle implements BuildStep {
 
 		builder.addField(constructors
 			.getField('node')
-			.unwrap()
+			.orThrow()
 			.withPos(haxe.macro.Context.makePosition({
 				min: infos.min,
 				max: infos.min + 1,
@@ -133,8 +136,7 @@ class ComponentBuilder implements BuildBundle implements BuildStep {
 		if (options.createFromMarkupMethod) {
 			builder.addField(constructors
 				.getField('__fromMarkup')
-				.unwrap()
-					// Not sure about this positioning thing...
+				.orThrow()
 				.withPos(haxe.macro.Context.makePosition({
 					min: infos.min,
 					max: infos.min + 1,
@@ -151,10 +153,6 @@ class ComponentBuilder implements BuildBundle implements BuildStep {
 
 			public function getView():blok.engine.View {
 				return __view;
-			}
-
-			public function getViewStatus():blok.engine.ViewStatus {
-				return @:privateAccess __view.status;
 			}
 
 			public function update(node:blok.Component.ComponentNode<$propType>) {

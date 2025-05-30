@@ -25,12 +25,12 @@ class ProviderView<T:Providable> implements View {
 		return parent;
 	}
 
-	public function currentContext():T {
-		return node.context;
+	public function currentValue():T {
+		return node.value;
 	}
 
 	public function match(contextId:Int) {
-		return node.context.getContextId() == contextId;
+		return node.value.getContextId() == contextId;
 	}
 
 	public function insert(cursor:Cursor, ?hydrate:Bool):Result<View, ViewError> {
@@ -40,14 +40,14 @@ class ProviderView<T:Providable> implements View {
 	public function update(parent:Maybe<View>, incoming:Node, cursor:Cursor):Result<View, ViewError> {
 		if (!this.node.matches(node)) return Error(IncorrectNodeType(this, node));
 
-		var currentContext = node.context;
+		var value = node.value;
 		var incomingProvider:ProviderNode<T> = cast incoming;
 
-		if (currentContext != incomingProvider.context) {
+		if (value != incomingProvider.value) {
 			if (node.shared) {
 				return Error(ViewError.CausedException(this, new Error(NotAcceptable, 'Shared providers should always have the same value')));
 			}
-			currentContext.dispose();
+			value.dispose();
 		}
 
 		this.node = cast incoming;
@@ -58,7 +58,7 @@ class ProviderView<T:Providable> implements View {
 
 	public function remove(cursor:Cursor):Result<View, ViewError> {
 		disposables?.dispose();
-		if (!node.shared) node.context.dispose();
+		if (!node.shared) node.value.dispose();
 		child.remove(cursor);
 		return Ok(this);
 	}

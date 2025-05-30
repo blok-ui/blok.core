@@ -2,12 +2,12 @@ package blok.engine;
 
 class ProviderNode<T:Providable> implements Node {
 	public final key:Null<Key>;
-	public final context:T;
+	public final value:T;
 	public final child:Node;
 	public final shared:Bool;
 
-	public function new(context, child, shared = false, ?key:Null<Key>) {
-		this.context = context;
+	public function new(value, child, shared = false, ?key:Null<Key>) {
+		this.value = value;
 		this.child = child;
 		this.shared = shared;
 		this.key = key;
@@ -18,7 +18,7 @@ class ProviderNode<T:Providable> implements Node {
 
 		var otherProvider:ProviderNode<Providable> = cast other;
 
-		if (context.getContextId() != otherProvider.context.getContextId()) return false;
+		if (value.getContextId() != otherProvider.value.getContextId()) return false;
 
 		return true;
 	}

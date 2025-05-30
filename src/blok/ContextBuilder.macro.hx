@@ -69,17 +69,17 @@ class ContextBuildStep implements BuildStep {
 						case null: false;
 						case provider: provider.match(__contextId);
 					})
-					.map(provider -> (cast provider : blok.engine.ProviderView<$ret>).currentContext());
+					.map(provider -> (cast provider : blok.engine.ProviderView<$ret>).currentValue());
 			}
 		}
 
 		builder.addField(resolvers
 			.getField('from')
-			.unwrap()
+			.orThrow()
 			.applyParameters(createParams));
 		builder.addField(resolvers
 			.getField('maybeFrom')
-			.unwrap()
+			.orThrow()
 			.applyParameters(createParams));
 
 		builder.add(macro class {

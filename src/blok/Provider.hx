@@ -7,12 +7,12 @@ import blok.engine.*;
 abstract Provider<T:Providable>(ProviderNode<T>) to Node to Child {
 	@:fromMarkup
 	public static function node<T:Providable>(props:{
-		public final context:T;
+		public final provide:T;
 		@:children public final child:Child;
 		public final ?shared:Bool;
 		public final ?key:Key;
 	}):Node {
-		return new ProviderNode(props.context, props.child, props.shared, props.key);
+		return new ProviderNode(props.provide, props.child, props.shared, props.key);
 	}
 
 	public inline static function provide(value:Providable) {
@@ -61,7 +61,7 @@ abstract ProviderFactory({
 		var child = this.child;
 		var entry = contexts.shift();
 		var component:Node = Provider.node({
-			context: entry.value,
+			provide: entry.value,
 			shared: entry.shared,
 			child: child
 		});
@@ -70,7 +70,7 @@ abstract ProviderFactory({
 			var wrapped = component;
 			entry = contexts.shift();
 			component = Provider.node({
-				context: entry.value,
+				provide: entry.value,
 				shared: entry.shared,
 				child: wrapped
 			});

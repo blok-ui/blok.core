@@ -42,8 +42,8 @@ class FragmentView implements View implements Boundary {
 		if (nodes.length == 0) nodes = [Placeholder.node()];
 
 		this.children.reconcile(nodes, cursor, hydrate)
-			.always(() -> rendering = false)
 			.always(() -> {
+				rendering = false;
 				if (errors.length > 0) {
 					for (lazy in errors) lazy();
 					errors = [];
@@ -66,8 +66,8 @@ class FragmentView implements View implements Boundary {
 		if (nodes.length == 0) nodes = [Placeholder.node()];
 
 		children.reconcile(nodes, cursor)
-			.always(() -> rendering = false)
 			.always(() -> {
+				rendering = false;
 				if (errors.length > 0) {
 					for (lazy in errors) lazy();
 					errors = [];

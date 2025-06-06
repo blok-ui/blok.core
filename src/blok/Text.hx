@@ -5,7 +5,7 @@ import blok.signal.Signal;
 
 @:forward
 abstract Text(Node) from Node to Node {
-	@:from public static function ofString(value:String):Text {
+	@:from public inline static function ofString(value:String):Text {
 		return new Text(value);
 	}
 
@@ -13,19 +13,19 @@ abstract Text(Node) from Node to Node {
 		return Scope.wrap(_ -> Text.node(signal.get()));
 	}
 
-	@:from public static function ofInt(number:Int) {
+	@:from public inline static function ofInt(number:Int) {
 		return new Text(Std.string(number));
 	}
 
-	@:from public static function ofFloat(number:Float) {
+	@:from public inline static function ofFloat(number:Float) {
 		return new Text(Std.string(number));
 	}
 
-	public static function node(value:String):Node {
+	public inline static function node(value:String):Node {
 		return new Text(value);
 	}
 
-	private function new(value, ?key) {
+	private inline function new(value, ?key) {
 		this = new TextNode(value, key);
 	}
 }

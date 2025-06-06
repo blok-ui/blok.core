@@ -20,19 +20,20 @@ class Root<Primitive = Any> implements ViewHost implements Disposable {
 	public function new(primitive, adaptor, child) {
 		this.primitive = primitive;
 		this.adaptor = adaptor;
+		#if debug
+		// @todo: Decide if this is the right place for this.
+		this.child = DebugBoundary.node({child: child});
+		#else
 		this.child = child;
+		#end
 		this.root = new RootView(this);
 	}
 
 	public function mount() {
-		// @todo: We went through all this trouble making these things return errors,
-		// we should actually handle them somewhere.
 		return root.insert(adaptor.children(primitive));
 	}
 
 	public function hydrate() {
-		// @todo: We went through all this trouble making these things return errors,
-		// we should actually handle them somewhere.
 		return root.insert(adaptor.children(primitive), true);
 	}
 

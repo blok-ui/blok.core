@@ -41,12 +41,10 @@ class ComposableView<T:Node, State:ComposableViewState<T>> implements View {
 						isolate.cleanup();
 						Error(e);
 					}
-
 					switch status {
 						case Rendering(_):
 						default: invalidate();
 					}
-
 					node;
 			});
 		});
@@ -63,13 +61,13 @@ class ComposableView<T:Node, State:ComposableViewState<T>> implements View {
 	public function insert(cursor:Cursor, ?hydrate:Bool):Result<View, ViewError> {
 		status = Rendering(hydrate == true ? Hydrating : Normal);
 
-		var result = doRender();
+		var result = render.peek();
 
 		return child
-			.insert(result.node, cursor, hydrate)
-			.always(() -> status = Valid)
-			.always(() -> attemptToHandleError(result))
+			.insert(result.or(() -> Placeholder.node()), cursor, hydrate)
 			.always(() -> {
+				status = Valid;
+				result.inspectError(error -> this.sendErrorToBoundary(this, error));
 				Owner.capture(disposables, {
 					state.setup();
 				});
@@ -87,12 +85,14 @@ class ComposableView<T:Node, State:ComposableViewState<T>> implements View {
 
 		state.update(this.node);
 
-		var result = doRender();
+		var result = render.peek();
 
 		return child
-			.reconcile(result.node, cursor)
-			.always(() -> status = Valid)
-			.always(() -> attemptToHandleError(result))
+			.reconcile(result.or(() -> Placeholder.node()), cursor)
+			.always(() -> {
+				status = Valid;
+				result.inspectError(error -> this.sendErrorToBoundary(this, error));
+			})
 			.map(_ -> (this : View));
 	}
 
@@ -118,13 +118,15 @@ class ComposableView<T:Node, State:ComposableViewState<T>> implements View {
 
 		status = Rendering(Normal);
 
-		var result = doRender();
+		var result = render.peek();
 		var cursor = adaptor.siblings(this.firstPrimitive());
 
 		return child
-			.reconcile(result.node, cursor)
-			.always(() -> status = Valid)
-			.always(() -> attemptToHandleError(result))
+			.reconcile(result.or(() -> Placeholder.node()), cursor)
+			.always(() -> {
+				status = Valid;
+				result.inspectError(error -> this.sendErrorToBoundary(this, error));
+			})
 			.map(_ -> (this : View));
 	}
 
@@ -145,19 +147,6 @@ class ComposableView<T:Node, State:ComposableViewState<T>> implements View {
 
 	public function visitPrimitives(visitor:(primitive:Any) -> Bool) {
 		child.get().inspect(child -> child.visitPrimitives(visitor));
-	}
-
-	function doRender():{node:Node, error:Maybe<Any>} {
-		return switch render.peek() {
-			case Ok(node):
-				{node: node, error: None};
-			case Error(error):
-				{node: Placeholder.node(), error: Some(error)};
-		}
-	}
-
-	inline function attemptToHandleError(result:{node:Node, error:Maybe<Any>}) {
-		result.error.extract(if (Some(error)) this.sendErrorToBoundary(this, error));
 	}
 
 	public function addDisposable(disposable:DisposableItem) {

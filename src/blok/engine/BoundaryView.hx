@@ -29,8 +29,8 @@ typedef BoundaryViewState<T, N:BoundaryNode<T>> = {
 	public final ?onStatusChanged:(boundary:BoundaryView<T, N>, status:BoundaryStatusChanged) -> Void;
 	public final ?onRemoval:(boundary:BoundaryView<T, N>) -> Void;
 
-	public function decode(boundary:BoundaryView<T, N>, target:View, payload:Any):Maybe<T>;
-	public function recover(boundary:BoundaryView<T, N>, target:View, payload:T):Future<BoundaryRecovery>;
+	public function decode(boundary:BoundaryView<T, N>, target:View, error:Any):Maybe<T>;
+	public function recover(boundary:BoundaryView<T, N>, target:View, error:T):Future<BoundaryRecovery>;
 }
 
 class BoundaryView<T, N:BoundaryNode<T>> implements View implements Boundary {
@@ -69,16 +69,16 @@ class BoundaryView<T, N:BoundaryNode<T>> implements View implements Boundary {
 		return parent;
 	}
 
-	public function inspectError(target:View, payload:Any):Void {
-		switch state.decode(this, target, payload) {
+	public function inspectError(target:View, error:Any):Void {
+		switch state.decode(this, target, error) {
 			case Some(decoded):
 				showPlaceholder(target, decoded).orThrow();
 			case None:
-				bubblePayloadUpwards(target, payload);
+				bubblePayloadUpwards(target, error);
 		}
 	}
 
-	public function bubblePayloadUpwards(target:View, payload:Any) {
+	public function bubblePayloadUpwards(target:View, error:Any) {
 		boundaryStatus = Touched;
 
 		if (state.onStatusChanged != null) {
@@ -87,15 +87,15 @@ class BoundaryView<T, N:BoundaryNode<T>> implements View implements Boundary {
 			});
 		}
 
-		this.sendErrorToBoundary(target, payload);
+		this.sendErrorToBoundary(target, error);
 	}
 
-	function createLink(target, payload) {
-		var link = state.recover(this, target, payload).handle(result -> switch result {
+	function createLink(target, error) {
+		var link = state.recover(this, target, error).handle(result -> switch result {
 			case Recovered:
 				switch boundaryStatus {
 					case Recovering(links):
-						var recoveredLinks = links.filter(link -> if (link.payload == payload) {
+						var recoveredLinks = links.filter(link -> if (link.error == error) {
 							link.cancel();
 							false;
 						} else true);
@@ -113,7 +113,7 @@ class BoundaryView<T, N:BoundaryNode<T>> implements View implements Boundary {
 				bubblePayloadUpwards(target, e);
 		});
 
-		return new BoundaryLink(target, this, payload, link);
+		return new BoundaryLink(target, this, error, link);
 	}
 
 	public function dissolveLink(target:BoundaryLink<T, N>) {
@@ -136,15 +136,15 @@ class BoundaryView<T, N:BoundaryNode<T>> implements View implements Boundary {
 		});
 	}
 
-	public function showPlaceholder(target:View, payload:T):Result<View, ViewError> {
+	public function showPlaceholder(target:View, error:T):Result<View, ViewError> {
 		switch boundaryStatus {
-			case Recovering(links) if (links.exists(link -> link.payload == payload)):
+			case Recovering(links) if (links.exists(link -> link.error == error)):
 				return Ok(this);
 			case Recovering(links):
-				boundaryStatus = Recovering([createLink(target, payload)].concat(links));
+				boundaryStatus = Recovering([createLink(target, error)].concat(links));
 				return Ok(this);
 			case Active | Touched:
-				boundaryStatus = Recovering([createLink(target, payload)]);
+				boundaryStatus = Recovering([createLink(target, error)]);
 
 				if (state.onStatusChanged != null) {
 					state.onStatusChanged(this, CaughtError);
@@ -154,7 +154,7 @@ class BoundaryView<T, N:BoundaryNode<T>> implements View implements Boundary {
 					case None: return Error(CausedException(this, new Error(NotFound, 'No child view found')));
 					case Some(view): view;
 				}
-				var fallback = try node.fallback(payload) catch (e) {
+				var fallback = try node.fallback(error) catch (e) {
 					return Error(CausedException(this, e));
 				}
 
@@ -288,15 +288,15 @@ class BoundaryView<T, N:BoundaryNode<T>> implements View implements Boundary {
 
 private class BoundaryLink<T, N:BoundaryNode<T>> implements Disposable {
 	public final view:View;
-	public final payload:T;
+	public final error:T;
 
 	final boundary:BoundaryView<T, N>;
 	final link:Cancellable;
 
-	public function new(view, boundary, payload, link) {
+	public function new(view, boundary, error, link) {
 		this.view = view;
 		this.boundary = boundary;
-		this.payload = payload;
+		this.error = error;
 		this.link = link;
 		view.addDisposable(this);
 	}

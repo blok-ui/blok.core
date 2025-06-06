@@ -19,12 +19,12 @@ class FragmentView implements View implements Boundary {
 		this.children = new ViewListReconciler(this, adaptor);
 	}
 
-	public function inspectError(target:View, payload:Any) {
+	public function inspectError(target:View, error:Any) {
 		if (rendering) {
-			errors.push(() -> this.sendErrorToBoundary(target, payload));
+			errors.push(() -> this.sendErrorToBoundary(target, error));
 			return;
 		}
-		this.sendErrorToBoundary(target, payload);
+		this.sendErrorToBoundary(target, error);
 	}
 
 	public function currentNode():Node {

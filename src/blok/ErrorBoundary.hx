@@ -18,7 +18,7 @@ class ErrorBoundary implements BoundaryNode<Exception> {
 		return new ErrorBoundary(props.child, props.fallback, props.key);
 	}
 
-	public final fallback:(payload:Exception) -> Node;
+	public final fallback:(error:Exception) -> Node;
 	public final child:Node;
 	public final key:Null<Key>;
 
@@ -34,16 +34,16 @@ class ErrorBoundary implements BoundaryNode<Exception> {
 
 	public function createView(parent:Maybe<View>, adaptor:Adaptor):View {
 		return new BoundaryView(parent, this, adaptor, {
-			decode: (_, _, payload) -> {
-				if (payload is ResourceException) return None;
-				if (payload is ViewError) return switch (payload : ViewError) {
+			decode: (_, _, error) -> {
+				if (error is ResourceException) return None;
+				if (error is ViewError) return switch (error : ViewError) {
 					case CausedException(_, exception):
 						Some(exception);
 					default:
 						// @todo: Figure out how to handle this.
 						None;
 				}
-				if (payload is Exception) return Some((payload : Exception));
+				if (error is Exception) return Some((error : Exception));
 				return None;
 			},
 			recover: (_, _, e) -> Future.immediate(Ignore)

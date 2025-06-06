@@ -46,7 +46,7 @@ class SuspenseBoundary implements BoundaryNode<ResourceException> {
 
 	public final key:Null<Key>;
 	public final child:Node;
-	public final fallback:(payload:ResourceException) -> Node;
+	public final fallback:(error:ResourceException) -> Node;
 	public final onComplete:Null<() -> Void>;
 	public final onSuspended:Null<() -> Void>;
 
@@ -96,9 +96,9 @@ class SuspenseBoundary implements BoundaryNode<ResourceException> {
 					.maybeFrom(boundary)
 					.inspect(context -> context.remove(boundary));
 			},
-			decode: (boundary, target, payload) -> {
-				if (payload is ResourceException) {
-					return Some(cast payload);
+			decode: (boundary, target, error) -> {
+				if (error is ResourceException) {
+					return Some(cast error);
 				}
 				return None;
 			},

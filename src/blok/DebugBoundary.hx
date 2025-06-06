@@ -30,11 +30,11 @@ class DebugBoundary implements BoundaryNode<ViewError> {
 
 	public function createView(parent:Maybe<View>, adaptor:Adaptor):View {
 		return new BoundaryView(parent, this, adaptor, {
-			decode: (boundary, target, payload) -> {
-				if (payload is ViewError) return Some(cast payload);
+			decode: (boundary, target, error) -> {
+				if (error is ViewError) return Some(cast error);
 				return None;
 			},
-			recover: (boundary, target, payload) -> Future.immediate(Ignore)
+			recover: (boundary, target, error) -> Future.immediate(Ignore)
 		});
 	}
 

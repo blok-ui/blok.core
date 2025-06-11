@@ -37,8 +37,6 @@ class Counter extends Component {
 
 ## Signals
 
-> Note: this section is a work in progress.
-
 Blok is a *reactive framework*. When a value changes, it automatically tracks it and updates as needed.
 
 The core mechanism to make this possible are *Signals*. Blok's implementation is based heavily on [Preact's Signals](https://github.com/preactjs/signals) and (especially) on the implementation used by [Angular](https://github.com/angular/angular/blob/4be253483d045cfee6b42766c9dfd8c9888057e0/packages/core/primitives/signals).
@@ -48,20 +46,17 @@ Generally you won't be creating Signals directly (we'll get into why in the Comp
 ```haxe
 var foo = new blok.signal.Signal('Foo');
 ```
-
-> Note: `blok.signal.Signal` is an abstract, so the above could also be written `var foo:blok.signal.Signal<String> = 'foo'`. This is a handy Haxe feature that Blok makes extensive use of to make authoring VNodes more ergonomic.
-
-Reading and writing the value of `foo` can be done as follows:
+Here's a quick overview of the Signal API:
 
 ```haxe
-// Call it like a function (recommended):
+// To get a value, you can call it like a function (recommended):
 trace(foo());
-// Or use the getter:
+// ...or use the `get` method:
 trace(foo.get());
 
 // Use `set` to update the value:
 foo.set('bar');
-// ...or `update` to also get access to the current value:
+// ...or use `update` if you need access to the current value:
 foo.update(value -> 'foo' + value);
 ```
 
@@ -81,22 +76,24 @@ function main() {
 }
 ```
 
-If you run this code, you'll notice something: it traces "foo", "foobar" and finally "done". This is the key to the power of signals: by simply by calling `foo()` inside our `Observer` we've subscribed to it and will re-run every time `foo` changes.
+If you run this code, you'll notice that it traces "foo", "foobar" and finally "done". By simply calling `foo()` inside our observer we've subscribed to it and the observer will re-run every time the `foo` signal changes.
 
 > Note: if you want to get the value of a Signal *without* subscribing to it, you can use the `peek` method (e.g. `foo.peek()`).
 
-Note that when signals change their Observers will update *asynchronously* since Blok uses a scheduling mechanism behind the scenes. This is to ensure that other asynchronous events, like HTTP requests, don't update out of order and potentially cause strange behavior.
+When signals change their observers will update *asynchronously* since Blok uses a scheduling mechanism behind the scenes. This is to ensure that other asynchronous events, like HTTP requests, don't update out of order and potentially cause strange behavior and that multiple signal changes happening at once don't trigger more than one update.
 
 ## Computations
 
-If you need to change the value of a signal while keeping it reactive, you can use the `Signal.map` method:
+If you need to change the value of a signal while keeping it reactive, you can use the `map` method:
 
 ```haxe
 var continue:Signal<Bool> = false;
 var stop:Computation<Bool> = signal.map(status -> !status);
 ```
 
-Under the hood this uses a `blok.signal.Computation`, a class that works a bit like an `Observer` that returns a value. For example:
+Under the hood this uses a `blok.signal.Computation`, a class that works a bit like an observer that returns a value. 
+
+For example:
 
 ```haxe
 var a = new Signal(1);
@@ -109,7 +106,7 @@ a.set(2);
 // will trace 4
 ```
 
-Unlike Observers, Computations keep track of their producers and consumers. Should a Computation ever reach a state where it no longer has any consumers, it will stop being live and will remove itself from the reactive graph, freeing itself up to be garbage collected. This means you don't need to worry about manually disposing Computations. This is not always desirable (as you will often want a Computation to stay live even if it doesn't have any consumers), in which case you can use the `Computation.persist(...)` static method. Note that Computations created this way *must* be manually disposed *and* will not be observable themselves. Think of an persistent Computation as an Observer that can return a value.
+Unlike Observers, Computations keep track of their producers and consumers. Should a Computation ever reach a state where it no longer has any consumers, it will stop being live and will remove itself from the reactive graph, freeing itself up to be garbage collected. This means you don't need to worry about manually disposing Computations. This is not always desirable (as you will often want a Computation to stay live even if it doesn't have any consumers), in which case you can use the `Computation.persist(...)` static method. Note that Computations created this way *must* be manually disposed *and* will not be observable themselves.
 
 ```haxe
 var a = new Signal(1);
@@ -181,9 +178,9 @@ a.set(3);
 // Nothing is traced -- the Observer was disposed.
 ```
 
-You typically won't need to set this up yourself, but this is the mechanism being used behind the scenes to keep things tidy. Methods like `Component.setup`, `Component.render` and Model and Component constructors are run in Ownership contexts, so you can safely use Observers and persistent Computations there. If you're unsure if a method is in an ownership context you can call `Owner.isInOwnershipContext()` to check.
+You typically won't need to set this up yourself, but this is the mechanism being used behind the scenes to keep things tidy. Methods like `Component.setup`, `Component.render` are run in Ownership contexts, so you can safely use Observers and persistent Computations there. If you're unsure if a method is in an ownership context you can call `Owner.isInOwnershipContext()` to check.
 
-If you want to make a class Owner aware, do the following:
+If you want to dispose a class when the current owner is disposed, you can do the following:
 
 ```haxe
 class Example implements Disposable {
@@ -199,11 +196,7 @@ class Example implements Disposable {
 
 ## Components
 
-> Note: this section is a work in progress.
-
-Blok apps are built out of Components, and they're the primary thing you'll be using. Let's bring back our Counter example:
-
-> Note: Blok *does* have a JSX-like DSL, but it's still very experimental so we're going to be sticking to a alternate, fluent API to create elements. You can use either method in your apps.
+Now that we have a handle on how Blok handles reactivity it's time to actually create a UI. Blok apps are primarily built out of Components, so let's bring back our Counter example (with a few more things added) and start to dig into it:
 
 ```haxe
 import blok.*;
@@ -235,6 +228,9 @@ class Counter extends Component {
   }
 
   function render():Child {
+    // Blok *does* have a JSX-like DSL, but it's still very experimental. We're going 
+    // to stick to a alternate, fluent API in these examples. You can use either 
+    // approach in your apps.
     return Html.div()
       .attr(ClassName, className)
       .child([
@@ -250,8 +246,6 @@ class Counter extends Component {
 
 In our `Counter` class, you'll note that we have a bunch of class fields marked with metadata. These are fairly self-explanatory, but let's go over them one by one.
 
-> Note: this is still very much in progress and these descriptions are probably not very helpful yet.
-
 ### @:attribute
 
 Attributes are (mostly) immutable properties passed into a component. In 90% of cases, an `:attribute` is all you want to use.
@@ -264,7 +258,7 @@ Attributes are (mostly) immutable properties passed into a component. In 90% of 
 
 Signal fields create readable/writeable Signals (see the [previous section](#signals)). 
 
-Conceptually, this is somewhat similar to `useState` in React, and should be used sparingly. `:signal` fields are there when you have some simple state that a Component needs to use internally (like, for example, updating a counter or -- more realistically -- toggling the visibility of a modal).
+Conceptually, this is somewhat similar to `useState` in React. `:signal` fields are there when you have some state that a Component needs to use internally (like, for example, updating a counter or -- more realistically -- toggling the visibility of a modal or other element).
 
 ### @:observable
 
@@ -296,7 +290,6 @@ Resource fields allow you to use async values (such as HTTP requests) in conjunc
 Effect methods allow you to create Observers that track reactive Signals. The marked method will simply be run every time one of its dependencies changes, potentially running a cleanup function whenever this happens.
 
 ```haxe
-// Like this method from our example
 @:effect function traceWhenCountChanges() {
   trace('Count is currently ${count()}');
   return () -> trace(
@@ -329,7 +322,7 @@ Use the given [Context](#providing-context). This is a convenience method that i
 
 ### @:children
 
-Marks field as the slot to use for children in a markup node. This is only relevant if you're using the markup feature (such as inside `Html.view(...)`). Note that this can't be used on it's own and that it has to be attached to a field that will also be present in the Component's constructor (typically an `:attribute`).
+Marks field as the slot to use for children in a markup node. This is only relevant if you're using the markup feature (such as inside `Html.view(...)`). Note that this can't be used on its own and that it has to be attached to a field that will also be present in the Component's constructor (typically an `:attribute`).
 
 ```haxe
 class Example extends Component {
@@ -339,7 +332,7 @@ class Example extends Component {
 }
 ```
 
-A component may only have one `:children` field. While this field is typically a `Child` or `Children`, it does not have to be, and this can open up some additional options. For example, the `blok.Show` component expects a method (`() -> Child`) for its `:children` attribute:
+A component may only have one `:children` field. While this field is typically a `blok.Child` or `blok.Children`, it does not have to be. For example, the `blok.Show` component expects a method (`() -> Child`) for its `:children` attribute:
 
 ```haxe
 Html.view(<Show condition=someSignal>
@@ -351,15 +344,116 @@ If you're not using markup you can ignore this, but if you're making a library i
 
 ### Setup
 
-In addition to all the above features, Components also have a `setup` method you can implement if you need to. `setup` will be run once, **after** the Component has been mounted. This is a great place to initialize some external dependency, do something complex with the real DOM (using `getPrimitive`) or to enqueue some cleanup functions (via `addDisposable`). Setup is also run in an ownership context, so you can safely create `Observables` and similar objects there.
+In addition to all the above features, Components also have a `setup` method you can implement if you need to. `setup` will be run once, **after** the Component has been mounted. This is a great place to initialize some external dependency, do something complex with the DOM, or to enqueue some cleanup functions (via `addDisposable`). Setup is also run in an ownership context, so you can safely create `Observables` and similar objects there.
+
+### Investigating Components
+
+Occasionally you'll need to do something complex that Blok's declarative model can't handle. For these scenarios you can use the `investigate` method, although you should use this sparingly.
+
+```haxe
+var investigator = investigate();
+
+// Blok is agnostic about what it's actually rendering, so it refers to the DOM nodes / objects / strings
+// or whatever as "Primitives". Here's how you get at it:
+var primitive = investigator.getPrimitive();
+
+// Note that `primitive` is typed as `Any`, so you'll need to manually figure out what it is. To help with
+// this, you can get the Root view and check what Adaptor it's using:
+switch Root.from(this).adaptor.environment.name {
+  case 'html/client':
+    trace(primitive is js.html.Node); // true
+  case 'html/server':
+    trace(primitive is blok.html.server.NodePrimitive); // true
+  default: 
+    trace('unknown');
+}
+```
+
+> Todo: More examples to come.
 
 ## Models and Objects
 
-> Note: this section is coming soon.
+Models and objects are simple ways to, well, model data. Models have reactive data, while Objects do not.
+
+Models use most of the same metadata as Components, although they use `:value` instead of `:attribute`. `:value` properties are truly immutable, and do not wrap a `ReadOnlySignal` like `:attribute`s do.
+
+```haxe
+class Todo extends blok.data.Model {
+  @:value public final id:Int;
+  @:signal public final content:String;
+  @:signal public final active:Bool = false;
+  @:computed public final activeLabel:String = if (active()) 'Active' else 'Inactive';
+}
+```
+
+Objects are not reactive, and can only use `:value` fields and a `:prop` field:
+
+```haxe
+class Name extends blok.data.Object {
+  @:value public final firstName:String;
+  @:value public final lastName:String;
+  // Note: You can also define `set` using @:prop, should you wish to. This is just
+  // a convenience wrapper around Haxe's annoying property syntax.
+  @:prop(get = firstName + ' ' + lastName) public final fullName:String;
+}
+```
+
+Models and Objects use a build macro similar to the one Components use, and will automatically create a constructor for you:
+
+```haxe
+function main() {
+  var todo = new Todo({
+    id: 1,
+    content: 'foo',
+    active: false
+  });
+  var name = new Name({
+    firstName: 'Guy',
+    lastName: 'Manlike' 
+  });
+}
+```
+
+If you need to run some code when a Model or Object is constructed you can define a `new` method, however you cannot use any arguments with it. This code will be placed at the end of the constructor Blok generates, after all fields have been initialized.
+
+```haxe
+class Name extends blok.data.Object {
+  @:value public final firstName:String;
+  @:value public final lastName:String;
+  @:prop(get = firstName + ' ' + lastName) public final fullName:String;
+
+  function new() {
+    trace(fullName);
+  }
+}
+```
+
+Both Models and Objects have a `Serializable` variant which allow them to be converted to/from JSON, should that be something you need. This will check that all properties are also serializable (meaning that they are either scalar values, like Strings, Bools, Ints, etc) or also implement a `fromJson` static method and a `toJson` method. If needed, you can use the `:json` meta to provide your own serializer.
+
+```haxe
+class Todo extends blok.data.SerializableModel {
+  // This is a silly example, but if you -- for some reason -- needed to serialize the id field as a string,
+  // this is how you would do it:
+  @:json(from = Std.parseInt(value), to = Std.string(value))
+  @:value public final id:Int;
+  @:signal public final content:String;
+  @:signal public final active:Bool = false;
+  @:computed public final activeLabel:String = if (active()) 'Active' else 'Inactive';
+}
+
+function main() {
+  var todo = Todo.fromJson({
+    id: "1",
+    content: "bar",
+    active: false
+  });
+
+  trace(todo);
+  trace(todo.toJson());
+}
+```
 
 ## Suspense Boundaries and Resources
-
-> Note: This section will be expanded and improved soon.
 
 When dealing with asynchronous code you'll want to use Blok's Suspense apis.
 

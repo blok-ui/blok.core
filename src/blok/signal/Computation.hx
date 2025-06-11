@@ -83,18 +83,6 @@ class ComputationObject<T> implements Disposable {
 		return resolveValue();
 	}
 
-	public function dispose() {
-		switch status {
-			case Disposed(_):
-			case Computed(value):
-				status = Disposed(value);
-				node?.disconnect();
-				node = null;
-			default:
-				// @todo: Is this an error?
-		}
-	}
-
 	function resolveValue() {
 		return switch status {
 			case Uninitialized:
@@ -150,6 +138,18 @@ class ComputationObject<T> implements Disposable {
 						status = Computed(value);
 				}
 			default:
+		}
+	}
+
+	public function dispose() {
+		switch status {
+			case Disposed(_):
+			case Computed(value):
+				status = Disposed(value);
+				node?.disconnect();
+				node = null;
+			default:
+				// @todo: Is this an error?
 		}
 	}
 }

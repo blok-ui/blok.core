@@ -48,6 +48,7 @@ class ComputationObject<T> implements Disposable {
 	final equals:(a:T, b:T) -> Bool;
 	final isPersistent:Bool;
 
+	var recomputing:Bool = false;
 	var node:Null<ReactiveNode>;
 	var status:ComputationStatus<T> = Uninitialized;
 
@@ -59,7 +60,7 @@ class ComputationObject<T> implements Disposable {
 			alwaysLive: isPersistent,
 			forceValidation: _ -> switch status {
 				case Uninitialized: true;
-				default: false;
+				default: recomputing;
 			}
 		});
 		// Persistent computations will never stop being live, so they
@@ -81,6 +82,12 @@ class ComputationObject<T> implements Disposable {
 	public function peek():T {
 		node?.validate();
 		return resolveValue();
+	}
+
+	public function recompute():Void {
+		recomputing = true;
+		node?.validate();
+		recomputing = false;
 	}
 
 	function resolveValue() {

@@ -43,11 +43,15 @@ class ProviderView<T:Providable> implements View {
 		var value = node.value;
 		var incomingProvider:ProviderNode<T> = cast incoming;
 
+		if (!incomingProvider.shared) {
+			return Error(ViewError.CausedException(
+				this,
+				new Error(NotAcceptable, 'Only shared providers can be updated. This error indicates something odd has happened -- please submit a bug report or ensure that you are not updating the ProviderView manually.')
+			));
+		}
+
 		if (value != incomingProvider.value) {
-			if (node.shared) {
-				return Error(ViewError.CausedException(this, new Error(NotAcceptable, 'Shared providers should always have the same value')));
-			}
-			value.dispose();
+			return Error(ViewError.CausedException(this, new Error(NotAcceptable, 'Shared providers should always have the same value')));
 		}
 
 		this.node = cast incoming;

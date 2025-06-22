@@ -16,6 +16,16 @@ class ProviderNode<T:Providable> implements Node {
 	public function matches(other:Node):Bool {
 		if (!(other is ProviderNode && other.key == key)) return false;
 
+		// If a provider is being replaced with a new node and isn't shared, it MUST be
+		// replaced, as all its children will need to be recomputed to ensure they have
+		// access to the current value.
+		//
+		// For this reason you should:
+		//
+		// 1) Prefer shared providers.
+		// 2) Place providers as high in the tree as possible.
+		if (!shared) return false;
+
 		var otherProvider:ProviderNode<Providable> = cast other;
 
 		if (value.getContextId() != otherProvider.value.getContextId()) return false;

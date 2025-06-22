@@ -15,18 +15,11 @@ class Root<Primitive = Any> implements ViewHost implements Disposable {
 	public final primitive:Primitive;
 	public final adaptor:Adaptor;
 	public final root:View;
-	public final child:Node;
 
-	public function new(primitive, adaptor, child) {
+	public function new(primitive, adaptor, child:Child) {
 		this.primitive = primitive;
 		this.adaptor = adaptor;
-		#if debug
-		// @todo: Decide if this is the right place for this.
-		this.child = DebugBoundary.node({child: child});
-		#else
-		this.child = child;
-		#end
-		this.root = new RootView(this);
+		this.root = new RootView(this, child);
 	}
 
 	public function mount() {
@@ -52,25 +45,37 @@ class RootView<Primitive = Any> implements View {
 	final child:ViewReconciler;
 	final disposables:DisposableCollection = new DisposableCollection();
 
-	public function new(root) {
+	var node:Node;
+
+	public function new(root, node) {
 		this.root = root;
+		this.node = node;
 		this.child = new ViewReconciler(this, root.adaptor);
 	}
 
 	public function currentNode():Node {
-		throw root.child;
+		return node;
 	}
 
 	public function currentParent():Maybe<View> {
 		return None;
 	}
 
-	public function insert(cursor:Cursor, ?hydrate:Bool):Result<View, ViewError> {
-		return child.insert(root.child, cursor, hydrate);
+	function render():Child {
+		#if debug
+		return DebugBoundary.node({child: node});
+		#else
+		return node;
+		#end
 	}
 
-	public function update(parent:Maybe<View>, node:Node, cursor:Cursor):Result<View, ViewError> {
-		return child.reconcile(root.child, cursor);
+	public function insert(cursor:Cursor, ?hydrate:Bool):Result<View, ViewError> {
+		return child.insert(render(), cursor, hydrate);
+	}
+
+	public function update(parent:Maybe<View>, incomingNode:Node, cursor:Cursor):Result<View, ViewError> {
+		node = incomingNode;
+		return child.reconcile(render(), cursor);
 	}
 
 	public function remove(cursor:Cursor):Result<View, ViewError> {

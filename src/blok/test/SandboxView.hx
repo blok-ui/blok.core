@@ -1,8 +1,8 @@
 package blok.test;
 
 import blok.core.Disposable;
-import haxe.Exception;
 import blok.engine.*;
+import haxe.Exception;
 
 using blok.Modifiers;
 

@@ -34,11 +34,11 @@ class ContextBuildStep implements BuildStep {
 			default:
 				Context.error('Only one :fallback meta is allowed', cls.pos);
 		}
-		var createParams:Array<TypeParamDecl> = cls.params.length > 0 ? [for (p in cls.params) {name: p.name, constraints: p.extractTypeParams()}] : [];
+		var constructorParams:Array<TypeParamDecl> = cls.params.length > 0 ? [for (p in cls.params) {name: p.name, constraints: p.extractTypeParams()}] : [];
 		var ret:ComplexType = TPath({
 			pack: tp.pack,
 			name: tp.name,
-			params: createParams.map(p -> TPType(TPath({name: p.name, pack: []})))
+			params: constructorParams.map(p -> TPType(TPath({name: p.name, pack: []})))
 		});
 		var resolvers = macro class {
 			@:noUsing
@@ -73,14 +73,16 @@ class ContextBuildStep implements BuildStep {
 			}
 		}
 
-		builder.addField(resolvers
+		resolvers
 			.getField('from')
-			.orThrow()
-			.applyParameters(createParams));
-		builder.addField(resolvers
+			.map(field -> field.applyParameters(constructorParams))
+			.inspect(field -> builder.addField(field))
+			.orThrow();
+		resolvers
 			.getField('maybeFrom')
-			.orThrow()
-			.applyParameters(createParams));
+			.map(field -> field.applyParameters(constructorParams))
+			.inspect(field -> builder.addField(field))
+			.orThrow();
 
 		builder.add(macro class {
 			@:noCompletion

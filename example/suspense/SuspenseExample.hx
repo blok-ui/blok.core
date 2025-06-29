@@ -63,17 +63,19 @@ class SuspenseExample extends Component {
 
 		return Html.div({
 			className: Breeze.compose(
-				Background.color('red', 500),
-				Typography.textColor('white', 0),
 				Typography.fontWeight('bold'),
 				Sizing.height(50),
 				Spacing.pad(3),
 				Spacing.margin(10),
 				Border.radius(3),
+				Border.width(.5),
 				Flex.display(),
 				Flex.direction('row'),
 				Flex.gap(3),
-				Spacing.pad(3)
+				Spacing.pad(3),
+				Breakpoint.viewport('700px', Sizing.width('700px')),
+				Spacing.margin('x', 'auto'),
+				Spacing.margin('y', 10)
 			)
 		}).child(body)
 			.inErrorBoundary((e) -> Html.div().child([
@@ -107,19 +109,24 @@ class SuspenseItem extends Component {
 	function render() {
 		return Html.div()
 			.attr(ClassName, Breeze.compose(
-				Flex.display()
+				Flex.display(),
+				Flex.gap(3)
 			))
 				// .child(str())
 			.child(SubItem.node({str: str})) // Resources can be passed as ReadOnlySignals
 			.child(
 				Html.button()
 					.attr(ClassName, Breeze.compose(
-						Background.color('white', 0),
-						Typography.textColor('red', 500),
-						Typography.fontWeight('bold'),
-						Spacing.pad(3),
-						Spacing.margin('left', 3),
+						Spacing.pad('x', 3),
+						Spacing.pad('y', 1),
 						Border.radius(3),
+						Border.width(.5),
+						Border.color('black', 0),
+						Background.color('white', 0),
+						Typography.textColor('black', 0),
+						Modifier.hover(
+							Background.color('gray', 200)
+						)
 					))
 					.on(Click, _ -> delay.update(delay -> delay + 1))
 					.child('Reload')
@@ -133,7 +140,13 @@ class SubItem extends Component {
 	function render():Child {
 		return Html.div()
 			.attr(ClassName, Breeze.compose(
-				Background.color('red', 300)
+				Spacing.pad('x', 3),
+				Spacing.pad('y', 1),
+				Border.radius(3),
+				Border.width(.5),
+				Border.color('black', 0),
+				Background.color('black', 0),
+				Typography.textColor('white', 0),
 			))
 			.child(str);
 	}

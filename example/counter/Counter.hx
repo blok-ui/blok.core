@@ -15,18 +15,37 @@ class Counter extends Component {
 	@:computed final countId:String = 'counter-${count()}';
 
 	function render() return Html.view(<div id=countId className={Breeze.compose(
-		Background.color('red', 500),
-		Typography.textColor('white', 0),
+		Border.radius(3),
+		Border.width(.5),
 		Typography.fontWeight('bold'),
 		Spacing.pad(3),
 		Spacing.margin(10),
-		Border.radius(3),
+		Breakpoint.viewport('700px', Sizing.width('700px')),
+		Spacing.margin('x', 'auto'),
+		Spacing.margin('y', 10),
+		Flex.display(),
+		Flex.direction('column'),
+		Flex.gap(3),
+		Flex.alignItems('center')
 	)}>
 		// Blok requires strings to be wrapped in quotes, which is a bit
 		// different than other DSLs. As a benefit of this, you can pass
 		// identifiers directly as node children (like `count` here) without
 		// wrapping them in brackets (like `{count}`).
-		<div>'Current count: ' count</div>
+		<div className={Breeze.compose(
+			Flex.display(),
+			Flex.gap(1.5),
+			Flex.alignItems('center')
+		)}>
+			<span>'Current count'</span>
+			<div className={Breeze.compose(
+				Spacing.pad('x', 3),
+				Spacing.pad('y', 1),
+				Border.radius(3),
+				Background.color('black', 0),
+				Typography.textColor('white', 0),
+			)}>count</div>
+		</div>
 		<div className={Breeze.compose(
 			Flex.display(),
 			Flex.gap(3),
@@ -68,11 +87,15 @@ class CounterButton extends Component {
 
 	function render() {
 		return Html.view(<button className={Breeze.compose(
-			Background.color('white', 0),
-			Typography.textColor('red', 500),
-			Typography.fontWeight('bold'),
 			Spacing.pad(3),
-			Border.radius(3)
+			Border.radius(3),
+			Border.width(.5),
+			Border.color('black', 0),
+			Background.color('white', 0),
+			Typography.textColor('black', 0),
+			Modifier.hover(
+				Background.color('gray', 200)
+			)
 		)} onClick=onClick>label</button>);
 	}
 }

@@ -1,5 +1,6 @@
 package todo;
 
+import haxe.Exception;
 import Breeze;
 import blok.*;
 import blok.data.*;
@@ -92,29 +93,49 @@ class TodoContext extends SerializableModel implements Context {
 
 class TodoRoot extends Component {
 	function render() {
-		return Html.view(<ErrorBoundary>
+		return Html.view(
 			<div className={Breeze.compose(
-				Flex.display(),
-				Flex.justify('center'),
-				Spacing.pad(10),
+				Sizing.width('full'),
+				Border.radius(3),
+				Border.width(.5),
+				Layout.overflow('hidden'),
+				Breakpoint.viewport('700px', Sizing.width('700px')),
+				Spacing.margin('x', 'auto'),
+				Spacing.margin('y', 10)
 			)}>
-				<div className={Breeze.compose(
-					Sizing.width('full'),
-					Border.radius(2),
-					Border.width(.5),
-					Breakpoint.viewport('700px', Sizing.width('700px'))
-				)}>
+				<ErrorBoundary>
 					<Provider provide={TodoContext.load()}>
 						<TodoHeader />
 						<TodoList />
 						<TodoFooter />
 					</Provider>
-				</div>
+					<fallback>
+						{e -> <ErrorHandler exception={e} />}
+					</fallback>
+				</ErrorBoundary>
 			</div>
-			<fallback>
-				{e -> <p>{e.toString()}</p>}
-			</fallback>
-		</ErrorBoundary>);
+		);
+	}
+}
+
+class ErrorHandler extends Component {
+	@:attribute public final exception:Exception;
+
+	function render():Child {
+		return Html.view(
+			<div className={Breeze.compose(
+				Background.color('red', 500),
+				Border.radius(3),
+				Border.width(.5),
+				Spacing.pad(3),
+				Spacing.margin(3),
+				Typography.textColor('white', 0),
+			)}>
+				<strong className={Breeze.compose(
+					Typography.fontWeight('bold')
+				)}>"Error:"</strong> ' ' {exception.toString()}
+			</div>
+		);
 	}
 }
 
@@ -209,7 +230,7 @@ class Button extends Component {
 	@:computed final className:ClassName = [
 		Spacing.pad('x', 3),
 		Spacing.pad('y', 1),
-		Border.radius(2),
+		Border.radius(3),
 		Border.width(.5),
 		Border.color('black', 0),
 		if (selected()) Breeze.compose(
@@ -249,7 +270,7 @@ class TodoInput extends Component {
 				className,
 				Spacing.pad('x', 3),
 				Spacing.pad('y', 1),
-				Border.radius(2),
+				Border.radius(3),
 				Border.color('black', 0),
 				Border.width(.5)
 			),

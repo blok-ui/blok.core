@@ -77,7 +77,6 @@ class ComponentBuilder implements BuildBundle implements BuildStep {
 		var cls = builder.getClass();
 		var componentTypePath = builder.getTypePath();
 		var componentType = builder.getType().toComplexType();
-		var createParams = cls.params.toTypeParamDecl();
 		var props = builder.hook(Init).getProps().concat(builder.hook(LateInit).getProps());
 		var updates = builder.updateHook().getExprs();
 		var propType:ComplexType = TAnonymous(props);
@@ -122,27 +121,25 @@ class ComponentBuilder implements BuildBundle implements BuildStep {
 		}
 
 		var infos = haxe.macro.Context.getPosInfos(cls.pos);
+		var constructorPos = haxe.macro.Context.makePosition({
+			min: infos.min,
+			max: infos.min + 1,
+			file: infos.file
+		});
+		var constructorParams = cls.params.toTypeParamDecl();
 
-		builder.addField(constructors
+		constructors
 			.getField('node')
-			.orThrow()
-			.withPos(haxe.macro.Context.makePosition({
-				min: infos.min,
-				max: infos.min + 1,
-				file: infos.file
-			}))
-			.applyParameters(createParams));
+			.map(field -> field.withPos(constructorPos).applyParameters(constructorParams))
+			.inspect(field -> builder.addField(field))
+			.orThrow();
 
 		if (options.createFromMarkupMethod) {
-			builder.addField(constructors
+			constructors
 				.getField('__fromMarkup')
-				.orThrow()
-				.withPos(haxe.macro.Context.makePosition({
-					min: infos.min,
-					max: infos.min + 1,
-					file: infos.file
-				}))
-				.applyParameters(createParams));
+				.map(field -> field.withPos(constructorPos).applyParameters(constructorParams))
+				.inspect(field -> builder.addField(field))
+				.orThrow();
 		}
 
 		builder.add(macro class {

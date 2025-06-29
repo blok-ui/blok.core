@@ -12,9 +12,9 @@ inline function updateHook(builder:ClassBuilder) {
 	return builder.hook('update');
 }
 
-function prepareForDisplay(e:Expr) {
+function prepareForDisplay(e:Expr, ?kind:DisplayKind) {
 	if (Context.containsDisplayPosition(e.pos)) {
-		return {expr: EDisplay(e, DKMarked), pos: e.pos};
+		return {expr: EDisplay(e, kind ?? DKMarked), pos: e.pos};
 	}
 	return e;
 }

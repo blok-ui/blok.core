@@ -43,7 +43,7 @@ class ContextBuildStep implements BuildStep {
 		var resolvers = macro class {
 			@:noUsing
 			public static function from(view:blok.engine.IntoView):$ret {
-				return @:pos(fallback.pos) return maybeFrom(view).or(() -> {
+				return @:pos(fallback.pos) maybeFrom(view).or(() -> {
 					if (__fallbackInstances == null) {
 						__fallbackInstances = [];
 					}

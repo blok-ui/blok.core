@@ -432,8 +432,8 @@ Both Models and Objects have a `Serializable` variant which allow them to be con
 
 ```haxe
 class Todo extends blok.data.SerializableModel {
-  // This is a silly example, but if you -- for some reason -- needed to serialize the id field as a string,
-  // this is how you would do it:
+  // This is a silly example, but if you -- for some reason -- needed to serialize the id
+  // field as a string this is how you would do it:
   @:json(from = Std.parseInt(value), to = Std.string(value))
   @:value public final id:Int;
   @:signal public final content:String;

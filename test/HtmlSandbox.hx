@@ -3,4 +3,4 @@ import blok.test.*;
 
 using blok.Modifiers;
 
-final sandbox = new Sandbox(new ServerAdaptor(), () -> new ElementPrimitive('#document'));
+final sandbox = new SandboxFactory(new ServerAdaptor(), () -> new ElementPrimitive('#document'));

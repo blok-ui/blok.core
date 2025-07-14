@@ -6,6 +6,7 @@ import blok.signal.*;
 
 function main() {
 	Runner.fromDefaults()
+		.add(ComponentSuite)
 		.add(TextPrimitiveSuite)
 		.add(ElementPrimitiveSuite)
 		.add(UnescapedTextPrimitiveSuite)

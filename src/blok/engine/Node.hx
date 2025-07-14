@@ -8,7 +8,7 @@ interface Node {
 }
 
 class NodeTools {
-	public static function replaceWith<T:Node>(node:T, other:Node):Result<T, Node> {
-		return if (node.matches(other)) Ok(cast other) else Error(other);
+	public static function replaceWith<T:Node>(node:T, other:Node, view:View):Result<T, ViewError> {
+		return if (node.matches(other)) Ok(cast other) else Error(IncorrectNodeType(view, other));
 	}
 }

@@ -34,9 +34,7 @@ class PortalView implements View {
 
 		var prevTarget = this.node.target;
 
-		this.node = this.node.replaceWith(node)
-			.mapError(node -> ViewError.IncorrectNodeType(this, node))
-			.orReturn();
+		this.node = this.node.replaceWith(node, this).orReturn();
 
 		return if (prevTarget != this.node.target) {
 			var cursor = adaptor.children(prevTarget);

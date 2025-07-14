@@ -218,9 +218,7 @@ class BoundaryView<T, N:BoundaryNode<T>> implements View implements Boundary {
 	}
 
 	public function update(parent:Maybe<View>, node:Node, cursor:Cursor):Result<View, ViewError> {
-		this.node = Node.NodeTools.replaceWith(this.node, node)
-			.mapError(_ -> ViewError.IncorrectNodeType(this, node))
-			.orReturn();
+		this.node = Node.NodeTools.replaceWith(this.node, node, this).orReturn();
 
 		boundaryStatus.extract(if (Recovering(links)) {
 			for (link in links) link.cancel();

@@ -28,16 +28,16 @@ class Counter extends Component {
 		Flex.gap(3),
 		Flex.alignItems('center')
 	)}>
-		// Blok requires strings to be wrapped in quotes, which is a bit
-		// different than other DSLs. As a benefit of this, you can pass
-		// identifiers directly as node children (like `count` here) without
-		// wrapping them in brackets (like `{count}`).
 		<div className={Breeze.compose(
 			Flex.display(),
 			Flex.gap(1.5),
 			Flex.alignItems('center')
 		)}>
 			<span>'Current count'</span>
+			// Blok requires strings to be wrapped in quotes, which is a bit
+			// different than other DSLs. As a benefit of this, you can pass
+			// identifiers directly as node children (like `count` here) without
+			// wrapping them in brackets (like `{count}`).
 			<div className={Breeze.compose(
 				Spacing.pad('x', 3),
 				Spacing.pad('y', 1),

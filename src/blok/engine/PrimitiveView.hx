@@ -61,9 +61,7 @@ class PrimitiveView<Attrs:{}> implements View {
 
 	public function update(parent:Maybe<View>, node:Node, cursor:Cursor):Result<View, ViewError> {
 		this.parent = parent;
-		this.node = this.node.replaceWith(node)
-			.mapError(node -> ViewError.IncorrectNodeType(this, node))
-			.orReturn();
+		this.node = this.node.replaceWith(node, this).orReturn();
 
 		cursor.insert(primitive)
 			.mapError(_ -> ViewError.InsertionFailed(this))

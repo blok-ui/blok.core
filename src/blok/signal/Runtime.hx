@@ -35,6 +35,10 @@ class Runtime {
 		this.schedule = schedule;
 	}
 
+	public function scheduleFuture():Future<Nothing> {
+		return new Future(activate -> schedule(() -> activate(Nothing)));
+	}
+
 	public function incrementEpoch() {
 		epoch++;
 	}

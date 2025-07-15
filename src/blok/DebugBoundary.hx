@@ -47,6 +47,8 @@ private function defaultFallback(error:ViewError) {
 	var title:String = switch error {
 		case ViewAlreadyExists(_): 'View already exists';
 		case InsertionFailed(_, _): 'View insertion failed';
+		case UpdateFailed(_, _): 'View update failed';
+		case RemovalFailed(_, _): 'View removal failed';
 		case IncorrectNodeType(_, _): 'Incorrect node type';
 		case HydrationMismatch(_, _, _): 'Hydration mismatch';
 		case NoNodeFoundDuringHydration(_, _): 'Hydration mismatch';
@@ -61,9 +63,9 @@ private function defaultFallback(error:ViewError) {
 			{switch error {
 				case ViewAlreadyExists(view):
 					<pre>{buildTree(view)}</pre>;
-				case InsertionFailed(view, message):
+				case InsertionFailed(view, message) | UpdateFailed(view, message) | RemovalFailed(view, message) :
 					<>
-						<p>message</p>
+						{message != null ? <p>message</p> : Text.node('')}
 						<pre>{buildTree(view)}</pre>
 					</>;
 				case IncorrectNodeType(view, node):

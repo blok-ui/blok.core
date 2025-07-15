@@ -74,11 +74,11 @@ class BoundaryView<T, N:BoundaryNode<T>> implements View implements Boundary {
 			case Some(decoded):
 				showPlaceholder(target, decoded).orThrow();
 			case None:
-				bubblePayloadUpwards(target, error);
+				bubbleErrorUpwards(target, error);
 		}
 	}
 
-	public function bubblePayloadUpwards(target:View, error:Any) {
+	public function bubbleErrorUpwards(target:View, error:Any) {
 		boundaryStatus = Touched;
 
 		if (state.onStatusChanged != null) {
@@ -110,7 +110,7 @@ class BoundaryView<T, N:BoundaryNode<T>> implements View implements Boundary {
 						state.onStatusChanged(this, FailedToRecoverFromError);
 					});
 				}
-				bubblePayloadUpwards(target, e);
+				bubbleErrorUpwards(target, e);
 		});
 
 		return new BoundaryLink(target, this, error, link);
@@ -131,7 +131,7 @@ class BoundaryView<T, N:BoundaryNode<T>> implements View implements Boundary {
 			adaptor.schedule(() -> switch showChild() {
 				case Ok(_):
 				case Error(error):
-					bubblePayloadUpwards(this, error);
+					bubbleErrorUpwards(this, error);
 			});
 		});
 	}

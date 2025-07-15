@@ -64,7 +64,7 @@ class PrimitiveView<Attrs:{}> implements View {
 		this.node = this.node.replaceWith(node, this).orReturn();
 
 		cursor.insert(primitive)
-			.mapError(_ -> ViewError.InsertionFailed(this))
+			.mapError(_ -> ViewError.UpdateFailed(this))
 			.orReturn();
 
 		attributes.reconcile(this.node.attributes);
@@ -79,7 +79,7 @@ class PrimitiveView<Attrs:{}> implements View {
 		disposables?.dispose();
 		children.remove(adaptor.children(primitive)).orReturn();
 		cursor.remove(primitive)
-			.mapError(e -> ViewError.CausedException(this, e))
+			.mapError(e -> ViewError.RemovalFailed(this))
 			.orReturn();
 		attributes.dispose();
 

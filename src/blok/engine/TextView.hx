@@ -56,7 +56,7 @@ class TextView implements View {
 		adaptor.updateTextPrimitive(primitive, this.node.content);
 
 		cursor.insert(primitive)
-			.mapError(e -> ViewError.InsertionFailed(this))
+			.mapError(e -> ViewError.UpdateFailed(this))
 			.orReturn();
 
 		return Ok(this);
@@ -70,7 +70,7 @@ class TextView implements View {
 	public function remove(cursor:Cursor):Result<View, ViewError> {
 		disposables?.dispose();
 		cursor.remove(primitive)
-			.mapError(e -> ViewError.InsertionFailed(this))
+			.mapError(e -> ViewError.RemovalFailed(this))
 			.orReturn();
 		primitive = null;
 		return Ok(this);

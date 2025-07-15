@@ -5,6 +5,12 @@ import blok.signal.Computation;
 @:forward
 abstract Signal<T>(SignalObject<T>) to ReadOnlySignal<T> {
 	@:from
+	public static function of<T>(value:T):Signal<T> {
+		return new Signal(value);
+	}
+
+	@:from
+	@:deprecated('use `of` instead')
 	public static function ofValue<T>(value:T):Signal<T> {
 		return new Signal(value);
 	}
@@ -89,19 +95,29 @@ typedef ReadOnlySignalObject<T> = {
 }
 
 abstract ReadOnlySignal<T>(ReadOnlySignalObject<T>) from ReadOnlySignalObject<T> from SignalObject<T> from ComputationObject<T> {
-	@:from public inline static function ofSignal<T>(signal:Signal<T>):ReadOnlySignal<T> {
+	@:from
+	public inline static function ofSignal<T>(signal:Signal<T>):ReadOnlySignal<T> {
 		return signal;
 	}
 
-	@:from public inline static function ofComputation<T>(computation:Computation<T>):ReadOnlySignal<T> {
+	@:from
+	public inline static function ofComputation<T>(computation:Computation<T>):ReadOnlySignal<T> {
 		return computation;
 	}
 
-	@:from public inline static function ofReadOnlySignal<T>(signal:ReadOnlySignal<T>):ReadOnlySignal<T> {
+	@:from
+	public inline static function ofReadOnlySignal<T>(signal:ReadOnlySignal<T>):ReadOnlySignal<T> {
 		return signal;
 	}
 
-	@:from public inline static function ofValue<T>(value:T):ReadOnlySignal<T> {
+	@:from
+	public inline static function of<T>(value:T):ReadOnlySignal<T> {
+		return new ReadOnlySignal(value);
+	}
+
+	@:from
+	@:deprecated('use `of` instead')
+	public inline static function ofValue<T>(value:T):ReadOnlySignal<T> {
 		return new ReadOnlySignal(value);
 	}
 

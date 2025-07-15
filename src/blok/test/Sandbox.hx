@@ -85,6 +85,8 @@ class Sandbox<Primitive> implements Disposable {
 		return switch error {
 			case ViewAlreadyExists(view): new Error(InternalError, 'View already exists');
 			case InsertionFailed(view, message): new Error(InternalError, 'Insertion failed');
+			case UpdateFailed(view, message): new Error(InternalError, 'Update failed');
+			case RemovalFailed(view, message): new Error(InternalError, 'Removal failed');
 			case IncorrectNodeType(view, node): new Error(NotAcceptable, 'Incorrect node type');
 			case HydrationMismatch(view, expected, actual): new Error(NotAcceptable, 'Hydration mismatch');
 			case NoNodeFoundDuringHydration(view, expected): new Error(NotAcceptable, 'Hydration mismatch');

@@ -20,34 +20,45 @@ class EffectBuildStep implements BuildStep {
 	function parseEffectMethod(field:Field, builder:ClassBuilder) {
 		switch field.kind {
 			case FFun(f):
-				if (f.args.length != 0) {
-					field.pos.error(':effect methods cannot have arguments');
+				if (field.access.contains(AStatic)) {
+					field.pos.error(':effect fields cannot be static');
+				}
+				if (!field.access.contains(AInline)) {
+					field.access.push(AInline);
 				}
 
 				var name = field.name;
-				var expr = f.expr;
+				var call:Expr = switch f.args {
+					case []: macro this.$name();
+					case args:
+						var apply:Array<Expr> = [for (arg in args) {
+							switch arg.meta {
+								case [{name: ':primitive'}]:
+									macro investigate().getPrimitive();
+								default:
+									field.pos.error('Invalid argument. Only args marked with @:primitive are allowed now.');
+									macro null;
+							}
+						}];
+						macro this.$name($a{apply});
+				}
 
-				switch f.ret {
+				builder.setupHook().addExpr(switch f.ret {
 					case macro :Void:
-						f.expr = macro {
-							blok.signal.Observer.track(() -> ${expr});
-						}
+						macro blok.signal.Observer.track(() -> ${call});
 					default:
-						f.expr = macro {
+						macro {
 							var cleanup:Null<() -> Void> = null;
-							var run = () -> ${expr};
 							blok.signal.Observer.track(() -> {
 								if (cleanup != null) cleanup();
-								@:pos(expr.pos) cleanup = run();
+								cleanup = ${call};
 							});
 							addDisposable(() -> {
 								if (cleanup != null) cleanup();
 								cleanup = null;
 							});
 						}
-				}
-
-				builder.setupHook().addExpr(macro this.$name());
+				});
 			default:
 				field.pos.error(':effect fields must be methods');
 		}

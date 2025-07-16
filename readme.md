@@ -308,6 +308,14 @@ Note that if you *don't* want a cleanup function you must explicitly mark the re
 }
 ```
 
+Effects can also accept arguments. Right now, the only argument that's accepted is one marked `@:primitive`. When the effect is called, the current primitive being managed by the component will be injected.
+
+```haxe
+@:effect function traceCurrentPrimitive(@:primitive el:js.html.Element):Void {
+  trace(el);
+}
+```
+
 ### @:context
 
 Use the given [Context](#providing-context). This is a convenience method that is roughly equivalent to calling `SomeContext.from(this)` but which can make your code look a little neater.

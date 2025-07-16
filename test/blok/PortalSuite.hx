@@ -8,15 +8,13 @@ class PortalSuite extends Suite {
 	function portalWillRenderChildrenInTheGivenPrimitive() {
 		var portalRoot = new ElementPrimitive('div', {id: 'portal'});
 
-		return sandbox.render(
-			Html.div().child(
-				Portal.node({
-					target: portalRoot,
-					child: Html.p().child('Test')
-				}),
-				Html.p().child('Body')
-			)
-		).then(root -> {
+		return Html.div().child(
+			Portal.node({
+				target: portalRoot,
+				child: Html.p().child('Test')
+			}),
+			Html.p().child('Body')
+		).renderAsync().then(root -> {
 			var document = root.primitive;
 			document.toString({includeTextMarkers: false}).equals('<div><p>Body</p></div>');
 			portalRoot.toString({includeTextMarkers: false}).equals('<div id="portal"><p>Test</p></div>');

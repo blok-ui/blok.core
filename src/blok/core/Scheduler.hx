@@ -62,6 +62,14 @@ class Scheduler {
 		}
 	}
 
+	public function scheduleFuture():Future<Nothing> {
+		return new Future(activate -> schedule(() -> activate(Nothing)));
+	}
+
+	public function scheduleFutureEffect():Future<Nothing> {
+		return new Future(activate -> scheduleEffect(() -> activate(Nothing)));
+	}
+
 	function resolve() {
 		var pending = switch scheduled {
 			case Some(scheduled): scheduled;

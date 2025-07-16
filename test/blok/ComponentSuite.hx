@@ -7,8 +7,8 @@ import blok.*;
 class ComponentSuite extends Suite {
 	@:test
 	function componentRendersCorrectly() {
-		return sandbox
-			.render(SimpleComponent.node({value: 'value'}))
+		return SimpleComponent.node({value: 'value'})
+			.renderAsync()
 			.then(root -> {
 				root.primitive.toString({includeTextMarkers: false}).equals('<div>value</div>');
 				Task.nothing();
@@ -18,8 +18,8 @@ class ComponentSuite extends Suite {
 	@:test
 	function componentReactsToSignals() {
 		var value = new Signal('value');
-		return sandbox
-			.render(ReactiveComponent.node({value: value}))
+		return ReactiveComponent.node({value: value})
+			.renderAsync()
 			.then(root -> {
 				root.primitive.toString({includeTextMarkers: false}).equals('<div>value</div>');
 				value.set('new value');

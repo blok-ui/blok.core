@@ -64,10 +64,11 @@ class Sandbox<Primitive> implements Disposable {
 				handled = true;
 				activate(Error(kit.Error.ofException(exception)));
 			});
-			root.root
+			root
+				.getView()
 				.update(None, body, root.adaptor.children(root.primitive))
 				.inspect(_ -> {
-					if (suspended == false && handled == false) {
+					if (!suspended && !handled) {
 						handled = true;
 						activate(Ok(root));
 					}

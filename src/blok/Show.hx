@@ -4,7 +4,7 @@ import blok.signal.Signal;
 
 final class Show extends Component {
 	public inline static function when(condition:ReadOnlySignal<Bool>, child:() -> Child) {
-		return new VShow({condition: condition, child: child});
+		return new ShowFactory({condition: condition, child: child});
 	}
 
 	@:observable final condition:Bool;
@@ -22,13 +22,13 @@ final class Show extends Component {
 	}
 }
 
-typedef VShowData = {
+typedef ShowFactoryProps = {
 	condition:ReadOnlySignal<Bool>,
 	child:() -> Child,
 	?otherwise:() -> Child
 }
 
-abstract VShow(VShowData) {
+abstract ShowFactory(ShowFactoryProps) {
 	public function new(data) {
 		this = data;
 	}

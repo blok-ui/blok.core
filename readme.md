@@ -308,7 +308,7 @@ Note that if you *don't* want a cleanup function you must explicitly mark the re
 }
 ```
 
-Effects can also accept arguments. Right now, the only argument that's accepted is one marked `@:primitive`. When the effect is called, the current primitive being managed by the component will be injected.
+Effects can also accept a few arguments so long as they are marked with a small selection of metadata. Right now, the only available option is `@:primitive` (which will inject the component's current primitive). Other arguments might be added later.
 
 ```haxe
 @:effect function traceCurrentPrimitive(@:primitive el:js.html.Element):Void {

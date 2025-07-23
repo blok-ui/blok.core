@@ -1,8 +1,10 @@
 package blok.macro;
 
+import haxe.macro.Context;
 import haxe.macro.Expr;
 import kit.macro.*;
 
+using haxe.macro.Tools;
 using blok.macro.Tools;
 using kit.macro.Tools;
 
@@ -36,7 +38,7 @@ class EffectBuildStep implements BuildStep {
 								case [{name: ':primitive'}]:
 									macro investigate().getPrimitive();
 								default:
-									field.pos.error('Invalid argument. Only args marked with @:primitive are allowed now.');
+									field.pos.error('Invalid argument. @:effect methods can only accept arguments that are marked @:primitive (to inject the current primitive).');
 									macro null;
 							}
 						}];

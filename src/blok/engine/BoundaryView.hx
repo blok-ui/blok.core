@@ -203,7 +203,7 @@ class BoundaryView<T, N:BoundaryNode<T>> implements View implements Boundary {
 	}
 
 	public function insert(cursor:Cursor, ?hydrate:Bool):Result<View, ViewError> {
-		marker.insert(cursor, false);
+		marker.insert(cursor, hydrate);
 
 		child.insert(node.child, cursor, hydrate)
 			.inspectError(error -> inspectError(child.get().unwrap(), error));

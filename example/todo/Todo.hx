@@ -243,8 +243,6 @@ class TodoList extends Component {
 	@:computed final visibleTodos:Array<Todo> = todos.visibleTodos();
 	@:computed final hidden:Bool = todos.total() == 0;
 
-	// @:computed final style:Null<String> = hidden() ? 'visibility:hidden' : null;
-
 	function render():Child {
 		return Html.view(<Scope>
 			{_ -> if (hidden()) <PanelContent>
@@ -320,10 +318,6 @@ class TodoItem extends Component {
 					todo.description.set(data);
 					todo.isEditing.set(false);
 				}
-				// onSubmit: data -> Action.run(() -> {
-				//   todo.description.set(data);
-				//   todo.isEditing.set(false);
-				// })
 			})}
 		</li>);
 	}

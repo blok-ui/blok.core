@@ -1,6 +1,5 @@
 package todo;
 
-import haxe.Exception;
 import Breeze;
 import blok.*;
 import blok.data.*;
@@ -31,7 +30,7 @@ class Todo extends SerializableModel {
 
 @:fallback(TodoContext.load())
 class TodoContext extends SerializableModel implements Context {
-	static inline final storageId = 'pine-todo-store';
+	static inline final storageId = 'blok-todo-store';
 
 	public static function load():TodoContext {
 		var data = js.Browser.window.localStorage.getItem(storageId);

@@ -129,21 +129,6 @@ class TodoHeader extends Component {
 	}
 }
 
-class VisibilityControlMenu extends Component {
-	public function render():Child {
-		return Html.view(<PanelContent>
-			<ul className={Breeze.compose(
-				Flex.display(),
-				Flex.gap(3),
-			)}>
-				<VisibilityControl visibility=All />
-				<VisibilityControl visibility=Active />
-				<VisibilityControl visibility=Completed />
-			</ul>
-		</PanelContent>);
-	}
-}
-
 class TodoFooter extends Component {
 	@:context final todos:TodoContext;
 	@:computed final display:String = switch todos.total() {
@@ -166,22 +151,6 @@ class TodoFooter extends Component {
 		>
 			<span><strong>message</strong></span>
 		</footer>);
-	}
-}
-
-class VisibilityControl extends Component {
-	@:context final todos:TodoContext;
-	@:attribute final visibility:TodoVisibility;
-	@:computed final isSelected:Bool = visibility == todos.visibility();
-
-	function render() {
-		var label:String = visibility;
-		return Html.view(<li>
-			<Button
-				action={() -> todos.visibility.set(visibility)}
-				selected=isSelected
-			>label</Button>
-		</li>);
 	}
 }
 
@@ -235,6 +204,37 @@ class TodoInput extends Component {
 				}
 			}
 		});
+	}
+}
+
+class VisibilityControlMenu extends Component {
+	public function render():Child {
+		return Html.view(<PanelContent>
+			<ul className={Breeze.compose(
+				Flex.display(),
+				Flex.gap(3),
+			)}>
+				<VisibilityControl visibility=All />
+				<VisibilityControl visibility=Active />
+				<VisibilityControl visibility=Completed />
+			</ul>
+		</PanelContent>);
+	}
+}
+
+class VisibilityControl extends Component {
+	@:context final todos:TodoContext;
+	@:attribute final visibility:TodoVisibility;
+	@:computed final isSelected:Bool = visibility == todos.visibility();
+
+	function render() {
+		var label:String = visibility;
+		return Html.view(<li>
+			<Button
+				action={() -> todos.visibility.set(visibility)}
+				selected=isSelected
+			>label</Button>
+		</li>);
 	}
 }
 

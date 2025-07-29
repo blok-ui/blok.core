@@ -5,5 +5,4 @@ interface Cursor {
 	public function current():Maybe<Any>;
 	public function insert(primitive:Any):Result<Any>;
 	public function remove(primitive:Any):Result<Any>;
-	public function detach(primitive:Any):Result<Any>;
 }

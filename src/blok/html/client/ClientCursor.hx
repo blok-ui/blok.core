@@ -55,8 +55,4 @@ class ClientCursor implements Cursor {
 		toRemove.remove();
 		return Ok(toRemove);
 	}
-
-	public function detach(primitive:Any):Result<Any, Error> {
-		return remove(primitive);
-	}
 }

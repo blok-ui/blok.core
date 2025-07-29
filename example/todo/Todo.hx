@@ -7,6 +7,7 @@ import blok.data.*;
 import blok.html.*;
 import blok.signal.*;
 import haxe.Json;
+import ui.*;
 
 using Kit;
 using Reflect;
@@ -93,49 +94,18 @@ class TodoContext extends SerializableModel implements Context {
 
 class TodoRoot extends Component {
 	function render() {
-		return Html.view(
-			<div className={Breeze.compose(
-				Sizing.width('full'),
-				Border.radius(3),
-				Border.width(.5),
-				Layout.overflow('hidden'),
-				Breakpoint.viewport('700px', Sizing.width('700px')),
-				Spacing.margin('x', 'auto'),
-				Spacing.margin('y', 10)
-			)}>
-				<ErrorBoundary>
-					<Provider provide={TodoContext.load()}>
-						<TodoHeader />
-						<TodoList />
-						<TodoFooter />
-					</Provider>
-					<fallback>
-						{e -> <ErrorHandler exception={e} />}
-					</fallback>
-				</ErrorBoundary>
-			</div>
-		);
-	}
-}
-
-class ErrorHandler extends Component {
-	@:attribute public final exception:Exception;
-
-	function render():Child {
-		return Html.view(
-			<div className={Breeze.compose(
-				Background.color('red', 500),
-				Border.radius(3),
-				Border.width(.5),
-				Spacing.pad(3),
-				Spacing.margin(3),
-				Typography.textColor('white', 0),
-			)}>
-				<strong className={Breeze.compose(
-					Typography.fontWeight('bold')
-				)}>"Error:"</strong> ' ' {exception.toString()}
-			</div>
-		);
+		return Html.view(<Container>
+			<ErrorBoundary>
+				<Provider provide={TodoContext.load()}>
+					<TodoHeader />
+					<TodoList />
+					<TodoFooter />
+				</Provider>
+				<fallback>
+					{e -> <ErrorView exception={e} />}
+				</fallback>
+			</ErrorBoundary>
+		</Container>);
 	}
 }
 
@@ -143,43 +113,34 @@ class TodoHeader extends Component {
 	@:context final todos:TodoContext;
 
 	function render():Child {
-		return Html.view(<header role="header" className={Breeze.compose(
-			Spacing.pad('x', 3)
-		)}>
-			<div className={Breeze.compose(
-				Flex.display(),
-				Flex.gap(3),
-				Flex.alignItems('center'),
-				Spacing.pad('y', 3),
-				Border.width('bottom', .5)
-			)}>
-				<h1 className={Breeze.compose(
-					Typography.fontSize('lg'),
-					Typography.fontWeight('bold'),
-					Spacing.margin('right', 'auto')
-				)}>'Todos'</h1>
-				<TodoInput 
-					className = {Breeze.compose(
-						'new-todo',
-						Sizing.width('70%')
-					)} 
-					value = '' 
-					clearOnComplete
-					onCancel = {() -> null}
-					onSubmit = {description -> todos.addTodo(description)}
-				/>
-			</div>
+		return Html.view(<PanelHeader>
+			<Title styles={Spacing.margin('right', 'auto')}>'Todos'</Title>
+			<TodoInput 
+				className = {Breeze.compose(
+					'new-todo',
+					Sizing.width('70%')
+				)} 
+				value = '' 
+				clearOnComplete
+				onCancel = {() -> null}
+				onSubmit = {description -> todos.addTodo(description)}
+			/>
+		</PanelHeader>);
+	}
+}
+
+class VisibilityControlMenu extends Component {
+	public function render():Child {
+		return Html.view(<PanelContent>
 			<ul className={Breeze.compose(
 				Flex.display(),
 				Flex.gap(3),
-				Spacing.pad('y', 3),
-				Border.width('bottom', .5)
 			)}>
 				<VisibilityControl visibility=All />
 				<VisibilityControl visibility=Active />
 				<VisibilityControl visibility=Completed />
 			</ul>
-		</header>);
+		</PanelContent>);
 	}
 }
 
@@ -214,39 +175,13 @@ class VisibilityControl extends Component {
 	@:computed final isSelected:Bool = visibility == todos.visibility();
 
 	function render() {
+		var label:String = visibility;
 		return Html.view(<li>
 			<Button
 				action={() -> todos.visibility.set(visibility)}
 				selected=isSelected
-			>visibility</Button>
+			>label</Button>
 		</li>);
-	}
-}
-
-class Button extends Component {
-	@:attribute final action:() -> Void;
-	@:children @:attribute final label:String;
-	@:observable final selected:Bool = false;
-	@:computed final className:ClassName = [
-		Spacing.pad('x', 3),
-		Spacing.pad('y', 1),
-		Border.radius(3),
-		Border.width(.5),
-		Border.color('black', 0),
-		if (selected()) Breeze.compose(
-			Background.color('black', 0),
-			Typography.textColor('white', 0)
-		) else Breeze.compose(
-			Background.color('white', 0),
-			Typography.textColor('black', 0),
-			Modifier.hover(
-				Background.color('gray', 200)
-			)
-		)
-	];
-
-	function render() {
-		return Html.view(<button className=className onClick={_ -> action()}>label</button>);
 	}
 }
 
@@ -307,27 +242,43 @@ class TodoList extends Component {
 	@:context final todos:TodoContext;
 	@:computed final visibleTodos:Array<Todo> = todos.visibleTodos();
 	@:computed final hidden:Bool = todos.total() == 0;
-	@:computed final style:Null<String> = hidden() ? 'visibility:hidden' : null;
+
+	// @:computed final style:Null<String> = hidden() ? 'visibility:hidden' : null;
 
 	function render():Child {
-		return Html.view(<section 
-			className="main"
-			ariaHidden=hidden
-			style=style
-		>
-			<ul className={Breeze.compose(
-				Flex.display(),
-				Flex.gap(3),
-				Flex.direction('column'),
-				Spacing.pad(3)
-			)}>
-				<Scope>
-					{_ -> <>
-						{for (todo in visibleTodos()) <TodoItem todo=todo key={todo.id} />}
-					</>}
-				</Scope>
-			</ul>
-		</section>);
+		return Html.view(<Scope>
+			{_ -> if (hidden()) <PanelContent>
+				<span className={Breeze.compose(
+					Typography.fontStyle('italic'),
+					Typography.textColor('gray', 500)	
+				)}>"No Todos"</span>
+			</PanelContent> else <>
+				<VisibilityControlMenu />
+				<ul className={Breeze.compose(
+					Flex.display(),
+					Flex.direction('column'),
+					Border.width('top', .5),
+					Spacing.margin('x', 3)
+				)}>
+					<Scope>
+						{_ -> {
+							var todos = visibleTodos();
+							if (todos.length == 0) return <li className={Breeze.compose(
+								Spacing.pad('y', 3)
+							)}>
+								<span className={Breeze.compose(
+									Typography.fontStyle('italic'),
+									Typography.textColor('gray', 500)	
+								)}>"No " {this.todos.visibility} " Todos"</span>
+							</li>;
+							<>
+								{for (todo in visibleTodos()) <TodoItem todo=todo key={todo.id} />}
+							</>;
+						}}
+					</Scope>
+				</ul>	
+			</>}
+		</Scope>);
 	}
 }
 

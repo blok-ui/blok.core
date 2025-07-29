@@ -3,6 +3,7 @@ package suspense;
 import blok.*;
 import blok.html.*;
 import haxe.Timer;
+import ui.*;
 
 using Breeze;
 using Kit;
@@ -61,27 +62,29 @@ class SuspenseExample extends Component {
 				)
 		]));
 
-		return Html.div({
-			className: Breeze.compose(
-				Typography.fontWeight('bold'),
-				Sizing.height(50),
-				Spacing.pad(3),
-				Spacing.margin(10),
-				Border.radius(3),
-				Border.width(.5),
-				Flex.display(),
-				Flex.direction('row'),
-				Flex.gap(3),
-				Spacing.pad(3),
-				Breakpoint.viewport('700px', Sizing.width('700px')),
-				Spacing.margin('x', 'auto'),
-				Spacing.margin('y', 10)
-			)
-		}).child(body)
-			.inErrorBoundary((e) -> Html.div().child([
-				Html.h1().child('Error!'),
-				Html.p().child(e.message)
-			]));
+		return Container.node({
+			children: [
+				PanelHeader.node({
+					children: Title.node({
+						children: 'Suspense Example'
+					})
+				}),
+				PanelContent.node({
+					styles: Breeze.compose(
+						Flex.display(),
+						Flex.direction('row'),
+						Flex.gap(3),
+						Typography.fontWeight('bold')
+					),
+					children: body
+						.node()
+						.inErrorBoundary(e -> ErrorView.node({
+							exception: e
+						}))
+				})
+
+			]
+		});
 	}
 }
 
@@ -114,7 +117,7 @@ class SuspenseItem extends Component {
 			))
 				// .child(str())
 			.child(SubItem.node({str: str})) // Resources can be passed as ReadOnlySignals
-			.child(
+			.child(	
 				Html.button()
 					.attr(ClassName, Breeze.compose(
 						Spacing.pad('x', 3),
